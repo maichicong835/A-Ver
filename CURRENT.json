@@ -19,16 +19,22 @@
     "search_engine_miss_is_not_native_zero_result": true,
     "single_third_party_negative_may_not_set_pass": true,
     "credible_positive_record_may_escalate": true,
+    "positive_material_hit_is_not_cancelled_by_another_resolver_negative": true,
     "resolver_scope_may_not_be_generalized": true,
     "tmhunt_scope_class025_only_unless_machine_evidence_proves_broader_scope": true,
+    "trademarkia_opaque_zero_does_not_imply_exact_negative_semantics_for_arbitrary_multi_token_queries": true,
     "capability_state_may_not_be_serialized_as_tm_decision_state": true,
     "acceptance_receipt_may_not_release_external_hold": true,
+    "successful_acceptance_layers_remain_closed_unless_materially_invalidated": true,
+    "authority_or_documentation_change_alone_does_not_reopen_closed_acceptance_layers": true,
     "no_captcha_waf_rate_limit_circumvention": true,
     "no_external_repository_write": true,
     "no_drive_write": true,
     "no_marketplace_ledger_write": true,
     "no_creative_generation": true,
-    "no_hidden_or_private_endpoint_dependency": true
+    "no_hidden_or_private_endpoint_dependency": true,
+    "no_new_resolver_or_candidate_breadth_to_repair_a4_mode_binding": true,
+    "production_promotion_may_not_reimplement_resolver_logic_separately_from_proven_acceptance_primitives": true
   },
   "acceptance_sequence": [
     "A0_TRANSPORT",
@@ -38,13 +44,72 @@
     "A4_REPEATABILITY",
     "PROMOTION_REVIEW"
   ],
+  "acceptance_snapshot": {
+    "A0_TRANSPORT": "PASS_CLOSED",
+    "A1_KNOWN_POSITIVE_BINDING": "PASS_CLOSED",
+    "A2_QUERY_RESULTSET_SEMANTICS": "PASS_CLOSED",
+    "A3_NEGATIVE_RESULTSET_SEMANTICS": "PASS_CLOSED",
+    "A4_REPEATABILITY": "PARTIAL_OPEN_ONLY_FOR_TMHUNT_POSITIVE_MODE_RESULT_BINDING",
+    "trademarkia_a4_behavior_matrix": "PASS_CLOSED",
+    "tmhunt_a4_exact_zero_semantics": "PASS_CLOSED",
+    "tmhunt_a4_positive_modes": "RESULT_BINDING_UNPROVEN_FOR_EXACT_PARTIAL_SPLIT_WILDCARD"
+  },
+  "current_reopen_scope": {
+    "only_layer": "A4_TMHUNT_POSITIVE_MODE_RESULT_BINDING",
+    "fixed_canaries_only": true,
+    "candidate_or_market_queries_forbidden": true,
+    "new_resolver_discovery_forbidden": true,
+    "a0_a3_rerun_forbidden_without_material_surface_or_harness_invalidation": true,
+    "trademarkia_reopen_forbidden_without_material_invalidation": true
+  },
+  "a4_closure_contract": {
+    "active_mode_must_be_machine_attested_not_merely_clicked": true,
+    "submission_must_be_scoped_to_the_active_search_panel": true,
+    "fixed_sleep_may_not_be_the_only_resultset_completion_signal": true,
+    "bounded_terminal_dom_state_required": true,
+    "positive_resultset_may_be_proven_by_structured_bound_rows_without_requiring_a_specific_count_string": true,
+    "positive_evidence_should_include": [
+      "final_url",
+      "query_echo_or_binding",
+      "active_mode_attestation",
+      "table_or_result_structure",
+      "bounded_result_row_samples",
+      "count_or_pagination_metadata_when_available",
+      "body_or_structural_hash"
+    ],
+    "same_failure_signature_after_one_causal_repair": "HOLD_CAPABILITY_DO_NOT_REPEAT_SAME_STRATEGY"
+  },
+  "repeatability_contract": {
+    "requires_a4_full_pass_first": true,
+    "second_run_must_be_distinct_github_workflow_run": true,
+    "second_run_must_use_same_exact_commit": true,
+    "second_run_must_use_same_harness_and_fixed_canaries": true,
+    "second_run_should_use_workflow_dispatch_without_code_or_authority_change": true,
+    "job_rerun_of_the_same_workflow_run_is_not_sufficient": true,
+    "normalized_semantic_states_must_reproduce": true
+  },
+  "post_acceptance_design_lock": {
+    "promotion_before_repeatability_forbidden": true,
+    "daily7_integration_before_promotion_forbidden": true,
+    "extract_shared_resolver_primitives_before_production_interface": true,
+    "acceptance_and_production_must_use_the_same_resolver_implementation": true,
+    "versioned_request_schema_required": true,
+    "versioned_receipt_schema_required": true,
+    "caller_should_pin_exact_aver_commit_or_release": true,
+    "cross_repository_state_mutation_remains_forbidden": true,
+    "generic_safe_boolean_output_forbidden": true
+  },
   "promotion_requires": {
     "a0_pass": true,
     "a1_pass": true,
     "a2_pass": true,
     "a3_pass_for_any_resolver_whose_negative_evidence_will_be_used": true,
+    "a4_full_mode_matrix_pass": true,
     "repeatable_github_runs_min": 2,
+    "same_exact_commit_for_repeatability_runs": true,
     "scope_documented": true,
+    "shared_resolver_primitives_defined": true,
+    "versioned_request_and_receipt_contracts_defined": true,
     "no_control_circumvention": true,
     "explicit_user_approval": true,
     "separate_promotion_commit": true
