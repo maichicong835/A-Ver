@@ -1,0 +1,90 @@
+name: A-Ver Acceptance A3
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'CURRENT.json'
+      - 'spec/**'
+      - 'src/aver/acceptance_a3.py'
+      - 'tests/**'
+      - '.github/workflows/acceptance-a3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aver-acceptance-a3
+  cancel-in-progress: true
+
+jobs:
+  acceptance-a3:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      AVER_MODE: ACCEPTANCE_ONLY
+      EXTERNAL_SIDE_EFFECTS_AUTHORIZED: 'false'
+      PRODUCTION_TM_DECISIONS_AUTHORIZED: 'false'
+    steps:
+      - name: Checkout exact A-Ver commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Contract preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "maichicong835/A-Ver"
+          test "$AVER_MODE" = "ACCEPTANCE_ONLY"
+          test "$EXTERNAL_SIDE_EFFECTS_AUTHORIZED" = "false"
+          test "$PRODUCTION_TM_DECISIONS_AUTHORIZED" = "false"
+          python3 tests/test_contract.py
+          sha256sum CURRENT.json spec/engine.json > /tmp/aver-authority.before
+
+      - name: Prepare normal browser automation transport
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+          browser="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$browser" ]; then
+            echo "AVER_BROWSER_EXECUTABLE=$browser" >> "$GITHUB_ENV"
+          else
+            python3 -m playwright install chromium
+          fi
+
+      - name: Run A3 fixed synthetic negative canary
+        run: python3 src/aver/acceptance_a3.py
+
+      - name: Verify authority immutability
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum CURRENT.json spec/engine.json > /tmp/aver-authority.after
+          diff -u /tmp/aver-authority.before /tmp/aver-authority.after
+          git diff --exit-code -- CURRENT.json spec/engine.json docs README.md src tests .github/workflows/acceptance-a3.yml
+
+      - name: Show compact A3 result
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          r=json.load(open('artifacts/a3/a3-receipt.json'))
+          print('phase_state=',r['phase_state'])
+          print('resolver_states=',json.dumps(r['resolver_states'],sort_keys=True))
+          for x in r['records']:
+              print(x['resolver'],x['state'],x.get('query_mode_binding'),x.get('explicit_negative_semantics_observed'),x.get('failure_signature'))
+              print('snippets=',json.dumps(x.get('negative_semantics_snippets',[])[:3]))
+          print('real_candidate_negative_inference=',r['negative_clearance_inferred_for_any_real_candidate'])
+          PY
+
+      - name: Upload immutable A3 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: aver-a3-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/a3/a3-receipt.json
+          if-no-files-found: error
+          retention-days: 30
