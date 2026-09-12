@@ -1,0 +1,151 @@
+{
+  "schema": "AVER_TM_ENGINE",
+  "engine": "A-Ver Trademark Verification Engine",
+  "engine_version": "0.1.0",
+  "mode": "ACCEPTANCE_ONLY",
+  "authority": {
+    "repository": "maichicong835/A-Ver",
+    "branch": "main",
+    "current": "CURRENT.json",
+    "caller_inputs_are_data_only": true,
+    "caller_policy_is_not_inherited": true
+  },
+  "truth_layers": [
+    "TRANSPORT_TRUTH",
+    "QUERY_EXECUTION_TRUTH",
+    "RESULTSET_TRUTH",
+    "RECORD_BINDING_TRUTH",
+    "SCOPE_COVERAGE_TRUTH",
+    "SIMILARITY_ANALYSIS_TRUTH",
+    "GOODS_RELATEDNESS_TRUTH",
+    "TM_DECISION_TRUTH"
+  ],
+  "state_machine": {
+    "capability_states": [
+      "CAPABILITY_NOT_TESTED",
+      "TRANSPORT_PASS",
+      "TRANSPORT_BLOCKED",
+      "QUERY_EXECUTION_PASS",
+      "QUERY_EXECUTION_BLOCKED",
+      "RESULTSET_RESOLVED",
+      "RESULTSET_UNRESOLVED",
+      "RECORD_BINDING_PASS",
+      "RECORD_BINDING_INCOMPLETE",
+      "NEGATIVE_SEMANTICS_PROVEN",
+      "NEGATIVE_SEMANTICS_UNPROVEN",
+      "CAPABILITY_ACCEPTED"
+    ],
+    "tm_decision_states": [
+      "TM_PASS",
+      "TM_KILL",
+      "TM_HOLD"
+    ],
+    "acceptance_mode_may_emit_tm_decision_states": false,
+    "capability_state_may_be_mapped_directly_to_tm_decision": false
+  },
+  "resolver_roles": {
+    "TRADEMARKIA": {
+      "role": "BROAD_US_FEDERAL_RECORD_RESOLVER",
+      "negative_evidence_allowed_only_after": "A3_NEGATIVE_RESULTSET_SEMANTICS_PASS",
+      "required_material_record_fields_when_hit": [
+        "mark_text",
+        "status",
+        "serial_or_registration_identifier",
+        "class_or_goods_services_context"
+      ]
+    },
+    "TMHUNT": {
+      "role": "IC025_APPAREL_ADJACENT_RESOLVER",
+      "declared_scope": "IC025",
+      "scope_generalization_forbidden": true,
+      "negative_evidence_allowed_only_after": "A3_NEGATIVE_RESULTSET_SEMANTICS_PASS",
+      "query_modes_to_validate": [
+        "EXACT",
+        "PARTIAL",
+        "SPLIT",
+        "WILDCARD"
+      ]
+    },
+    "USPTO_TSDR_WEB": {
+      "role": "OPTIONAL_TARGETED_OFFICIAL_SPOT_VERIFIER",
+      "requires_known_identifier": true,
+      "not_required_for_acceptance_a0": true
+    }
+  },
+  "evidence_asymmetry": {
+    "credible_positive_hit_can_escalate_review": true,
+    "negative_requires_resolved_native_resultset": true,
+    "single_source_negative_is_never_legal_clearance": true,
+    "search_engine_index_miss_has_zero_negative_clearance_weight": true,
+    "transport_failure_has_zero_candidate_risk_weight": true
+  },
+  "query_plan": {
+    "deterministic": true,
+    "stages": [
+      "EXACT",
+      "NORMALIZED_EXACT",
+      "CORE_DOMINANT_TOKEN",
+      "EXPANDED_PARTIAL",
+      "PHONETIC_OR_SPELLING_WHEN_MATERIAL",
+      "RELATED_GOODS_REVIEW"
+    ],
+    "early_positive_stop_allowed": true,
+    "negative_pass_requires_required_scope_complete": true
+  },
+  "anti_loop": {
+    "same_resolver_same_stage_same_failure_signature_max_retries": 1,
+    "after_repeat_failure": "ROUTE_TO_DIFFERENT_TRANSPORT_OR_HOLD_CAPABILITY",
+    "more_candidate_queries_may_not_answer_systemic_transport_failure": true,
+    "acceptance_breadth_is_fixed_canary_set_not_market_discovery": true,
+    "successful_prior_layers_remain_closed": true,
+    "repair_only_failed_layer": true
+  },
+  "acceptance": {
+    "a0": {
+      "purpose": "PROVE_GITHUB_RUNNER_PUBLIC_TRANSPORT_AND_SURFACE_IDENTITY",
+      "candidate_queries_forbidden": true,
+      "outputs": ["http_status", "final_url", "content_type", "bytes", "sha256", "surface_markers", "form_structure"]
+    },
+    "a1": {
+      "purpose": "PROVE_KNOWN_POSITIVE_QUERY_AND_RECORD_BINDING",
+      "requires_a0": true
+    },
+    "a2": {
+      "purpose": "PROVE_NATIVE_QUERY_MODES_AND_RESULTSET_STRUCTURE",
+      "requires_a1": true
+    },
+    "a3": {
+      "purpose": "PROVE_ZERO_NO_MATERIAL_HIT_SEMANTICS_WITHOUT_SEARCH_ENGINE_INFERENCE",
+      "requires_a2": true
+    },
+    "a4": {
+      "purpose": "PROVE_REPEATABILITY_ON_AT_LEAST_TWO_DISTINCT_GITHUB_RUNS",
+      "requires_a3": true
+    }
+  },
+  "receipts": {
+    "immutable_runtime_medium": "GITHUB_ACTIONS_ARTIFACT",
+    "repository_commit_of_runtime_receipts": false,
+    "raw_page_body_persistence_default": false,
+    "hash_raw_response_body": true,
+    "minimum_fields": [
+      "engine_version",
+      "commit_sha",
+      "workflow_run_id",
+      "phase",
+      "resolver",
+      "start_time_utc",
+      "finish_time_utc",
+      "transport_state",
+      "result_state",
+      "failure_signature",
+      "evidence_hashes"
+    ]
+  },
+  "external_interface_future": {
+    "input_is_data_not_authority": true,
+    "output_is_signed_by_exact_commit_identity": true,
+    "recommended_integration": "PIN_CALLER_TO_EXACT_AVER_COMMIT_OR_RELEASE",
+    "cross_repo_state_mutation_forbidden": true
+  }
+}
