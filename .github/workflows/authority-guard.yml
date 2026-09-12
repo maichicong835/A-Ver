@@ -1,0 +1,88 @@
+name: A-Ver Authority Guard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'CURRENT.json'
+      - 'spec/**'
+      - 'docs/**'
+      - 'tests/**'
+      - '.github/workflows/authority-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aver-authority-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  authority-guard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact A-Ver commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Validate canonical JSON and contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m json.tool CURRENT.json >/dev/null
+          python3 -m json.tool spec/engine.json >/dev/null
+          python3 tests/test_contract.py
+
+      - name: Verify authority mode and side-effect locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          c=json.load(open('CURRENT.json'))
+          e=json.load(open('spec/engine.json'))
+          assert c['status']=='ACCEPTANCE_ONLY'
+          assert c['production_tm_decisions_authorized'] is False
+          assert c['external_side_effects_authorized'] is False
+          assert e['mode']=='ACCEPTANCE_ONLY'
+          assert e['external_interface_future']['cross_repo_state_mutation_forbidden'] is True
+          print('AVER_AUTHORITY_GUARD_PASS')
+          PY
+
+      - name: Verify runtime receipts are not repository authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(python3 - <<'PY'
+          import json
+          e=json.load(open('spec/engine.json'))
+          print(str(e['receipts']['repository_commit_of_runtime_receipts']).lower())
+          PY
+          )" = "false"
+          if find . -path './.git' -prune -o -path './artifacts/*' -type f -print | grep -q .; then
+            echo 'Committed runtime artifact detected under artifacts/' >&2
+            exit 1
+          fi
+
+      - name: Show authority identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "repository=$GITHUB_REPOSITORY"
+          echo "commit_sha=$GITHUB_SHA"
+          echo "workflow_run_id=$GITHUB_RUN_ID"
+          python3 - <<'PY'
+          import json
+          c=json.load(open('CURRENT.json'))
+          print('engine_version=',c['engine_version'])
+          print('status=',c['status'])
+          print('a4_state=',c['acceptance_snapshot']['A4_DECLARED_CAPABILITY_REPEATABILITY'])
+          print('tmhunt_exact=',c['acceptance_snapshot']['tmhunt_exact_positive'])
+          print('tmhunt_partial=',c['acceptance_snapshot']['tmhunt_partial_positive'])
+          print('tmhunt_split=',c['acceptance_snapshot']['tmhunt_split'])
+          print('tmhunt_wildcard=',c['acceptance_snapshot']['tmhunt_wildcard'])
+          PY
