@@ -20,20 +20,22 @@
     "resolver_scope_may_not_be_generalized": true,
     "tmhunt_scope_class025_only_unless_machine_evidence_proves_broader_scope": true,
     "trademarkia_opaque_zero_does_not_imply_exact_negative_semantics_for_arbitrary_multi_token_queries": true,
+    "query_submission_requires_machine_attested_stable_query_binding": true,
+    "workflow_success_may_not_mask_semantic_acceptance_partial": true,
     "capability_state_may_not_be_serialized_as_tm_decision_state": true,
     "acceptance_receipt_may_not_release_external_hold": true,
     "successful_acceptance_layers_remain_closed_unless_materially_invalidated": true,
     "authority_or_documentation_change_alone_does_not_reopen_closed_acceptance_layers": true,
+    "unproven_optional_resolver_mode_may_be_excluded_but_may_not_be_counted_as_coverage": true,
+    "scope_reduction_of_transport_capability_may_not_reduce_required_tm_query_or_safety_scope": true,
+    "acceptance_and_future_production_must_share_resolver_implementation": true,
     "no_captcha_waf_rate_limit_circumvention": true,
     "no_external_repository_write": true,
     "no_drive_write": true,
     "no_marketplace_ledger_write": true,
     "no_creative_generation": true,
     "no_hidden_or_private_endpoint_dependency": true,
-    "no_new_resolver_or_candidate_breadth_to_repair_a4_mode_binding": true,
-    "unproven_optional_resolver_mode_may_be_excluded_but_may_not_be_counted_as_coverage": true,
-    "scope_reduction_of_transport_capability_may_not_reduce_required_tm_query_or_safety_scope": true,
-    "acceptance_and_future_production_must_share_resolver_implementation": true
+    "no_new_resolver_or_candidate_breadth_to_repair_a4_repeatability": true
   },
   "acceptance_sequence": [
     "A0_TRANSPORT",
@@ -48,26 +50,36 @@
     "A1_KNOWN_POSITIVE_BINDING": "PASS_CLOSED",
     "A2_QUERY_RESULTSET_SEMANTICS": "PASS_CLOSED",
     "A3_NEGATIVE_RESULTSET_SEMANTICS": "PASS_CLOSED",
-    "A4_DECLARED_CAPABILITY_REPEATABILITY": "SCOPED_PROFILE_FROZEN_PENDING_REPEATABILITY_RUN_1",
-    "trademarkia_behavior_capability": "PASS_CLOSED_FROM_PRIOR_MACHINE_PROVEN_RUNS",
-    "tmhunt_exact_zero_semantics": "PASS_CLOSED",
-    "tmhunt_exact_positive": "PASS_PROVEN_RUN_34700639830",
-    "tmhunt_partial_positive": "PASS_PROVEN_RUN_34700639830",
+    "A4_DECLARED_CAPABILITY_REPEATABILITY": "REPEATABILITY_FAILED_RUN_34701579192_QUERY_BINDING_STABILITY_REPAIR_PENDING",
+    "tmhunt_exact_positive": "PASS_PROVEN",
+    "tmhunt_partial_positive": "PASS_PROVEN",
+    "tmhunt_exact_zero_semantics": "PASS_PROVEN",
     "tmhunt_split": "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT",
-    "tmhunt_wildcard": "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT"
+    "tmhunt_wildcard": "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT",
+    "trademarkia_known_positive": "PASS_PROVEN",
+    "trademarkia_known_record_binding": "PASS_PROVEN",
+    "trademarkia_fuzzy_recall": "PASS_PROVEN",
+    "trademarkia_opaque_zero_repeatability": "OPEN_QUERY_BINDING_STABILITY_ONLY"
   },
-  "latest_causal_repair_evidence": {
-    "commit_sha": "2ccc13cfad2db042fcc7ffda49c640a69f3187a6",
-    "workflow_run_id": "34700639830",
-    "workflow_job_id": "103571660230",
-    "artifact_id": "10299693567",
-    "artifact_digest": "sha256:79e98e04c48d765ae5807901406c55fb4642761485c3bbc587d9885243a44a9c",
-    "tmhunt_exact_positive": "MODE_PASS",
-    "tmhunt_partial_positive": "MODE_PASS",
-    "tmhunt_split": "TMHUNT_PANEL_SEARCH_INPUT_NOT_FOUND",
-    "tmhunt_wildcard": "TMHUNT_PANEL_SEARCH_INPUT_NOT_FOUND",
-    "candidate_queries_executed": false,
-    "production_decisions_authorized": false
+  "latest_repeatability_evidence": {
+    "commit_sha": "2f2780cfe8038976c84f72478cbcd6af0ce223b4",
+    "run_1": {
+      "workflow_run_id": "34701480046",
+      "artifact_id": "10300278447",
+      "artifact_digest": "sha256:b78d910dd9e809c6900c8b156974eb66454c19c2a5ec06f38b689870bdd0c79a",
+      "phase_state": "A4_DECLARED_PROFILE_PASS",
+      "trademarkia_opaque_zero": "CAPABILITY_PASS"
+    },
+    "run_2": {
+      "workflow_run_id": "34701579192",
+      "artifact_id": "10300580239",
+      "artifact_digest": "sha256:af75391ff10ca51269a3cc7106f3ab59b301fcc968f3aaa68016645fd30f82df",
+      "phase_state": "A4_DECLARED_PROFILE_PARTIAL",
+      "trademarkia_opaque_zero": "CAPABILITY_UNPROVEN",
+      "failure_signature": "TRADEMARKIA_DECLARED_CAPABILITY_SEMANTICS_NOT_BOUND",
+      "causal_observation": "PRE_SUBMIT_INPUT_VALUE_EMPTY_QUERY_NEVER_BOUND_FINAL_URL_REMAINED_SEARCH_LANDING_PAGE"
+    },
+    "repeatability_pair_result": "FAIL_NOT_REPRODUCED"
   },
   "declared_capability_profile": {
     "profile_id": "AVER_TM_PROFILE_0_1_SCOPED",
@@ -79,6 +91,7 @@
         "BROAD_FUZZY_OR_TOKEN_RECALL",
         "OPAQUE_SINGLE_TOKEN_ZERO_SEMANTICS_WITH_LIMITED_MEANING"
       ],
+      "query_binding_stability_required_before_submit": true,
       "multi_token_exact_negative_clearance_from_opaque_zero_forbidden": true
     },
     "TMHUNT": {
@@ -96,13 +109,14 @@
     "parallel_production_resolver_reimplementation_forbidden": true
   },
   "current_reopen_scope": {
-    "only_layer": "A4_SCOPED_PROFILE_REPEATABILITY",
+    "only_layer": "A4_TRADEMARKIA_QUERY_BINDING_STABILITY_REPEATABILITY",
+    "repair_dimension": "STABLE_QUERY_BINDING_BEFORE_SUBMIT",
+    "bounded_binding_attempts_max": 3,
     "retry_tmhunt_split_forbidden": true,
     "retry_tmhunt_wildcard_forbidden": true,
     "candidate_or_market_queries_forbidden": true,
     "new_resolver_discovery_forbidden": true,
-    "a0_a3_rerun_forbidden_without_material_surface_or_harness_invalidation": true,
-    "closed_component_recheck_noise_may_not_downgrade_prior_proven_capability_without_material_invalidation": true
+    "a0_a3_rerun_forbidden_without_material_surface_or_harness_invalidation": true
   },
   "scope_completeness_law": {
     "full_site_ui_feature_coverage_is_not_tm_safety_scope": true,
@@ -112,17 +126,18 @@
   },
   "repeatability_contract": {
     "declared_profile_is_frozen": true,
-    "first_and_second_runs_must_be_distinct_github_workflow_runs": true,
-    "both_runs_must_use_same_exact_commit": true,
+    "post_repair_pair_requires_two_distinct_github_workflow_runs": true,
+    "both_runs_must_use_same_exact_post_repair_commit": true,
     "both_runs_must_use_same_scoped_harness_and_shared_resolver_modules": true,
     "both_runs_must_use_same_fixed_canaries": true,
     "excluded_modes_are_not_retested": true,
+    "normalized_semantic_states_must_reproduce": true,
+    "workflow_semantic_pass_required_for_success_conclusion": true,
     "workflow_dispatch_is_preferred_for_second_run": true,
     "isolated_repeatability_ref_creation_is_allowed_when_dispatch_tooling_is_unavailable": true,
     "repeatability_ref_must_point_to_same_exact_commit": true,
     "ref_creation_may_not_change_repository_content": true,
-    "same_run_job_rerun_is_not_sufficient": true,
-    "normalized_semantic_states_must_reproduce": true
+    "same_run_job_rerun_is_not_sufficient": true
   },
   "post_acceptance_design_lock": {
     "promotion_before_repeatability_forbidden": true,
