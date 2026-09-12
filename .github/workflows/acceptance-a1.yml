@@ -1,0 +1,77 @@
+name: A-Ver Acceptance A1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'CURRENT.json'
+      - 'spec/**'
+      - 'src/aver/acceptance_a1.py'
+      - 'tests/**'
+      - '.github/workflows/acceptance-a1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aver-acceptance-a1
+  cancel-in-progress: true
+
+jobs:
+  acceptance-a1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      AVER_MODE: ACCEPTANCE_ONLY
+      EXTERNAL_SIDE_EFFECTS_AUTHORIZED: 'false'
+      PRODUCTION_TM_DECISIONS_AUTHORIZED: 'false'
+    steps:
+      - name: Checkout exact A-Ver commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Contract preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "maichicong835/A-Ver"
+          test "$AVER_MODE" = "ACCEPTANCE_ONLY"
+          test "$EXTERNAL_SIDE_EFFECTS_AUTHORIZED" = "false"
+          test "$PRODUCTION_TM_DECISIONS_AUTHORIZED" = "false"
+          python3 tests/test_contract.py
+          sha256sum CURRENT.json spec/engine.json > /tmp/aver-authority.before
+
+      - name: Run A1 known-positive and public-route acceptance
+        run: python3 src/aver/acceptance_a1.py
+
+      - name: Verify authority immutability
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum CURRENT.json spec/engine.json > /tmp/aver-authority.after
+          diff -u /tmp/aver-authority.before /tmp/aver-authority.after
+          git diff --exit-code -- CURRENT.json spec/engine.json docs README.md src tests .github/workflows/acceptance-a1.yml
+
+      - name: Show compact A1 result
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          r=json.load(open('artifacts/a1/a1-receipt.json'))
+          print('phase_state=',r['phase_state'])
+          print('resolver_states=',json.dumps(r['resolver_states'],sort_keys=True))
+          print('tmhunt_routes=',json.dumps(r['tmhunt']['route_candidates'][:10]))
+          print('trademarkia_checks=',json.dumps(r['trademarkia']['checks'],sort_keys=True))
+          print('production_tm_decision_authorized=',r['production_tm_decision_authorized'])
+          PY
+
+      - name: Upload immutable A1 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: aver-a1-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/a1/a1-receipt.json
+          if-no-files-found: error
+          retention-days: 30
