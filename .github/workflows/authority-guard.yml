@@ -78,11 +78,12 @@ jobs:
           python3 - <<'PY'
           import json
           c=json.load(open('CURRENT.json'))
+          s=c['acceptance_snapshot']
           print('engine_version=',c['engine_version'])
           print('status=',c['status'])
-          print('a4_state=',c['acceptance_snapshot']['A4_DECLARED_CAPABILITY_REPEATABILITY'])
-          print('tmhunt_exact=',c['acceptance_snapshot']['tmhunt_exact_positive'])
-          print('tmhunt_partial=',c['acceptance_snapshot']['tmhunt_partial_positive'])
-          print('tmhunt_split=',c['acceptance_snapshot']['tmhunt_split'])
-          print('tmhunt_wildcard=',c['acceptance_snapshot']['tmhunt_wildcard'])
+          print('a4_state=',s['A4_DECLARED_CAPABILITY_REPEATABILITY'])
+          print('prepromotion_state=',s.get('PRE_PROMOTION_CONTRACT_HARDENING','NOT_PRESENT'))
+          print('tmhunt_split=',s['tmhunt_split'])
+          print('tmhunt_wildcard=',s['tmhunt_wildcard'])
+          print('current_reopen_scope=',c['current_reopen_scope']['only_layer'])
           PY
