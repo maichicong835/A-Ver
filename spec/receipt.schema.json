@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/maichicong835/A-Ver/spec/receipt.schema.json",
+  "title": "A-Ver Trademark Receipt v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "engine_version",
+    "engine_commit_sha",
+    "request_id",
+    "request_sha256",
+    "decision",
+    "confidence_label",
+    "legal_clearance_asserted",
+    "decision_reason_codes",
+    "query_plan",
+    "resolver_evidence",
+    "material_records",
+    "unresolved_dimensions",
+    "scope_coverage",
+    "similarity_analysis",
+    "goods_relatedness",
+    "evidence_hashes"
+  ],
+  "properties": {
+    "schema": {"const": "AVER_TM_RECEIPT"},
+    "schema_version": {"const": "1.0"},
+    "engine_version": {"type": "string", "minLength": 1, "maxLength": 40},
+    "engine_commit_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "decision": {"enum": ["TM_PASS", "TM_KILL", "TM_HOLD"]},
+    "confidence_label": {
+      "enum": [
+        "FALLBACK_HIGH_CONFIDENCE",
+        "POSITIVE_CONFLICT_HIGH_CONFIDENCE",
+        "EVIDENCE_INCOMPLETE"
+      ]
+    },
+    "legal_clearance_asserted": {"const": false},
+    "decision_reason_codes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 120}
+    },
+    "query_plan": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["dimension", "state"],
+        "properties": {
+          "dimension": {"type": "string", "minLength": 1, "maxLength": 120},
+          "state": {"enum": ["RESOLVED", "UNRESOLVED", "SKIPPED_AFTER_MATERIAL_POSITIVE"]},
+          "resolver": {"type": "string", "minLength": 1, "maxLength": 120}
+        }
+      }
+    },
+    "resolver_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["resolver", "scope", "state", "evidence_polarity"],
+        "properties": {
+          "resolver": {"type": "string", "minLength": 1, "maxLength": 120},
+          "scope": {"type": "string", "minLength": 1, "maxLength": 240},
+          "state": {"type": "string", "minLength": 1, "maxLength": 120},
+          "evidence_polarity": {"enum": ["POSITIVE", "NEGATIVE", "UNRESOLVED"]},
+          "evidence_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "material_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["mark_text", "status", "identifier", "class_or_goods_services_context"],
+        "properties": {
+          "mark_text": {"type": "string", "minLength": 1, "maxLength": 300},
+          "status": {"type": "string", "minLength": 1, "maxLength": 120},
+          "identifier": {"type": "string", "minLength": 1, "maxLength": 120},
+          "class_or_goods_services_context": {"type": "string", "minLength": 1, "maxLength": 1200}
+        }
+      }
+    },
+    "unresolved_dimensions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 120}
+    },
+    "scope_coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_query_dimensions_complete", "resolver_scope_complete", "negative_evidence_distinct_sources"],
+      "properties": {
+        "required_query_dimensions_complete": {"type": "boolean"},
+        "resolver_scope_complete": {"type": "boolean"},
+        "negative_evidence_distinct_sources": {"type": "integer", "minimum": 0}
+      }
+    },
+    "similarity_analysis": {"enum": ["CLEAR", "MATERIAL", "UNRESOLVED"]},
+    "goods_relatedness": {"enum": ["CLEAR", "MATERIAL", "UNRESOLVED"]},
+    "evidence_hashes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    }
+  }
+}
