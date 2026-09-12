@@ -7,7 +7,7 @@ from pathlib import Path
 from resolvers import TMHuntResolver, TrademarkiaResolver
 
 ENGINE_VERSION = "0.1.0"
-HARNESS_REVISION = "a4.2-scoped-profile"
+HARNESS_REVISION = "a4.3-query-binding-stability"
 PHASE = "A4_DECLARED_CAPABILITY_REPEATABILITY"
 OUT = Path("artifacts/a4")
 OUT.mkdir(parents=True, exist_ok=True)
@@ -80,7 +80,8 @@ def main():
                 "known_positive_search_tested": True,
                 "known_record_binding_tested": True,
                 "opaque_zero_tested_with_limited_semantics": True,
-                "fuzzy_multi_token_behavior_tested": True
+                "fuzzy_multi_token_behavior_tested": True,
+                "query_binding_must_be_stably_attested_before_submit": True
             }
         },
         "required_tm_scope_law": "DECLARED_RESOLVER_CAPABILITY_PROFILE_DOES_NOT_REDUCE_REQUIRED_TM_QUERY_PLAN;_MISSING_REQUIRED_QUERY_DIMENSION_MUST_HOLD",
