@@ -8,7 +8,8 @@
     "branch": "main",
     "current": "CURRENT.json",
     "caller_inputs_are_data_only": true,
-    "caller_policy_is_not_inherited": true
+    "caller_policy_is_not_inherited": true,
+    "workflow_prompts_or_orchestration_are_not_second_specs": true
   },
   "truth_layers": [
     "TRANSPORT_TRUTH",
@@ -46,6 +47,9 @@
   "resolver_roles": {
     "TRADEMARKIA": {
       "role": "BROAD_US_FEDERAL_RECORD_RESOLVER",
+      "behavior": "BROAD_RECALL_WITH_FUZZY_OR_TOKEN_EXPANSION_POSSIBLE",
+      "opaque_zero_semantics_proven": true,
+      "opaque_zero_may_not_be_generalized_to_arbitrary_multi_token_exact_clearance": true,
       "negative_evidence_allowed_only_after": "A3_NEGATIVE_RESULTSET_SEMANTICS_PASS",
       "required_material_record_fields_when_hit": [
         "mark_text",
@@ -58,13 +62,15 @@
       "role": "IC025_APPAREL_ADJACENT_RESOLVER",
       "declared_scope": "IC025",
       "scope_generalization_forbidden": true,
+      "exact_zero_semantics_proven": true,
       "negative_evidence_allowed_only_after": "A3_NEGATIVE_RESULTSET_SEMANTICS_PASS",
       "query_modes_to_validate": [
         "EXACT",
         "PARTIAL",
         "SPLIT",
         "WILDCARD"
-      ]
+      ],
+      "current_a4_positive_mode_binding": "UNPROVEN"
     },
     "USPTO_TSDR_WEB": {
       "role": "OPTIONAL_TARGETED_OFFICIAL_SPOT_VERIFIER",
@@ -74,10 +80,12 @@
   },
   "evidence_asymmetry": {
     "credible_positive_hit_can_escalate_review": true,
+    "positive_material_hit_is_not_cancelled_by_another_resolver_negative": true,
     "negative_requires_resolved_native_resultset": true,
     "single_source_negative_is_never_legal_clearance": true,
     "search_engine_index_miss_has_zero_negative_clearance_weight": true,
-    "transport_failure_has_zero_candidate_risk_weight": true
+    "transport_failure_has_zero_candidate_risk_weight": true,
+    "resolver_negative_weight_is_bounded_by_machine_proven_scope": true
   },
   "query_plan": {
     "deterministic": true,
@@ -94,33 +102,96 @@
   },
   "anti_loop": {
     "same_resolver_same_stage_same_failure_signature_max_retries": 1,
-    "after_repeat_failure": "ROUTE_TO_DIFFERENT_TRANSPORT_OR_HOLD_CAPABILITY",
+    "after_repeat_failure": "ROUTE_TO_DIFFERENT_CAUSAL_DIMENSION_OR_HOLD_CAPABILITY",
     "more_candidate_queries_may_not_answer_systemic_transport_failure": true,
+    "more_candidate_queries_may_not_answer_mode_binding_failure": true,
     "acceptance_breadth_is_fixed_canary_set_not_market_discovery": true,
     "successful_prior_layers_remain_closed": true,
-    "repair_only_failed_layer": true
+    "authority_or_documentation_change_alone_does_not_reopen_closed_layers": true,
+    "repair_only_failed_layer": true,
+    "new_resolver_discovery_for_a4_repair_forbidden": true
+  },
+  "orchestration": {
+    "closed_phase_auto_rerun_on_current_or_spec_change": false,
+    "phase_auto_run_allowed_when_its_own_harness_or_workflow_changes": true,
+    "manual_workflow_dispatch_allowed": true,
+    "a4_repeatability_second_run_must_use_workflow_dispatch_on_same_exact_commit": true,
+    "repeatability_via_commit_touch_or_trigger_file_forbidden": true
   },
   "acceptance": {
     "a0": {
       "purpose": "PROVE_GITHUB_RUNNER_PUBLIC_TRANSPORT_AND_SURFACE_IDENTITY",
+      "status": "PASS_CLOSED",
       "candidate_queries_forbidden": true,
-      "outputs": ["http_status", "final_url", "content_type", "bytes", "sha256", "surface_markers", "form_structure"]
+      "outputs": [
+        "http_status",
+        "final_url",
+        "content_type",
+        "bytes",
+        "sha256",
+        "surface_markers",
+        "form_structure"
+      ]
     },
     "a1": {
       "purpose": "PROVE_KNOWN_POSITIVE_QUERY_AND_RECORD_BINDING",
-      "requires_a0": true
+      "requires_a0": true,
+      "status": "PASS_CLOSED"
     },
     "a2": {
       "purpose": "PROVE_NATIVE_QUERY_MODES_AND_RESULTSET_STRUCTURE",
-      "requires_a1": true
+      "requires_a1": true,
+      "status": "PASS_CLOSED"
     },
     "a3": {
       "purpose": "PROVE_ZERO_NO_MATERIAL_HIT_SEMANTICS_WITHOUT_SEARCH_ENGINE_INFERENCE",
-      "requires_a2": true
+      "requires_a2": true,
+      "status": "PASS_CLOSED"
     },
     "a4": {
-      "purpose": "PROVE_REPEATABILITY_ON_AT_LEAST_TWO_DISTINCT_GITHUB_RUNS",
-      "requires_a3": true
+      "purpose": "PROVE_MODE_BINDING_AND_REPEATABILITY_ON_AT_LEAST_TWO_DISTINCT_GITHUB_RUNS",
+      "requires_a3": true,
+      "status": "PARTIAL",
+      "closed_components": [
+        "TRADEMARKIA_BEHAVIOR_MATRIX",
+        "TMHUNT_EXACT_ZERO_SEMANTICS"
+      ],
+      "only_open_component": "TMHUNT_POSITIVE_MODE_RESULT_BINDING",
+      "positive_modes": [
+        "EXACT",
+        "PARTIAL",
+        "SPLIT",
+        "WILDCARD"
+      ],
+      "repair_contract": {
+        "fixed_canaries_only": true,
+        "active_mode_attestation_required": true,
+        "click_success_alone_is_not_mode_attestation": true,
+        "submission_must_be_scoped_to_active_panel": true,
+        "fixed_sleep_alone_is_not_resultset_completion": true,
+        "bounded_terminal_dom_state_required": true,
+        "structured_bound_result_row_may_prove_positive_resultset_without_specific_count_string": true,
+        "capture_fields": [
+          "final_url",
+          "query_binding",
+          "active_mode_attestation",
+          "result_structure",
+          "bounded_result_row_samples",
+          "count_or_pagination_metadata_when_available",
+          "structural_hash"
+        ],
+        "same_failure_after_one_causal_repair": "HOLD_CAPABILITY_NO_SAME_STRATEGY_RETRY"
+      },
+      "repeatability_contract": {
+        "requires_full_a4_pass_before_second_run": true,
+        "distinct_workflow_run_id_required": true,
+        "same_exact_commit_required": true,
+        "same_harness_required": true,
+        "same_fixed_canaries_required": true,
+        "workflow_dispatch_required_for_second_run": true,
+        "same_run_job_rerun_is_insufficient": true,
+        "normalized_semantic_states_must_match": true
+      }
     }
   },
   "receipts": {
@@ -142,10 +213,24 @@
       "evidence_hashes"
     ]
   },
+  "production_transition": {
+    "promotion_before_a4_repeatability_forbidden": true,
+    "daily7_or_external_caller_integration_before_promotion_forbidden": true,
+    "extract_shared_resolver_primitives_before_production_interface": true,
+    "acceptance_and_production_use_same_resolver_implementation": true,
+    "parallel_reimplementation_of_proven_resolver_logic_forbidden": true,
+    "versioned_request_schema_required": true,
+    "versioned_receipt_schema_required": true,
+    "generic_safe_boolean_output_forbidden": true,
+    "separate_explicit_promotion_commit_required": true,
+    "explicit_user_approval_required": true
+  },
   "external_interface_future": {
     "input_is_data_not_authority": true,
-    "output_is_signed_by_exact_commit_identity": true,
+    "output_is_bound_to_exact_commit_identity": true,
     "recommended_integration": "PIN_CALLER_TO_EXACT_AVER_COMMIT_OR_RELEASE",
-    "cross_repo_state_mutation_forbidden": true
+    "caller_should_not_track_mutable_main_for_production": true,
+    "cross_repo_state_mutation_forbidden": true,
+    "caller_validates_versioned_receipt_before_mutating_its_own_state": true
   }
 }
