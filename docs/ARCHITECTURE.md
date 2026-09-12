@@ -66,17 +66,9 @@ For an operational negative PASS, the required query dimensions and required res
 
 A0 Transport, A1 Known Positive Binding, A2 Query/Resultset Semantics and A3 Negative Semantics are `PASS_CLOSED`.
 
-A4 is also now `PASS_CLOSED` for declared capability profile repeatability.
+A4 is also `PASS_CLOSED` for declared capability profile repeatability.
 
-The closing pair used the same exact commit:
-
-`adb32a9b554a420f9dedc1c6d2916bcaec16d9b6`
-
-with harness revision:
-
-`a4.3-query-binding-stability`
-
-and two distinct workflow runs:
+The closing pair used exact commit `adb32a9b554a420f9dedc1c6d2916bcaec16d9b6`, harness revision `a4.3-query-binding-stability`, and two distinct workflow runs:
 
 - `34702194480` -> `A4_DECLARED_PROFILE_PASS`
 - `34702254867` -> `A4_DECLARED_PROFILE_PASS`
@@ -105,7 +97,7 @@ Contract status updates do not retrigger resolver acceptance. Contract-matrix st
 
 ## 9. Versioned external interface
 
-Before promotion, A-Ver defines a versioned interface:
+A-Ver exposes a versioned interface:
 
 - request schema: `spec/request.schema.json`, version `1.0`
 - receipt schema: `spec/receipt.schema.json`, version `1.0`
@@ -120,7 +112,7 @@ A generic `safe=true` output is forbidden. `legal_clearance_asserted` must alway
 
 ## 10. Deterministic TM decision law
 
-The pre-promotion controller is deliberately conservative:
+The production controller remains deliberately conservative:
 
 - material positive record + complete record binding + material similarity + material goods relatedness -> `TM_KILL`;
 - incomplete record binding, unresolved required dimensions, scope gaps, transport/control blocks or source discordance -> `TM_HOLD`;
@@ -134,27 +126,9 @@ A material positive is never cancelled by negative evidence from another resolve
 
 The contract matrix is a pure deterministic test. It does not contact Trademarkia, TMHunt, USPTO, Daily7 or any marketplace.
 
-It covers at least:
+Contract Matrix run `34702668801` on tested commit `6066da673117b80e10655f3833480d225dec0e0c` closed successfully with markers `AVER_CONTRACT_TEST_PASS` and `AVER_CONTRACT_MATRIX_PASS`.
 
-- material positive conflict;
-- incomplete positive record binding;
-- unresolved positive similarity/goods review;
-- transport block;
-- control block;
-- missing required query dimension;
-- incomplete resolver scope;
-- explicit unresolved dimensions;
-- single-source negative evidence;
-- source discordance;
-- unresolved similarity;
-- unresolved goods relatedness;
-- complete convergent negative PASS;
-- request schema validation;
-- receipt schema validation;
-- caller-authority rejection;
-- generic `safe` field rejection.
-
-The Contract Matrix workflow is isolated from resolver acceptance and triggers only when the schemas, decision controller, matrix test or its own workflow changes.
+The Contract Matrix workflow remains isolated from resolver acceptance and triggers only when the schemas, decision controller, matrix test or its own workflow changes.
 
 ## 12. Runtime evidence
 
@@ -165,21 +139,27 @@ A4 repeatability closure artifacts:
 - run `34702194480`, artifact `10300745366`, digest `sha256:27cca92464c23cdeb7cba73cc412d3b884f132fed949d5daf670b94f1c6b7ff4`
 - run `34702254867`, artifact `10300339408`, digest `sha256:7f64025e65f8f2f64ae3dcb0b4fa8c9460dddc15198af749ec72f1ea537e42fb`
 
-## 13. Daily7 integration path
+## 13. Promotion closure
 
-Daily7 integration remains forbidden before production promotion.
+On 2026-09-13 the user explicitly approved scoped production promotion after A0-A4 closure and machine-passed contract hardening.
 
-After promotion, Daily7 should pin an exact approved A-Ver commit or release and send versioned request data only. A-Ver returns a versioned TM receipt. Daily7 independently validates A-Ver identity, schema and receipt, then applies its own V3.3 gates.
+Promotion means:
+
+- A-Ver may emit production TM decision states through its versioned interface;
+- external side effects remain forbidden;
+- cross-repository state mutation remains forbidden;
+- production approval does **not** authorize the Daily7 live TM gate;
+- the next authorized step is shadow-only integration using existing HOLD canaries.
+
+This separation is mandatory: `production engine approval != caller live-gate approval`.
+
+## 14. Daily7 integration path
+
+Daily7 must pin the exact approved A-Ver commit or release and send versioned request data only. A-Ver returns a versioned TM receipt. Daily7 independently validates A-Ver identity, schema and receipt, then applies its own V3.3 gates.
 
 Daily7 keeps K5A/K5B, real-person/character, copyright/provenance, Amazon/content, market, source, focus, portfolio, Drive and ledger authority. A-Ver never mutates Daily7 state.
 
-The first integration must be shadow-only using a tiny set of existing HOLD canaries: no Drive, Used/Reserve, source/focus or portfolio-state mutation. Live TM gating may be enabled only after shadow receipts are validated.
-
-## 14. Promotion law
-
-Promotion requires A0-A4 closed PASS; explicit zero-weighting of excluded modes; complete required TM query-plan coverage or HOLD; shared resolver primitives; versioned request/receipt schemas; machine-passed full contract-state coverage; documented scopes; no control circumvention; explicit user approval; and a separate promotion commit.
-
-Until then `ACCEPTANCE_ONLY` and `production_tm_decisions_authorized=false` remain mandatory.
+The first integration is shadow-only using a tiny set of existing HOLD canaries: no Drive, Used/Reserve, source/focus or portfolio-state mutation. Live TM gating may be enabled only after shadow receipts are validated and a separate live-gate authorization is recorded.
 
 ## 15. Authority protection
 
