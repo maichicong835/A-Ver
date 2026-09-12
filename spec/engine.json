@@ -160,11 +160,24 @@
       }
     },
     "pre_promotion_contract_hardening": {
-      "status": "PENDING_MACHINE_CONTRACT_MATRIX",
+      "status": "PASS_CLOSED_CONTRACT_MATRIX_34702668801",
       "request_schema": "spec/request.schema.json",
       "receipt_schema": "spec/receipt.schema.json",
       "decision_controller": "src/aver/decision.py",
-      "matrix_test": "tests/test_contract_matrix.py"
+      "matrix_test": "tests/test_contract_matrix.py",
+      "machine_evidence": {
+        "tested_commit_sha": "6066da673117b80e10655f3833480d225dec0e0c",
+        "workflow_run_id": "34702668801",
+        "workflow_conclusion": "success",
+        "contract_marker": "AVER_CONTRACT_TEST_PASS",
+        "matrix_marker": "AVER_CONTRACT_MATRIX_PASS",
+        "resolver_transport_executed": false
+      }
+    },
+    "promotion_review": {
+      "status": "PENDING_EXPLICIT_USER_APPROVAL",
+      "production_state_change_authorized": false,
+      "daily7_integration_authorized": false
     }
   },
   "interface_contract": {
