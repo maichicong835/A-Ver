@@ -6,7 +6,7 @@ on:
     paths:
       - 'CURRENT.json'
       - 'spec/**'
-      - 'src/aver/**'
+      - 'src/aver/acceptance_a0.py'
       - 'tests/**'
       - '.github/workflows/acceptance-a0.yml'
   workflow_dispatch:
