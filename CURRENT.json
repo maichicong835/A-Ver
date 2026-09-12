@@ -1,14 +1,14 @@
 {
   "engine": "A-Ver Trademark Verification Engine",
   "engine_version": "0.1.0",
-  "status": "ACCEPTANCE_ONLY",
+  "status": "PRODUCTION_APPROVED_SCOPED",
   "canonical_repository": "maichicong835/A-Ver",
   "canonical_branch": "main",
   "public_repository": true,
   "authority_files": ["CURRENT.json", "spec/engine.json"],
   "runtime_evidence": "GITHUB_ACTIONS_RUN_AND_ARTIFACTS",
   "external_side_effects_authorized": false,
-  "production_tm_decisions_authorized": false,
+  "production_tm_decisions_authorized": true,
   "absolute_invariants": {
     "caller_state_is_not_aver_authority": true,
     "conversation_memory_is_not_runtime_authority": true,
@@ -37,7 +37,9 @@
     "no_drive_write": true,
     "no_marketplace_ledger_write": true,
     "no_creative_generation": true,
-    "no_hidden_or_private_endpoint_dependency": true
+    "no_hidden_or_private_endpoint_dependency": true,
+    "production_approval_does_not_authorize_daily7_live_gate": true,
+    "shadow_integration_may_not_mutate_caller_state": true
   },
   "acceptance_sequence": [
     "A0_TRANSPORT",
@@ -46,7 +48,8 @@
     "A3_NEGATIVE_RESULTSET_SEMANTICS",
     "A4_DECLARED_CAPABILITY_REPEATABILITY",
     "PRE_PROMOTION_CONTRACT_HARDENING",
-    "PROMOTION_REVIEW"
+    "PROMOTION_REVIEW",
+    "DAILY7_SHADOW_INTEGRATION"
   ],
   "acceptance_snapshot": {
     "A0_TRANSPORT": "PASS_CLOSED",
@@ -55,7 +58,8 @@
     "A3_NEGATIVE_RESULTSET_SEMANTICS": "PASS_CLOSED",
     "A4_DECLARED_CAPABILITY_REPEATABILITY": "PASS_CLOSED_REPEATABLE_ADB32A9B",
     "PRE_PROMOTION_CONTRACT_HARDENING": "PASS_CLOSED_CONTRACT_MATRIX_34702668801",
-    "PROMOTION_REVIEW": "PENDING_EXPLICIT_USER_APPROVAL",
+    "PROMOTION_REVIEW": "PASS_CLOSED_EXPLICIT_USER_APPROVAL_2026_09_13",
+    "DAILY7_SHADOW_INTEGRATION": "AUTHORIZED_NOT_LIVE",
     "tmhunt_split": "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT",
     "tmhunt_wildcard": "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT"
   },
@@ -92,6 +96,16 @@
     "resolver_transport_executed": false,
     "daily7_queries_executed": false,
     "production_decisions_authorized": false
+  },
+  "promotion_closure": {
+    "approved_on": "2026-09-13",
+    "approval_source": "EXPLICIT_USER_INSTRUCTION",
+    "promoted_from_commit_sha": "6719628204414ac5003d1f5be9e9d8fb66c1e9f3",
+    "production_tm_decisions_authorized": true,
+    "external_side_effects_authorized": false,
+    "daily7_shadow_integration_authorized": true,
+    "daily7_live_gate_authorized": false,
+    "cross_repository_state_mutation_authorized": false
   },
   "declared_capability_profile": {
     "profile_id": "AVER_TM_PROFILE_0_1_SCOPED",
@@ -132,12 +146,14 @@
     "negative_pass_min_distinct_evidence_sources": 2
   },
   "current_reopen_scope": {
-    "only_layer": "PROMOTION_REVIEW",
+    "only_layer": "DAILY7_SHADOW_INTEGRATION",
     "resolver_revalidation_forbidden_without_material_invalidation": true,
-    "candidate_or_market_queries_forbidden": true,
-    "daily7_integration_forbidden": true,
-    "production_promotion_forbidden_without_explicit_user_approval": true,
-    "next_machine_gate": "EXPLICIT_USER_PROMOTION_APPROVAL"
+    "new_candidate_or_market_discovery_forbidden": true,
+    "only_existing_hold_canaries_authorized": true,
+    "daily7_shadow_integration_authorized": true,
+    "daily7_live_gate_authorized": false,
+    "production_tm_decisions_authorized": true,
+    "next_machine_gate": "SHADOW_RECEIPT_IDENTITY_SCHEMA_DECISION_VALIDATION"
   },
   "scope_completeness_law": {
     "full_site_ui_feature_coverage_is_not_tm_safety_scope": true,
@@ -155,8 +171,7 @@
     "tm_pass_is_not_legal_clearance": true
   },
   "post_acceptance_design_lock": {
-    "promotion_before_contract_matrix_pass_forbidden": true,
-    "daily7_integration_before_promotion_forbidden": true,
+    "production_approval_does_not_authorize_daily7_live_gate": true,
     "caller_should_pin_exact_aver_commit_or_release": true,
     "cross_repository_state_mutation_remains_forbidden": true,
     "daily7_shadow_integration_required_before_live_tm_gate": true

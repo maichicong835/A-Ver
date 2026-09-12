@@ -37,7 +37,7 @@ jobs:
           python3 -m json.tool spec/engine.json >/dev/null
           python3 tests/test_contract.py
 
-      - name: Verify authority mode and side-effect locks
+      - name: Verify production authority and side-effect locks
         shell: bash
         run: |
           set -euo pipefail
@@ -45,10 +45,11 @@ jobs:
           import json
           c=json.load(open('CURRENT.json'))
           e=json.load(open('spec/engine.json'))
-          assert c['status']=='ACCEPTANCE_ONLY'
-          assert c['production_tm_decisions_authorized'] is False
+          assert c['status']=='PRODUCTION_APPROVED_SCOPED'
+          assert c['production_tm_decisions_authorized'] is True
           assert c['external_side_effects_authorized'] is False
-          assert e['mode']=='ACCEPTANCE_ONLY'
+          assert e['mode']=='PRODUCTION_SCOPED'
+          assert e['production_transition']['daily7_live_gate_authorized'] is False
           assert e['external_interface_future']['cross_repo_state_mutation_forbidden'] is True
           print('AVER_AUTHORITY_GUARD_PASS')
           PY
@@ -81,9 +82,11 @@ jobs:
           s=c['acceptance_snapshot']
           print('engine_version=',c['engine_version'])
           print('status=',c['status'])
+          print('production_tm_decisions_authorized=',c['production_tm_decisions_authorized'])
           print('a4_state=',s['A4_DECLARED_CAPABILITY_REPEATABILITY'])
-          print('prepromotion_state=',s.get('PRE_PROMOTION_CONTRACT_HARDENING','NOT_PRESENT'))
-          print('tmhunt_split=',s['tmhunt_split'])
-          print('tmhunt_wildcard=',s['tmhunt_wildcard'])
+          print('prepromotion_state=',s['PRE_PROMOTION_CONTRACT_HARDENING'])
+          print('promotion_state=',s['PROMOTION_REVIEW'])
+          print('shadow_state=',s['DAILY7_SHADOW_INTEGRATION'])
+          print('daily7_live_gate_authorized=',c['promotion_closure']['daily7_live_gate_authorized'])
           print('current_reopen_scope=',c['current_reopen_scope']['only_layer'])
           PY

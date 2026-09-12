@@ -2,7 +2,7 @@
   "schema": "AVER_TM_ENGINE",
   "engine": "A-Ver Trademark Verification Engine",
   "engine_version": "0.1.0",
-  "mode": "ACCEPTANCE_ONLY",
+  "mode": "PRODUCTION_SCOPED",
   "authority": {
     "repository": "maichicong835/A-Ver",
     "branch": "main",
@@ -38,7 +38,7 @@
       "CAPABILITY_EXCLUDED_UNPROVEN"
     ],
     "tm_decision_states": ["TM_PASS", "TM_KILL", "TM_HOLD"],
-    "acceptance_mode_may_emit_tm_decision_states": false,
+    "production_mode_may_emit_tm_decision_states": true,
     "capability_state_may_be_mapped_directly_to_tm_decision": false
   },
   "resolver_roles": {
@@ -117,9 +117,9 @@
     "acceptance_breadth_is_fixed_canary_set_not_market_discovery": true,
     "successful_prior_layers_remain_closed": true,
     "authority_or_documentation_change_alone_does_not_reopen_closed_layers": true,
-    "new_resolver_discovery_for_a4_repair_forbidden": true,
     "contract_status_update_may_not_retrigger_closed_resolver_acceptance": true,
-    "contract_matrix_status_update_may_not_retrigger_contract_matrix": true
+    "contract_matrix_status_update_may_not_retrigger_contract_matrix": true,
+    "production_promotion_does_not_imply_live_caller_integration": true
   },
   "orchestration": {
     "closed_phase_auto_rerun_on_current_or_spec_change": false,
@@ -130,12 +130,13 @@
     "repeatability_via_content_change_or_noop_commit_forbidden": true,
     "authority_guard_is_separate_from_resolver_acceptance": true,
     "workflow_success_requires_semantic_profile_pass": true,
-    "contract_matrix_is_pure_deterministic_no_resolver_transport": true
+    "contract_matrix_is_pure_deterministic_no_resolver_transport": true,
+    "shadow_integration_is_separate_from_live_gate": true
   },
   "shared_resolver_implementation": {
     "module_root": "src/aver/resolvers",
     "acceptance_a4_imports_shared_modules": true,
-    "future_production_imports_same_modules": true,
+    "production_imports_same_modules": true,
     "parallel_resolver_implementation_forbidden": true
   },
   "acceptance": {
@@ -175,9 +176,16 @@
       }
     },
     "promotion_review": {
-      "status": "PENDING_EXPLICIT_USER_APPROVAL",
-      "production_state_change_authorized": false,
-      "daily7_integration_authorized": false
+      "status": "PASS_CLOSED_EXPLICIT_USER_APPROVAL_2026_09_13",
+      "production_state_change_authorized": true,
+      "daily7_shadow_integration_authorized": true,
+      "daily7_live_gate_authorized": false
+    },
+    "daily7_shadow_integration": {
+      "status": "AUTHORIZED_NOT_LIVE",
+      "existing_hold_canaries_only": true,
+      "caller_state_mutation_forbidden": true,
+      "live_gate_authorized": false
     }
   },
   "interface_contract": {
@@ -216,15 +224,15 @@
     "hash_raw_response_body": true
   },
   "production_transition": {
-    "promotion_before_contract_matrix_pass_forbidden": true,
-    "daily7_or_external_caller_integration_before_promotion_forbidden": true,
+    "promotion_state": "PROMOTED_SCOPED",
+    "production_tm_decisions_authorized": true,
+    "external_side_effects_authorized": false,
+    "daily7_shadow_integration_authorized": true,
+    "daily7_live_gate_authorized": false,
     "acceptance_and_production_use_same_resolver_implementation": true,
-    "versioned_request_schema_required": true,
-    "versioned_receipt_schema_required": true,
-    "full_contract_state_coverage_test_required": true,
     "generic_safe_boolean_output_forbidden": true,
-    "separate_explicit_promotion_commit_required": true,
-    "explicit_user_approval_required": true
+    "separate_explicit_promotion_commit_satisfied": true,
+    "explicit_user_approval_satisfied": true
   },
   "external_interface_future": {
     "input_is_data_not_authority": true,
