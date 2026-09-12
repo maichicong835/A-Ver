@@ -64,21 +64,79 @@ class TrademarkiaResolver:
             result["terminal"] = "POSITIVE_RESULTSET"
         return result
 
+    def _bind_query_stably(self, page, query, max_attempts=3):
+        """Machine-attest query binding before submission.
+
+        Trademarkia's public React surface can re-render/hydrate after the first
+        visible input is found. A click/fill call is therefore not sufficient
+        evidence that the query remained bound. This routine is deliberately
+        bounded and re-acquires the visible search input on every attempt.
+        """
+        attempts = []
+        latest_candidates = []
+        for attempt in range(1, max_attempts + 1):
+            selected, candidates = choose_visible_search_input(page)
+            latest_candidates = candidates[:20]
+            if not selected:
+                attempts.append({"attempt": attempt, "method": None, "value_after_250ms": None, "value_after_700ms": None, "bound": False, "reason": "VISIBLE_SEARCH_INPUT_NOT_FOUND"})
+                page.wait_for_timeout(300)
+                continue
+
+            input_el, input_desc = selected
+            method = "fill" if attempt == 1 else "click_selectall_type"
+            try:
+                if method == "fill":
+                    input_el.fill(query)
+                else:
+                    input_el.click()
+                    input_el.press("Control+A")
+                    input_el.type(query, delay=20)
+                page.wait_for_timeout(250)
+                value1 = input_el.input_value(timeout=1500)
+                page.wait_for_timeout(450)
+                value2 = input_el.input_value(timeout=1500)
+                bound = value1 == query and value2 == query
+                attempts.append({
+                    "attempt": attempt,
+                    "method": method,
+                    "selected_input": input_desc,
+                    "value_after_250ms": value1,
+                    "value_after_700ms": value2,
+                    "bound": bound,
+                })
+                if bound:
+                    return input_el, input_desc, latest_candidates, {"bound": True, "attempts": attempts, "max_attempts": max_attempts}
+            except Exception as exc:
+                attempts.append({
+                    "attempt": attempt,
+                    "method": method,
+                    "selected_input": input_desc,
+                    "bound": False,
+                    "exception": f"{type(exc).__name__}:{str(exc)[:180]}",
+                })
+            page.wait_for_timeout(300)
+
+        return None, None, latest_candidates, {"bound": False, "attempts": attempts, "max_attempts": max_attempts}
+
     def search(self, query, expected_kind, expected_identifier=None):
         page = self.browser.new_page(viewport={"width": 1440, "height": 1000})
         rec = {"resolver": "TRADEMARKIA", "mode": expected_kind, "query": query, "state": "CAPABILITY_UNPROVEN", "failure_signature": None}
         try:
             page.goto(self.SEARCH_URL, wait_until="domcontentloaded", timeout=30000)
             page.wait_for_timeout(900)
-            selected, candidates = choose_visible_search_input(page)
-            rec["input_candidates"] = candidates[:20]
-            if not selected:
-                rec["failure_signature"] = "TRADEMARKIA_VISIBLE_SEARCH_INPUT_NOT_FOUND"
+            input_el, input_desc, candidates, binding = self._bind_query_stably(page, query)
+            rec["input_candidates"] = candidates
+            rec["query_binding_attestation"] = binding
+            if input_el is None or not binding.get("bound"):
+                rec["failure_signature"] = "TRADEMARKIA_QUERY_BINDING_UNSTABLE_BEFORE_SUBMIT"
                 return rec
-            input_el, input_desc = selected
+
             rec["selected_input"] = input_desc
-            input_el.fill(query)
             rec["pre_submit_input_value"] = input_el.input_value(timeout=1500)
+            if rec["pre_submit_input_value"] != query:
+                rec["failure_signature"] = "TRADEMARKIA_QUERY_BINDING_LOST_IMMEDIATELY_BEFORE_SUBMIT"
+                return rec
+
             rec["submission"] = submit_scoped(page, page, input_el)
             terminal = wait_for(page, lambda: self._search_probe(page, query, expected_identifier), timeout_seconds=16)
             rec["terminal_result"] = terminal
