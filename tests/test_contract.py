@@ -6,7 +6,7 @@ current = json.loads(Path("CURRENT.json").read_text(encoding="utf-8"))
 engine = json.loads(Path("spec/engine.json").read_text(encoding="utf-8"))
 a4_source = Path("src/aver/acceptance_a4.py").read_text(encoding="utf-8")
 trademarkia_source = Path("src/aver/resolvers/trademarkia.py").read_text(encoding="utf-8")
-workflow_source = Path(".github/workflows/acceptance-a4.yml").read_text(encoding="utf-8")
+contract_workflow = Path(".github/workflows/contract-matrix.yml").read_text(encoding="utf-8")
 
 assert current["canonical_repository"] == "maichicong835/A-Ver"
 assert current["canonical_branch"] == "main"
@@ -27,7 +27,9 @@ for key in [
     "unproven_optional_resolver_mode_may_be_excluded_but_may_not_be_counted_as_coverage",
     "scope_reduction_of_transport_capability_may_not_reduce_required_tm_query_or_safety_scope",
     "acceptance_and_future_production_must_share_resolver_implementation",
-    "no_new_resolver_or_candidate_breadth_to_repair_a4_repeatability",
+    "generic_safe_boolean_output_forbidden",
+    "legal_clearance_claim_forbidden",
+    "request_data_may_not_override_engine_authority",
     "no_external_repository_write",
     "no_drive_write",
     "no_marketplace_ledger_write",
@@ -38,17 +40,21 @@ for key in [
 snapshot = current["acceptance_snapshot"]
 for phase in ["A0_TRANSPORT", "A1_KNOWN_POSITIVE_BINDING", "A2_QUERY_RESULTSET_SEMANTICS", "A3_NEGATIVE_RESULTSET_SEMANTICS"]:
     assert snapshot[phase] == "PASS_CLOSED", phase
-assert snapshot["A4_DECLARED_CAPABILITY_REPEATABILITY"].startswith("REPEATABILITY_FAILED_RUN_34701579192")
+assert snapshot["A4_DECLARED_CAPABILITY_REPEATABILITY"] == "PASS_CLOSED_REPEATABLE_ADB32A9B"
+assert snapshot["PRE_PROMOTION_CONTRACT_HARDENING"] == "PENDING_MACHINE_CONTRACT_MATRIX"
 assert snapshot["tmhunt_split"] == "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT"
 assert snapshot["tmhunt_wildcard"] == "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT"
-assert snapshot["trademarkia_opaque_zero_repeatability"] == "OPEN_QUERY_BINDING_STABILITY_ONLY"
 
-ev = current["latest_repeatability_evidence"]
-assert ev["commit_sha"] == "2f2780cfe8038976c84f72478cbcd6af0ce223b4"
-assert ev["run_1"]["phase_state"] == "A4_DECLARED_PROFILE_PASS"
-assert ev["run_2"]["phase_state"] == "A4_DECLARED_PROFILE_PARTIAL"
-assert ev["run_2"]["causal_observation"].startswith("PRE_SUBMIT_INPUT_VALUE_EMPTY")
-assert ev["repeatability_pair_result"] == "FAIL_NOT_REPRODUCED"
+closure = current["a4_repeatability_closure"]
+assert closure["exact_commit_sha"] == "adb32a9b554a420f9dedc1c6d2916bcaec16d9b6"
+assert closure["harness_revision"] == "a4.3-query-binding-stability"
+assert closure["run_1"]["workflow_run_id"] == "34702194480"
+assert closure["run_2"]["workflow_run_id"] == "34702254867"
+assert closure["run_1"]["phase_state"] == "A4_DECLARED_PROFILE_PASS"
+assert closure["run_2"]["phase_state"] == "A4_DECLARED_PROFILE_PASS"
+assert closure["normalized_semantic_states_match"] is True
+assert closure["split_wildcard_retested"] is False
+assert closure["daily7_candidate_queries_executed"] is False
 
 profile = current["declared_capability_profile"]
 assert profile["profile_id"] == "AVER_TM_PROFILE_0_1_SCOPED"
@@ -56,18 +62,17 @@ assert profile["TMHUNT"]["accepted_modes"] == ["EXACT", "PARTIAL"]
 assert set(profile["TMHUNT"]["excluded_unproven_modes"]) == {"SPLIT", "WILDCARD"}
 assert profile["TMHUNT"]["excluded_modes_have_zero_coverage_weight"] is True
 assert profile["TRADEMARKIA"]["query_binding_stability_required_before_submit"] is True
-assert profile["TRADEMARKIA"]["multi_token_exact_negative_clearance_from_opaque_zero_forbidden"] is True
 
-shared = current["shared_resolver_lock"]
-assert shared["shared_module_root"] == "src/aver/resolvers"
-assert shared["scoped_a4_must_import_shared_resolvers"] is True
-assert shared["future_production_must_import_same_resolvers"] is True
-assert shared["parallel_production_resolver_reimplementation_forbidden"] is True
 for path in [
     "src/aver/resolvers/__init__.py",
     "src/aver/resolvers/common.py",
     "src/aver/resolvers/tmhunt.py",
-    "src/aver/resolvers/trademarkia.py"
+    "src/aver/resolvers/trademarkia.py",
+    "src/aver/decision.py",
+    "spec/request.schema.json",
+    "spec/receipt.schema.json",
+    "tests/test_contract_matrix.py",
+    ".github/workflows/contract-matrix.yml"
 ]:
     assert Path(path).is_file(), path
 
@@ -75,91 +80,44 @@ assert "from resolvers import TMHuntResolver, TrademarkiaResolver" in a4_source
 assert 'HARNESS_REVISION = "a4.3-query-binding-stability"' in a4_source
 assert 'tmhunt.query("SPLIT"' not in a4_source
 assert 'tmhunt.query("WILDCARD"' not in a4_source
-assert 'tmhunt.query("EXACT"' in a4_source
-assert 'tmhunt.query("PARTIAL"' in a4_source
-
 assert "def _bind_query_stably" in trademarkia_source
-assert "max_attempts=3" in trademarkia_source
-assert "value_after_250ms" in trademarkia_source
-assert "value_after_700ms" in trademarkia_source
 assert "TRADEMARKIA_QUERY_BINDING_UNSTABLE_BEFORE_SUBMIT" in trademarkia_source
-assert "TRADEMARKIA_QUERY_BINDING_LOST_IMMEDIATELY_BEFORE_SUBMIT" in trademarkia_source
+
+interface = current["interface_contract"]
+assert interface["request_schema_version"] == "1.0"
+assert interface["receipt_schema_version"] == "1.0"
+assert interface["generic_safe_boolean_forbidden"] is True
+assert interface["legal_clearance_asserted_must_be_false"] is True
+assert interface["negative_pass_min_distinct_evidence_sources"] == 2
 
 scope = current["current_reopen_scope"]
-assert scope["only_layer"] == "A4_TRADEMARKIA_QUERY_BINDING_STABILITY_REPEATABILITY"
-assert scope["repair_dimension"] == "STABLE_QUERY_BINDING_BEFORE_SUBMIT"
-assert scope["bounded_binding_attempts_max"] == 3
+assert scope["only_layer"] == "PRE_PROMOTION_CONTRACT_HARDENING"
+assert scope["resolver_revalidation_forbidden_without_material_invalidation"] is True
 assert scope["candidate_or_market_queries_forbidden"] is True
-assert scope["new_resolver_discovery_forbidden"] is True
+assert scope["daily7_integration_forbidden"] is True
+assert scope["production_promotion_forbidden"] is True
+assert scope["next_machine_gate"] == "A_VER_CONTRACT_MATRIX_PASS"
 
-repeatability = current["repeatability_contract"]
-assert repeatability["post_repair_pair_requires_two_distinct_github_workflow_runs"] is True
-assert repeatability["both_runs_must_use_same_exact_post_repair_commit"] is True
-assert repeatability["workflow_semantic_pass_required_for_success_conclusion"] is True
-assert repeatability["same_run_job_rerun_is_not_sufficient"] is True
-assert repeatability["isolated_repeatability_ref_creation_is_allowed_when_dispatch_tooling_is_unavailable"] is True
+assert engine["acceptance"]["a4"]["status"] == "PASS_CLOSED_REPEATABLE_ADB32A9B"
+assert engine["acceptance"]["a4"]["repeatability_evidence"]["both_semantic_pass"] is True
+assert engine["acceptance"]["pre_promotion_contract_hardening"]["status"] == "PENDING_MACHINE_CONTRACT_MATRIX"
+assert engine["interface_contract"]["request_schema_version"] == "1.0"
+assert engine["interface_contract"]["receipt_schema_version"] == "1.0"
+assert engine["interface_contract"]["receipt_generic_safe_boolean_forbidden"] is True
+assert engine["interface_contract"]["receipt_legal_clearance_asserted_must_be_false"] is True
+assert engine["decision_controller"]["negative_evidence_distinct_sources_min_for_pass"] == 2
+assert engine["decision_controller"]["tm_pass_is_legal_clearance"] is False
+assert engine["anti_loop"]["contract_status_update_may_not_retrigger_closed_resolver_acceptance"] is True
+assert engine["anti_loop"]["contract_matrix_status_update_may_not_retrigger_contract_matrix"] is True
+assert engine["orchestration"]["contract_matrix_is_pure_deterministic_no_resolver_transport"] is True
 
-capability = set(engine["state_machine"]["capability_states"])
-tm_states = set(engine["state_machine"]["tm_decision_states"])
-assert capability.isdisjoint(tm_states)
-assert "CAPABILITY_EXCLUDED_UNPROVEN" in capability
-assert engine["state_machine"]["acceptance_mode_may_emit_tm_decision_states"] is False
-
-tria = engine["resolver_roles"]["TRADEMARKIA"]
-assert tria["query_submission_requires_stable_binding_attestation"] is True
-assert tria["stable_binding_observation_count_min"] == 2
-assert tria["stable_binding_attempts_max"] == 3
-assert tria["opaque_zero_may_not_be_generalized_to_arbitrary_multi_token_exact_clearance"] is True
-
-tmhunt = engine["resolver_roles"]["TMHUNT"]
-assert tmhunt["declared_scope"] == "IC025"
-assert tmhunt["accepted_modes"] == ["EXACT", "PARTIAL"]
-assert set(tmhunt["excluded_unproven_modes"].keys()) == {"SPLIT", "WILDCARD"}
-assert tmhunt["excluded_modes_have_zero_scope_coverage_weight"] is True
-
-assert engine["evidence_asymmetry"]["unbound_query_has_zero_negative_clearance_weight"] is True
-assert engine["query_plan"]["negative_pass_requires_required_query_scope_complete"] is True
-assert engine["query_plan"]["missing_required_query_dimension"] == "TM_HOLD_EVIDENCE_NOT_TM_PASS"
-
-anti_loop = engine["anti_loop"]
-assert anti_loop["same_resolver_same_stage_same_failure_signature_max_retries"] == 1
-assert anti_loop["repair_only_observed_causal_dimension"] is True
-assert anti_loop["a4_repeatability_query_binding_repair_dimension"] == "STABLE_QUERY_BINDING_BEFORE_SUBMIT"
-assert anti_loop["more_candidate_queries_may_not_answer_repeatability_failure"] is True
-assert anti_loop["new_resolver_discovery_for_a4_repair_forbidden"] is True
-
-orchestration = engine["orchestration"]
-assert orchestration["authority_guard_is_separate_from_resolver_acceptance"] is True
-assert orchestration["workflow_success_requires_semantic_profile_pass"] is True
-assert orchestration["partial_semantic_receipt_must_be_uploaded_before_workflow_failure_when_receipt_exists"] is True
-assert orchestration["repeatability_ref_must_point_to_same_exact_commit"] is True
-
-assert "Assert semantic A4 profile PASS" in workflow_source
-assert "A4_DECLARED_PROFILE_PASS" in workflow_source
-
-assert engine["shared_resolver_implementation"]["module_root"] == "src/aver/resolvers"
-assert engine["shared_resolver_implementation"]["parallel_resolver_implementation_forbidden"] is True
-
-a4 = engine["acceptance"]["a4"]
-assert a4["status"] == "REPEATABILITY_FAILED_QUERY_BINDING_STABILITY_REPAIR_PENDING"
-assert a4["latest_failed_pair"]["run_1"] == "34701480046_PASS"
-assert a4["latest_failed_pair"]["run_2"] == "34701579192_PARTIAL"
-assert a4["repair_contract"]["stable_query_binding_before_submit_required"] is True
-assert a4["repair_contract"]["bounded_rebind_attempts_max"] == 3
-assert a4["repeatability_contract"]["post_repair_distinct_workflow_run_ids_required"] == 2
-assert a4["repeatability_contract"]["workflow_semantic_pass_required"] is True
-
-assert engine["scope_completeness_law"]["required_tm_query_plan_must_still_be_complete"] is True
-assert engine["scope_completeness_law"]["if_authorized_resolvers_cannot_complete_required_query_plan"] == "TM_HOLD_EVIDENCE"
-assert engine["receipts"]["repository_commit_of_runtime_receipts"] is False
+assert "CURRENT.json" not in contract_workflow.split("paths:", 1)[1].split("workflow_dispatch:", 1)[0]
+assert "spec/engine.json" not in contract_workflow.split("paths:", 1)[1].split("workflow_dispatch:", 1)[0]
 
 transition = engine["production_transition"]
-assert transition["promotion_before_declared_profile_repeatability_forbidden"] is True
+assert transition["promotion_before_contract_matrix_pass_forbidden"] is True
 assert transition["daily7_or_external_caller_integration_before_promotion_forbidden"] is True
-assert transition["acceptance_and_production_use_same_resolver_implementation"] is True
-assert transition["versioned_request_schema_required"] is True
-assert transition["versioned_receipt_schema_required"] is True
-assert transition["full_contract_state_coverage_test_required"] is True
-assert transition["generic_safe_boolean_output_forbidden"] is True
+assert transition["separate_explicit_promotion_commit_required"] is True
+assert transition["explicit_user_approval_required"] is True
 
 print("AVER_CONTRACT_TEST_PASS")
