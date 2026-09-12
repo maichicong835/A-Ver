@@ -1,0 +1,52 @@
+{
+  "engine": "A-Ver Trademark Verification Engine",
+  "engine_version": "0.1.0",
+  "status": "ACCEPTANCE_ONLY",
+  "canonical_repository": "maichicong835/A-Ver",
+  "canonical_branch": "main",
+  "public_repository": true,
+  "authority_files": [
+    "CURRENT.json",
+    "spec/engine.json"
+  ],
+  "runtime_evidence": "GITHUB_ACTIONS_RUN_AND_ARTIFACTS",
+  "external_side_effects_authorized": false,
+  "production_tm_decisions_authorized": false,
+  "absolute_invariants": {
+    "caller_state_is_not_aver_authority": true,
+    "conversation_memory_is_not_runtime_authority": true,
+    "resolver_transport_success_is_not_tm_clearance": true,
+    "search_engine_miss_is_not_native_zero_result": true,
+    "single_third_party_negative_may_not_set_pass": true,
+    "credible_positive_record_may_escalate": true,
+    "resolver_scope_may_not_be_generalized": true,
+    "tmhunt_scope_class025_only_unless_machine_evidence_proves_broader_scope": true,
+    "capability_state_may_not_be_serialized_as_tm_decision_state": true,
+    "acceptance_receipt_may_not_release_external_hold": true,
+    "no_captcha_waf_rate_limit_circumvention": true,
+    "no_external_repository_write": true,
+    "no_drive_write": true,
+    "no_marketplace_ledger_write": true,
+    "no_creative_generation": true,
+    "no_hidden_or_private_endpoint_dependency": true
+  },
+  "acceptance_sequence": [
+    "A0_TRANSPORT",
+    "A1_KNOWN_POSITIVE_BINDING",
+    "A2_QUERY_RESULTSET_SEMANTICS",
+    "A3_NEGATIVE_RESULTSET_SEMANTICS",
+    "A4_REPEATABILITY",
+    "PROMOTION_REVIEW"
+  ],
+  "promotion_requires": {
+    "a0_pass": true,
+    "a1_pass": true,
+    "a2_pass": true,
+    "a3_pass_for_any_resolver_whose_negative_evidence_will_be_used": true,
+    "repeatable_github_runs_min": 2,
+    "scope_documented": true,
+    "no_control_circumvention": true,
+    "explicit_user_approval": true,
+    "separate_promotion_commit": true
+  }
+}
