@@ -9,7 +9,7 @@
     "current": "CURRENT.json",
     "caller_inputs_are_data_only": true,
     "caller_policy_is_not_inherited": true,
-    "workflow_prompts_or_orchestration_are_not_second_specs": true
+    "workflow_orchestration_is_not_a_second_spec": true
   },
   "truth_layers": [
     "TRANSPORT_TRUTH",
@@ -37,11 +37,7 @@
       "CAPABILITY_ACCEPTED",
       "CAPABILITY_EXCLUDED_UNPROVEN"
     ],
-    "tm_decision_states": [
-      "TM_PASS",
-      "TM_KILL",
-      "TM_HOLD"
-    ],
+    "tm_decision_states": ["TM_PASS", "TM_KILL", "TM_HOLD"],
     "acceptance_mode_may_emit_tm_decision_states": false,
     "capability_state_may_be_mapped_directly_to_tm_decision": false
   },
@@ -50,7 +46,12 @@
       "role": "BROAD_US_FEDERAL_RECORD_RESOLVER",
       "behavior": "BROAD_RECALL_WITH_FUZZY_OR_TOKEN_EXPANSION_POSSIBLE",
       "capability_status": "PASS_CLOSED_FROM_PRIOR_MACHINE_PROVEN_RUNS",
-      "opaque_zero_semantics_proven": true,
+      "accepted_capabilities": [
+        "KNOWN_POSITIVE_SEARCH",
+        "KNOWN_RECORD_BINDING",
+        "BROAD_FUZZY_OR_TOKEN_RECALL",
+        "OPAQUE_SINGLE_TOKEN_ZERO_SEMANTICS_WITH_LIMITED_MEANING"
+      ],
       "opaque_zero_may_not_be_generalized_to_arbitrary_multi_token_exact_clearance": true,
       "closed_layer_incidental_recheck_miss_does_not_reopen_without_material_invalidation": true,
       "required_material_record_fields_when_hit": [
@@ -64,15 +65,8 @@
       "role": "IC025_APPAREL_ADJACENT_RESOLVER",
       "declared_scope": "IC025",
       "scope_generalization_forbidden": true,
-      "exact_zero_semantics_proven": true,
-      "accepted_modes_candidate": [
-        "EXACT",
-        "PARTIAL"
-      ],
-      "accepted_mode_evidence": {
-        "EXACT": "MODE_PASS_RUN_34700639830",
-        "PARTIAL": "MODE_PASS_RUN_34700639830"
-      },
+      "accepted_modes": ["EXACT", "PARTIAL"],
+      "accepted_negative_semantics": ["EXACT_ZERO_WITHIN_IC025"],
       "excluded_unproven_modes": {
         "SPLIT": "TMHUNT_PANEL_SEARCH_INPUT_NOT_FOUND_AFTER_CAUSAL_REPAIR_RUN_34700639830",
         "WILDCARD": "TMHUNT_PANEL_SEARCH_INPUT_NOT_FOUND_AFTER_CAUSAL_REPAIR_RUN_34700639830"
@@ -121,69 +115,46 @@
     "successful_prior_layers_remain_closed": true,
     "closed_layer_incidental_recheck_noise_does_not_override_prior_proven_state_without_material_invalidation": true,
     "authority_or_documentation_change_alone_does_not_reopen_closed_layers": true,
-    "repair_only_failed_layer": true,
     "new_resolver_discovery_for_a4_repair_forbidden": true
   },
   "orchestration": {
     "closed_phase_auto_rerun_on_current_or_spec_change": false,
-    "phase_auto_run_allowed_when_its_own_harness_or_workflow_changes": true,
+    "phase_auto_run_allowed_when_its_own_harness_or_shared_resolver_changes": true,
     "manual_workflow_dispatch_allowed": true,
-    "repeatability_second_run_must_use_workflow_dispatch_on_same_exact_commit": true,
-    "repeatability_via_commit_touch_or_trigger_file_forbidden": true,
+    "isolated_repeatability_ref_creation_allowed_when_dispatch_tooling_is_unavailable": true,
+    "repeatability_ref_must_point_to_same_exact_commit": true,
+    "repeatability_via_content_change_or_noop_commit_forbidden": true,
     "authority_guard_is_separate_from_resolver_acceptance": true
   },
+  "shared_resolver_implementation": {
+    "module_root": "src/aver/resolvers",
+    "acceptance_a4_imports_shared_modules": true,
+    "future_production_imports_same_modules": true,
+    "parallel_resolver_implementation_forbidden": true
+  },
   "acceptance": {
-    "a0": {
-      "purpose": "PROVE_GITHUB_RUNNER_PUBLIC_TRANSPORT_AND_SURFACE_IDENTITY",
-      "status": "PASS_CLOSED"
-    },
-    "a1": {
-      "purpose": "PROVE_KNOWN_POSITIVE_QUERY_AND_RECORD_BINDING",
-      "requires_a0": true,
-      "status": "PASS_CLOSED"
-    },
-    "a2": {
-      "purpose": "PROVE_NATIVE_QUERY_AND_RESULTSET_STRUCTURE",
-      "requires_a1": true,
-      "status": "PASS_CLOSED"
-    },
-    "a3": {
-      "purpose": "PROVE_ZERO_NO_MATERIAL_HIT_SEMANTICS_WITHOUT_SEARCH_ENGINE_INFERENCE",
-      "requires_a2": true,
-      "status": "PASS_CLOSED"
-    },
+    "a0": {"status": "PASS_CLOSED", "purpose": "PROVE_GITHUB_RUNNER_PUBLIC_TRANSPORT_AND_SURFACE_IDENTITY"},
+    "a1": {"status": "PASS_CLOSED", "purpose": "PROVE_KNOWN_POSITIVE_QUERY_AND_RECORD_BINDING"},
+    "a2": {"status": "PASS_CLOSED", "purpose": "PROVE_NATIVE_QUERY_AND_RESULTSET_STRUCTURE"},
+    "a3": {"status": "PASS_CLOSED", "purpose": "PROVE_ZERO_NO_MATERIAL_HIT_SEMANTICS_WITHOUT_SEARCH_ENGINE_INFERENCE"},
     "a4": {
-      "purpose": "FREEZE_AND_PROVE_REPEATABILITY_OF_THE_DECLARED_CAPABILITY_PROFILE_NOT_EVERY_UI_FEATURE",
-      "requires_a3": true,
-      "status": "PARTIAL_SCOPE_FREEZE_REQUIRED",
-      "causal_repair_run": {
-        "commit_sha": "2ccc13cfad2db042fcc7ffda49c640a69f3187a6",
-        "workflow_run_id": "34700639830",
-        "artifact_id": "10299693567",
-        "artifact_digest": "sha256:79e98e04c48d765ae5807901406c55fb4642761485c3bbc587d9885243a44a9c"
-      },
-      "closed_components": [
-        "TRADEMARKIA_PRIOR_PROVEN_BEHAVIOR_CAPABILITY",
-        "TMHUNT_EXACT_ZERO_SEMANTICS",
-        "TMHUNT_EXACT_POSITIVE_BINDING",
-        "TMHUNT_PARTIAL_POSITIVE_BINDING"
-      ],
-      "excluded_components": [
-        "TMHUNT_SPLIT",
-        "TMHUNT_WILDCARD"
-      ],
-      "excluded_components_may_not_be_retried_or_counted_as_coverage": true,
-      "next_component": "DECLARED_CAPABILITY_PROFILE_REPEATABILITY",
+      "purpose": "PROVE_REPEATABILITY_OF_FROZEN_DECLARED_CAPABILITY_PROFILE",
+      "status": "SCOPED_PROFILE_FROZEN_PENDING_REPEATABILITY_RUN_1",
+      "profile_id": "AVER_TM_PROFILE_0_1_SCOPED",
+      "fixed_canaries": ["NIKE", "QZXJVMRKPLN91372", "JUST DO IT", "AVER QZXJ KESTREL 91372", "50086105"],
+      "tmhunt_modes_under_test": ["EXACT", "PARTIAL"],
+      "tmhunt_excluded_modes_not_tested": ["SPLIT", "WILDCARD"],
+      "trademarkia_behaviors_under_test": ["KNOWN_POSITIVE_SEARCH", "KNOWN_RECORD_BINDING", "OPAQUE_ZERO", "FUZZY_RECALL"],
       "repeatability_contract": {
-        "profile_must_be_frozen_before_repeatability": true,
-        "distinct_workflow_run_id_required": true,
+        "distinct_workflow_run_ids_required": true,
         "same_exact_commit_required": true,
-        "same_scoped_harness_required": true,
+        "same_harness_and_shared_resolver_modules_required": true,
         "same_fixed_canaries_required": true,
-        "workflow_dispatch_preferred_for_second_run": true,
+        "excluded_modes_must_not_be_retested": true,
+        "workflow_dispatch_preferred": true,
+        "same_commit_repeatability_ref_creation_allowed_when_dispatch_unavailable": true,
         "same_run_job_rerun_is_insufficient": true,
-        "normalized_semantic_states_must_match": true,
-        "excluded_modes_must_not_be_retested": true
+        "normalized_semantic_states_must_match": true
       }
     }
   },
@@ -198,27 +169,12 @@
     "immutable_runtime_medium": "GITHUB_ACTIONS_ARTIFACT",
     "repository_commit_of_runtime_receipts": false,
     "raw_page_body_persistence_default": false,
-    "hash_raw_response_body": true,
-    "minimum_fields": [
-      "engine_version",
-      "commit_sha",
-      "workflow_run_id",
-      "phase",
-      "resolver",
-      "start_time_utc",
-      "finish_time_utc",
-      "transport_state",
-      "result_state",
-      "failure_signature",
-      "evidence_hashes"
-    ]
+    "hash_raw_response_body": true
   },
   "production_transition": {
     "promotion_before_declared_profile_repeatability_forbidden": true,
     "daily7_or_external_caller_integration_before_promotion_forbidden": true,
-    "extract_shared_resolver_primitives_before_production_interface": true,
     "acceptance_and_production_use_same_resolver_implementation": true,
-    "parallel_reimplementation_of_proven_resolver_logic_forbidden": true,
     "versioned_request_schema_required": true,
     "versioned_receipt_schema_required": true,
     "full_contract_state_coverage_test_required": true,
