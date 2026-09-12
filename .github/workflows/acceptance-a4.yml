@@ -92,3 +92,16 @@ jobs:
           path: artifacts/a4/a4-receipt.json
           if-no-files-found: error
           retention-days: 30
+
+      - name: Assert semantic A4 profile PASS
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          r=json.load(open('artifacts/a4/a4-receipt.json'))
+          expected='A4_DECLARED_PROFILE_PASS'
+          actual=r.get('phase_state')
+          if actual != expected:
+              raise SystemExit(f'A4_SEMANTIC_ACCEPTANCE_NOT_PASS:{actual}')
+          print('A4_SEMANTIC_ACCEPTANCE_PASS')
+          PY
