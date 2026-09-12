@@ -1,0 +1,50 @@
+name: A-Ver Contract Matrix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'spec/request.schema.json'
+      - 'spec/receipt.schema.json'
+      - 'src/aver/decision.py'
+      - 'tests/test_contract_matrix.py'
+      - 'tests/test_contract.py'
+      - 'CURRENT.json'
+      - 'spec/engine.json'
+      - '.github/workflows/contract-matrix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-matrix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      AVER_MODE: ACCEPTANCE_ONLY
+      EXTERNAL_SIDE_EFFECTS_AUTHORIZED: 'false'
+      PRODUCTION_TM_DECISIONS_AUTHORIZED: 'false'
+    steps:
+      - name: Checkout exact A-Ver commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Verify side-effect locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$AVER_MODE" = "ACCEPTANCE_ONLY"
+          test "$EXTERNAL_SIDE_EFFECTS_AUTHORIZED" = "false"
+          test "$PRODUCTION_TM_DECISIONS_AUTHORIZED" = "false"
+
+      - name: Validate authority contract
+        run: python3 tests/test_contract.py
+
+      - name: Install schema validator
+        run: python3 -m pip install --disable-pip-version-check --quiet jsonschema==4.25.1
+
+      - name: Run deterministic contract state matrix
+        run: python3 tests/test_contract_matrix.py
