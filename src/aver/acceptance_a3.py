@@ -6,6 +6,7 @@ from pathlib import Path
 from acceptance_a2 import sha, norm, open_public_query_panel, choose_search_input, set_exact_mode, submit_query
 
 ENGINE_VERSION='0.1.0'
+HARNESS_REVISION='a3.1'
 PHASE='A3_NEGATIVE_RESULTSET_SEMANTICS'
 OUT=Path('artifacts/a3'); OUT.mkdir(parents=True,exist_ok=True)
 SYNTHETIC_QUERY='AVER QZXJ KESTREL 91372'
@@ -16,11 +17,16 @@ CANARIES=[
 ]
 
 NEGATIVE_PATTERNS=[
+  r'\bshowing\s+0\s+to\s+0\s+of\s+0\s+results\b',
   r'\b0\s+(?:search\s+)?(?:results?|trademarks?|records?|matches?)\b',
   r'\bno\s+(?:trademarks?|results?|records?|matches?)\s+(?:were\s+)?found\b',
+  r'\bno\s+(?:trademark|trademarks)\s+found\b',
   r'\bno\s+results?\b',
   r'\bno\s+matching\s+(?:trademarks?|records?|results?)\b',
-  r'\bwe\s+couldn[’\']?t\s+find\b'
+  r'\bno\s+exact\s+matches?\b',
+  r'\bwe\s+couldn[’\']?t\s+find(?:\s+any)?\s+(?:trademarks?|results?|matches?)?\b',
+  r'\bwe\s+could\s+not\s+find(?:\s+any)?\s+(?:trademarks?|results?|matches?)?\b',
+  r'\bnothing\s+found\b'
 ]
 
 def now(): return datetime.now(timezone.utc).isoformat()
@@ -30,10 +36,64 @@ def evidence_snippets(text):
     lower=flat.lower(); snippets=[]
     for pattern in NEGATIVE_PATTERNS:
         for m in re.finditer(pattern,lower,re.I):
-            a=max(0,m.start()-180); b=min(len(flat),m.end()+260)
+            a=max(0,m.start()-180); b=min(len(flat),m.end()+280)
             snippets.append({'pattern':pattern,'text':flat[a:b]})
             if len(snippets)>=12: return snippets
     return snippets
+
+def diagnostic_lines(text, query):
+    lines=[]; seen=set()
+    for raw in (text or '').splitlines():
+        line=norm(raw)
+        if not line: continue
+        low=line.lower()
+        if any(k in low for k in ['result','trademark','match','found','search']) or any(t.lower() in low for t in query.split() if len(t)>=4):
+            clipped=line[:500]
+            if clipped not in seen:
+                seen.add(clipped); lines.append(clipped)
+        if len(lines)>=40: break
+    return lines
+
+def dom_result_structure(page):
+    evidence={
+      'visible_trademark_links':0,
+      'visible_result_like_nodes':0,
+      'empty_state_like_nodes':[],
+      'total_count_like_texts':[]
+    }
+    try:
+        links=page.locator('a:visible')
+        count=0
+        for i in range(min(links.count(),700)):
+            href=links.nth(i).get_attribute('href') or ''
+            if re.search(r'/trademark(?:s)?/',href,re.I) and '/search' not in href.lower():
+                count+=1
+        evidence['visible_trademark_links']=count
+    except Exception:
+        pass
+    try:
+        nodes=page.locator('[class*="result"]:visible, [data-testid*="result"]:visible, [class*="trademark"]:visible, [data-testid*="trademark"]:visible')
+        evidence['visible_result_like_nodes']=min(nodes.count(),1000)
+    except Exception:
+        pass
+    try:
+        candidates=page.locator('div:visible, p:visible, span:visible, h1:visible, h2:visible, h3:visible')
+        for i in range(min(candidates.count(),1600)):
+            try: text=norm(candidates.nth(i).inner_text())
+            except Exception: continue
+            low=text.lower()
+            if not text or len(text)>500: continue
+            if any(x in low for x in ['no result','no trademark','no match','nothing found','couldn’t find','couldn\'t find','could not find']):
+                evidence['empty_state_like_nodes'].append(text)
+            if re.search(r'\b(?:about\s+)?\d[\d,]*\s+(?:results?|trademarks?|matches?)\b',low):
+                evidence['total_count_like_texts'].append(text)
+            if len(evidence['empty_state_like_nodes'])>=20 and len(evidence['total_count_like_texts'])>=20:
+                break
+        evidence['empty_state_like_nodes']=list(dict.fromkeys(evidence['empty_state_like_nodes']))[:20]
+        evidence['total_count_like_texts']=list(dict.fromkeys(evidence['total_count_like_texts']))[:20]
+    except Exception:
+        pass
+    return evidence
 
 def run_negative(browser,canary):
     page=browser.new_page(viewport={'width':1440,'height':1000})
@@ -55,27 +115,31 @@ def run_negative(browser,canary):
             rec['query_mode_binding']='UI_DEFAULT'
         input_el.fill(canary['query'])
         rec['submission']=submit_query(page,input_el,before_hash)
-        page.wait_for_timeout(2200)
+        page.wait_for_timeout(2800)
         after_text=page.locator('body').inner_text(timeout=10000); after_html=page.content(); lower=after_text.lower()
         captcha=any(x in lower for x in ['captcha','verify you are human','are you a robot','human verification'])
         query_in_page=canary['query'].lower() in lower
         query_in_url=canary['query'].lower().replace(' ','+') in page.url.lower() or canary['query'].lower().replace(' ','%20') in page.url.lower()
         content_changed=sha(after_html)!=before_hash
         snippets=evidence_snippets(after_text)
+        structure=dom_result_structure(page)
+        structural_empty=bool(structure['empty_state_like_nodes'])
+        zero_count=any(re.search(r'\b0\s+(?:results?|trademarks?|matches?)\b',t.lower()) for t in structure['total_count_like_texts'])
         query_execution_evidence=query_in_page or query_in_url or content_changed
-        explicit_zero=bool(snippets)
+        explicit_zero=bool(snippets) or structural_empty or zero_count
         rec.update({
           'final_url':page.url,'content_changed':content_changed,'query_visible_in_page':query_in_page,'query_bound_in_url':query_in_url,
           'query_execution_evidence':query_execution_evidence,'explicit_negative_semantics_observed':explicit_zero,
-          'negative_semantics_snippets':snippets,'captcha_or_human_control_observed':captcha,
-          'after_body_sha256':sha(after_html),'network_response_sample':responses[:120]
+          'negative_semantics_snippets':snippets,'dom_result_structure':structure,'diagnostic_lines':diagnostic_lines(after_text,canary['query']),
+          'captcha_or_human_control_observed':captcha,'after_body_sha256':sha(after_html),'after_text_sha256':sha(after_text),
+          'network_response_sample':responses[:120]
         })
         if captcha:
             rec['state']='A3_CONTROL_BLOCKED'; rec['failure_signature']='HUMAN_VERIFICATION_OR_CAPTCHA_OBSERVED'
         elif query_execution_evidence and explicit_zero:
             rec['state']='A3_NEGATIVE_SEMANTICS_PASS'
         else:
-            rec['failure_signature']='NATIVE_QUERY_EXECUTED_BUT_EXPLICIT_ZERO_SEMANTICS_NOT_MACHINE_BOUND'
+            rec['failure_signature']='NATIVE_QUERY_EXECUTED_BUT_EXPLICIT_ZERO_SEMANTICS_NOT_MACHINE_BOUND_AFTER_DOM_EXTRACTION'
     except Exception as e:
         rec['state']='A3_BROWSER_TRANSPORT_BLOCKED'; rec['failure_signature']=f'{type(e).__name__}:{str(e)[:240]}'
     finally:
@@ -94,7 +158,7 @@ def main():
     elif any(v=='A3_NEGATIVE_SEMANTICS_PASS' for v in states.values()): phase='A3_PARTIAL'
     else: phase='A3_BLOCKED'
     receipt={
-      'schema':'AVER_ACCEPTANCE_RECEIPT','engine_version':ENGINE_VERSION,'mode':'ACCEPTANCE_ONLY','phase':PHASE,
+      'schema':'AVER_ACCEPTANCE_RECEIPT','engine_version':ENGINE_VERSION,'harness_revision':HARNESS_REVISION,'mode':'ACCEPTANCE_ONLY','phase':PHASE,
       'authority':{'repository':os.getenv('GITHUB_REPOSITORY','UNKNOWN'),'commit_sha':os.getenv('GITHUB_SHA','UNKNOWN'),'workflow_run_id':os.getenv('GITHUB_RUN_ID','UNKNOWN'),'workflow_run_attempt':os.getenv('GITHUB_RUN_ATTEMPT','UNKNOWN')},
       'browser_executable':executable,'started_at_utc':started,'finished_at_utc':now(),'phase_state':phase,'resolver_states':states,
       'synthetic_fixed_canary':SYNTHETIC_QUERY,'daily7_candidate_queries_executed':False,
@@ -102,7 +166,7 @@ def main():
       'negative_clearance_inferred_for_any_real_candidate':False,
       'scope_law':'TMHUNT_NEGATIVE_EVIDENCE_IS_IC025_ONLY;_TRADEMARKIA_NEGATIVE_EVIDENCE_IS_LIMITED_TO_THE_MACHINE_BOUND_UI_QUERY_SCOPE_AND_FILTERS',
       'records':records,
-      'next_action':'PROCEED_TO_A4_REPEATABILITY_AND_RESOLVER_MODE_MATRIX;_DO_NOT_PROMOTE_YET' if phase=='A3_PASS' else 'REPAIR_ONLY_FAILED_NEGATIVE_SEMANTICS_BINDING;_DO_NOT_QUERY_REAL_CANDIDATES_OR_EXPAND_BREADTH'
+      'next_action':'PROCEED_TO_A4_REPEATABILITY_AND_RESOLVER_MODE_MATRIX;_DO_NOT_PROMOTE_YET' if phase=='A3_PASS' else 'IF_SAME_RESOLVER_REMAINS_UNPROVEN_AFTER_THIS_CAUSAL_MUTATION_HOLD_ITS_NEGATIVE_CAPABILITY_AND_DO_NOT_RETRY_SAME_STRATEGY;_DO_NOT_QUERY_REAL_CANDIDATES'
     }
     (OUT/'a3-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
     print(json.dumps({'phase_state':phase,'resolver_states':states,'synthetic_query':SYNTHETIC_QUERY},indent=2)); return 0
