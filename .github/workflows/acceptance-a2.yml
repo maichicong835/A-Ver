@@ -1,0 +1,91 @@
+name: A-Ver Acceptance A2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'CURRENT.json'
+      - 'spec/**'
+      - 'src/aver/acceptance_a2.py'
+      - 'tests/**'
+      - '.github/workflows/acceptance-a2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aver-acceptance-a2
+  cancel-in-progress: true
+
+jobs:
+  acceptance-a2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      AVER_MODE: ACCEPTANCE_ONLY
+      EXTERNAL_SIDE_EFFECTS_AUTHORIZED: 'false'
+      PRODUCTION_TM_DECISIONS_AUTHORIZED: 'false'
+    steps:
+      - name: Checkout exact A-Ver commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Contract preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "maichicong835/A-Ver"
+          test "$AVER_MODE" = "ACCEPTANCE_ONLY"
+          test "$EXTERNAL_SIDE_EFFECTS_AUTHORIZED" = "false"
+          test "$PRODUCTION_TM_DECISIONS_AUTHORIZED" = "false"
+          python3 tests/test_contract.py
+          sha256sum CURRENT.json spec/engine.json > /tmp/aver-authority.before
+
+      - name: Prepare normal browser automation transport
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+          browser="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$browser" ]; then
+            echo "AVER_BROWSER_EXECUTABLE=$browser" >> "$GITHUB_ENV"
+            echo "Using system browser: $browser"
+          else
+            python3 -m playwright install chromium
+            echo "No system Chrome found; installed Playwright Chromium"
+          fi
+
+      - name: Run A2 fixed known-positive browser queries
+        run: python3 src/aver/acceptance_a2.py
+
+      - name: Verify authority immutability
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum CURRENT.json spec/engine.json > /tmp/aver-authority.after
+          diff -u /tmp/aver-authority.before /tmp/aver-authority.after
+          git diff --exit-code -- CURRENT.json spec/engine.json docs README.md src tests .github/workflows/acceptance-a2.yml
+
+      - name: Show compact A2 result
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          r=json.load(open('artifacts/a2/a2-receipt.json'))
+          print('phase_state=',r['phase_state'])
+          print('resolver_states=',json.dumps(r['resolver_states'],sort_keys=True))
+          for x in r['records']:
+              print(x['resolver'],x['state'],x.get('failure_signature'),x.get('final_url'),x.get('query_evidence_observed'))
+          print('negative_clearance_inferred=',r['negative_clearance_inferred'])
+          PY
+
+      - name: Upload immutable A2 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: aver-a2-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/a2/a2-receipt.json
+          if-no-files-found: error
+          retention-days: 30
