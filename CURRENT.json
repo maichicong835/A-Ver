@@ -54,7 +54,8 @@
     "A2_QUERY_RESULTSET_SEMANTICS": "PASS_CLOSED",
     "A3_NEGATIVE_RESULTSET_SEMANTICS": "PASS_CLOSED",
     "A4_DECLARED_CAPABILITY_REPEATABILITY": "PASS_CLOSED_REPEATABLE_ADB32A9B",
-    "PRE_PROMOTION_CONTRACT_HARDENING": "PENDING_MACHINE_CONTRACT_MATRIX",
+    "PRE_PROMOTION_CONTRACT_HARDENING": "PASS_CLOSED_CONTRACT_MATRIX_34702668801",
+    "PROMOTION_REVIEW": "PENDING_EXPLICIT_USER_APPROVAL",
     "tmhunt_split": "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT",
     "tmhunt_wildcard": "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT"
   },
@@ -77,6 +78,19 @@
     "fixed_canaries_match": true,
     "split_wildcard_retested": false,
     "daily7_candidate_queries_executed": false,
+    "production_decisions_authorized": false
+  },
+  "prepromotion_contract_closure": {
+    "tested_commit_sha": "6066da673117b80e10655f3833480d225dec0e0c",
+    "workflow_run_id": "34702668801",
+    "workflow_name": "A-Ver Contract Matrix",
+    "workflow_conclusion": "success",
+    "machine_marker": "AVER_CONTRACT_MATRIX_PASS",
+    "authority_contract_marker": "AVER_CONTRACT_TEST_PASS",
+    "request_schema_version": "1.0",
+    "receipt_schema_version": "1.0",
+    "resolver_transport_executed": false,
+    "daily7_queries_executed": false,
     "production_decisions_authorized": false
   },
   "declared_capability_profile": {
@@ -118,12 +132,12 @@
     "negative_pass_min_distinct_evidence_sources": 2
   },
   "current_reopen_scope": {
-    "only_layer": "PRE_PROMOTION_CONTRACT_HARDENING",
+    "only_layer": "PROMOTION_REVIEW",
     "resolver_revalidation_forbidden_without_material_invalidation": true,
     "candidate_or_market_queries_forbidden": true,
     "daily7_integration_forbidden": true,
-    "production_promotion_forbidden": true,
-    "next_machine_gate": "A_VER_CONTRACT_MATRIX_PASS"
+    "production_promotion_forbidden_without_explicit_user_approval": true,
+    "next_machine_gate": "EXPLICIT_USER_PROMOTION_APPROVAL"
   },
   "scope_completeness_law": {
     "full_site_ui_feature_coverage_is_not_tm_safety_scope": true,
