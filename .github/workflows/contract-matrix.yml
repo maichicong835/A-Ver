@@ -8,9 +8,6 @@ on:
       - 'spec/receipt.schema.json'
       - 'src/aver/decision.py'
       - 'tests/test_contract_matrix.py'
-      - 'tests/test_contract.py'
-      - 'CURRENT.json'
-      - 'spec/engine.json'
       - '.github/workflows/contract-matrix.yml'
   workflow_dispatch:
 
