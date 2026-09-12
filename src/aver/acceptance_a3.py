@@ -6,10 +6,10 @@ from pathlib import Path
 from acceptance_a2 import sha, norm, open_public_query_panel, choose_search_input, set_exact_mode, submit_query
 
 ENGINE_VERSION='0.1.0'
-HARNESS_REVISION='a3.1'
+HARNESS_REVISION='a3.2'
 PHASE='A3_NEGATIVE_RESULTSET_SEMANTICS'
 OUT=Path('artifacts/a3'); OUT.mkdir(parents=True,exist_ok=True)
-SYNTHETIC_QUERY='AVER QZXJ KESTREL 91372'
+SYNTHETIC_QUERY='QZXJVMRKPLN91372'
 
 CANARIES=[
   {'resolver':'TMHUNT','url':'http://www.tmhunt.com/','query':SYNTHETIC_QUERY,'public_query_anchor':'#query','declared_scope':'IC025_ONLY'},
@@ -47,7 +47,7 @@ def diagnostic_lines(text, query):
         line=norm(raw)
         if not line: continue
         low=line.lower()
-        if any(k in low for k in ['result','trademark','match','found','search']) or any(t.lower() in low for t in query.split() if len(t)>=4):
+        if any(k in low for k in ['result','trademark','match','found','search']) or query.lower() in low:
             clipped=line[:500]
             if clipped not in seen:
                 seen.add(clipped); lines.append(clipped)
@@ -119,7 +119,7 @@ def run_negative(browser,canary):
         after_text=page.locator('body').inner_text(timeout=10000); after_html=page.content(); lower=after_text.lower()
         captcha=any(x in lower for x in ['captcha','verify you are human','are you a robot','human verification'])
         query_in_page=canary['query'].lower() in lower
-        query_in_url=canary['query'].lower().replace(' ','+') in page.url.lower() or canary['query'].lower().replace(' ','%20') in page.url.lower()
+        query_in_url=canary['query'].lower() in page.url.lower()
         content_changed=sha(after_html)!=before_hash
         snippets=evidence_snippets(after_text)
         structure=dom_result_structure(page)
@@ -139,7 +139,7 @@ def run_negative(browser,canary):
         elif query_execution_evidence and explicit_zero:
             rec['state']='A3_NEGATIVE_SEMANTICS_PASS'
         else:
-            rec['failure_signature']='NATIVE_QUERY_EXECUTED_BUT_EXPLICIT_ZERO_SEMANTICS_NOT_MACHINE_BOUND_AFTER_DOM_EXTRACTION'
+            rec['failure_signature']='NATIVE_QUERY_EXECUTED_BUT_EXPLICIT_ZERO_SEMANTICS_NOT_MACHINE_BOUND_AFTER_OPAQUE_CANARY'
     except Exception as e:
         rec['state']='A3_BROWSER_TRANSPORT_BLOCKED'; rec['failure_signature']=f'{type(e).__name__}:{str(e)[:240]}'
     finally:
@@ -161,12 +161,12 @@ def main():
       'schema':'AVER_ACCEPTANCE_RECEIPT','engine_version':ENGINE_VERSION,'harness_revision':HARNESS_REVISION,'mode':'ACCEPTANCE_ONLY','phase':PHASE,
       'authority':{'repository':os.getenv('GITHUB_REPOSITORY','UNKNOWN'),'commit_sha':os.getenv('GITHUB_SHA','UNKNOWN'),'workflow_run_id':os.getenv('GITHUB_RUN_ID','UNKNOWN'),'workflow_run_attempt':os.getenv('GITHUB_RUN_ATTEMPT','UNKNOWN')},
       'browser_executable':executable,'started_at_utc':started,'finished_at_utc':now(),'phase_state':phase,'resolver_states':states,
-      'synthetic_fixed_canary':SYNTHETIC_QUERY,'daily7_candidate_queries_executed':False,
+      'synthetic_fixed_canary':SYNTHETIC_QUERY,'synthetic_canary_design':'OPAQUE_SINGLE_TOKEN_TO_AVOID_BROAD_FUZZY_TOKEN_EXPANSION','daily7_candidate_queries_executed':False,
       'production_tm_decision_authorized':False,'external_side_effects_authorized':False,
       'negative_clearance_inferred_for_any_real_candidate':False,
       'scope_law':'TMHUNT_NEGATIVE_EVIDENCE_IS_IC025_ONLY;_TRADEMARKIA_NEGATIVE_EVIDENCE_IS_LIMITED_TO_THE_MACHINE_BOUND_UI_QUERY_SCOPE_AND_FILTERS',
       'records':records,
-      'next_action':'PROCEED_TO_A4_REPEATABILITY_AND_RESOLVER_MODE_MATRIX;_DO_NOT_PROMOTE_YET' if phase=='A3_PASS' else 'IF_SAME_RESOLVER_REMAINS_UNPROVEN_AFTER_THIS_CAUSAL_MUTATION_HOLD_ITS_NEGATIVE_CAPABILITY_AND_DO_NOT_RETRY_SAME_STRATEGY;_DO_NOT_QUERY_REAL_CANDIDATES'
+      'next_action':'PROCEED_TO_A4_REPEATABILITY_AND_RESOLVER_MODE_MATRIX;_DO_NOT_PROMOTE_YET' if phase=='A3_PASS' else 'HOLD_ANY_RESOLVER_NEGATIVE_CAPABILITY_THAT_REMAINS_UNPROVEN;_DO_NOT_RETRY_SAME_STRATEGY_OR_QUERY_REAL_CANDIDATES'
     }
     (OUT/'a3-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
     print(json.dumps({'phase_state':phase,'resolver_states':states,'synthetic_query':SYNTHETIC_QUERY},indent=2)); return 0
