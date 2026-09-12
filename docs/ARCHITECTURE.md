@@ -12,155 +12,141 @@ The caller supplies wording/query context as data. The caller never becomes A-Ve
 
 `CURRENT.json` -> `spec/engine.json` -> exact Git commit -> GitHub Actions execution -> immutable Actions artifact receipt.
 
-No second spec is allowed inside workflow prompts. Workflows are transports/orchestrators and must read the engine contract rather than replicate trademark doctrine.
+No second spec is allowed inside workflow prompts. Workflows are transports/orchestrators and must not replicate trademark doctrine.
 
-Authority or documentation changes do not, by themselves, invalidate already proven resolver capability. Closed acceptance phases therefore do not auto-rerun merely because `CURRENT.json`, `spec/**`, documentation, or shared contract tests changed. A phase auto-runs when its own harness/workflow changes; manual `workflow_dispatch` remains available for deliberate revalidation.
+Closed acceptance phases do not auto-rerun merely because CURRENT/spec/docs change. Resolver acceptance and authority validation are different jobs.
 
 ## 3. Truth separation
 
-A-Ver keeps these layers separate:
+A-Ver keeps transport, query execution, resultset, record binding, scope coverage, similarity, goods-relatedness, and TM decision as separate truth layers. A lower layer may block a higher layer but may never impersonate it.
 
-1. `TRANSPORT_TRUTH` — can this execution surface reach the resolver?
-2. `QUERY_EXECUTION_TRUTH` — was the intended native query actually submitted?
-3. `RESULTSET_TRUTH` — was the native result set resolved, including zero semantics when applicable?
-4. `RECORD_BINDING_TRUTH` — can material hits be bound to identifiers/status/class/G&S?
-5. `SCOPE_COVERAGE_TRUTH` — what registry/classes/query modes did this resolver actually cover?
-6. `SIMILARITY_ANALYSIS_TRUTH` — exact/core/phonetic/semantic/commercial-impression analysis.
-7. `GOODS_RELATEDNESS_TRUTH` — class and G0-G4 relatedness.
-8. `TM_DECISION_TRUTH` — PASS/KILL/HOLD, available only after production promotion.
-
-A lower layer may block higher layers, but it may never impersonate them.
+Capability PASS is not TM PASS. Workflow success is not acceptance PASS. Search-engine absence is not native zero. Transport failure has zero candidate-risk weight.
 
 ## 4. Resolver roles
 
 ### Trademarkia
 
-Trademarkia is the broad U.S. federal-record discovery resolver. Positive material records can escalate review once record binding is proven. Its search surface can fuzzy-expand or tokenize multi-word queries, so an opaque-token `No results` result proves negative semantics only for that machine-bound query behavior. It does **not** establish exact negative clearance for arbitrary multi-token wording.
+Trademarkia is the broad U.S. federal-record discovery resolver. It provides broad recall and can fuzzy-expand/tokenize multi-word queries. Positive material records may escalate review when bound to record details. Opaque single-token `No results` semantics have been machine-proven, but that result may never be generalized into exact negative clearance for arbitrary multi-token wording.
+
+Trademarkia capability was already machine-proven and closed before the A4 TMHunt causal repair. One incidental known-positive miss in run `34700639830` does not reopen or downgrade that closed capability because no material Trademarkia surface/harness invalidation was established.
 
 ### TMHunt
 
-TMHunt is the IC025/apparel-adjacent resolver. It is valuable because many slogan/sticker mechanisms overlap apparel channels, but IC025 evidence must never be generalized to Class 016 or the entire federal registry. Exact/Partial/Split/Wildcard modes are separate capabilities.
+TMHunt is an IC025/apparel-adjacent resolver. IC025 evidence must never be generalized to Class 016 or to the full federal registry.
 
-Machine-proven TMHunt negative evidence remains bounded to IC025 unless future machine evidence proves broader scope.
+After causal repair run `34700639830` on commit `2ccc13cfad2db042fcc7ffda49c640a69f3187a6`, machine evidence established:
+
+- Exact positive binding: PASS
+- Partial positive binding: PASS
+- Exact native zero semantics: PASS
+- Split: excluded/unproven — `TMHUNT_PANEL_SEARCH_INPUT_NOT_FOUND`
+- Wildcard: excluded/unproven — `TMHUNT_PANEL_SEARCH_INPUT_NOT_FOUND`
+
+Split and Wildcard must not be retried with the same strategy and carry **zero coverage weight** unless a future deliberate capability-development cycle is separately authorized.
 
 ### USPTO/TSDR web
 
-USPTO/TSDR web remains an optional targeted official spot verifier when a serial/registration identifier is already known. A-Ver does not require privileged API credentials for its base architecture.
+USPTO/TSDR web remains an optional targeted official spot verifier when a serial/registration identifier is already known. A-Ver does not require privileged API credentials for its base fallback architecture.
 
 ## 5. Evidence asymmetry
 
-A credible positive hit is information-rich and may immediately escalate review. A negative claim is information-poor unless the native result set, query scope, filters, and resolver scope are proven.
+A credible positive hit may immediately escalate review. Negative evidence is usable only within the machine-proven resolver/query scope.
 
-Therefore:
+A material positive hit is never cancelled by a negative from another resolver. Resolver outputs are not votes.
 
-`positive hit -> bind -> analyze`
+An excluded/unproven resolver mode contributes no evidence and no scope coverage; it is not interpreted as positive, negative, safe, or risky.
 
-but:
+## 6. Acceptance closure after causal repair
 
-`search miss -> no inference`
+A0 Transport -> A1 Known Positive -> A2 Query/Resultset Semantics -> A3 Negative Semantics are `PASS_CLOSED`.
 
-and:
+A4 is now **declared capability profile + repeatability**, not a requirement to exercise every UI feature offered by every resolver.
 
-`native resolved zero + sufficient required scope -> eligible negative evidence`.
+The candidate declared profile is:
 
-A material positive hit is never cancelled by a negative from another resolver. Resolver outputs do not form a vote. Negative evidence carries only the scope machine-proven for that resolver.
+- Trademarkia: broad federal record discovery/binding, fuzzy/token recall behavior, bounded opaque-token zero semantics.
+- TMHunt: IC025 Exact and Partial positive capability plus Exact zero semantics.
+- TMHunt Split and Wildcard: explicitly excluded and zero-weighted.
 
-## 6. Acceptance state machine and current closure
+This is a reduction of transport capability scope, **not a reduction of required TM analysis**.
 
-A0 Transport -> A1 Known Positive -> A2 Query/Resultset Semantics -> A3 Negative Semantics -> A4 Repeatability -> Promotion Review.
+## 7. Why full TMHunt UI-mode coverage is no longer the target
 
-Current authoritative closure:
+The production objective is complete required TM query coverage, not completion of every website control.
 
-- A0: `PASS_CLOSED`
-- A1: `PASS_CLOSED`
-- A2: `PASS_CLOSED`
-- A3: `PASS_CLOSED`
-- A4 Trademarkia behavior matrix: `PASS_CLOSED`
-- A4 TMHunt Exact zero semantics: `PASS_CLOSED`
-- A4 TMHunt positive Exact/Partial/Split/Wildcard result binding: `OPEN / UNPROVEN`
+`resolver UI mode != TM query-plan stage`.
 
-Acceptance states are capability states only. They cannot be serialized as TM PASS/KILL/HOLD for an external workflow.
+Required stages remain Exact, normalized exact, core/dominant token, expanded/partial, phonetic/spelling when material, and related-goods review. They may be completed by different authorized resolvers according to their proven capabilities.
 
-A failed or incomplete phase reopens only the failed component. Successful prior phases remain closed unless their evidence is materially invalidated by a resolver surface, harness, scope, or semantics change.
+If the authorized capability profile cannot complete a required query dimension for a candidate, the only valid decision is `TM_HOLD_EVIDENCE`. Missing TMHunt Split/Wildcard may never be silently substituted or treated as covered.
 
-## 7. A4 bounded closure contract
+## 8. Anti-loop law
 
-The next acceptance work is intentionally narrow: **TMHunt positive mode result binding only**. No new resolver, market phrase, Daily7 wording, or canary breadth is allowed as a repair mechanism.
+One causal repair was already used for the A4 TMHunt positive-binding issue. It produced real information gain: Exact/Partial changed from unproven to PASS, while Split/Wildcard exposed a different structural limitation.
 
-For Exact/Partial/Split/Wildcard positive modes, A4 must prove all of the following:
+The response is now capability exclusion, not another same-strategy parser/UI retry. More candidate phrases, new resolvers, or market discovery are not valid repairs.
 
-- active mode is machine-attested after interaction; `clicked=true` alone is insufficient;
-- query submission is scoped to the active search panel;
-- a fixed sleep is not the only completion signal;
-- the harness waits for a bounded terminal DOM state: structured positive results, explicit zero, or explicit control/failure state;
-- a positive resultset may be proven by one or more structured bound result rows even if a specific `Showing ... results` count string is absent;
-- bounded evidence includes final URL, query binding, active-mode attestation, result/table structure, a small result-row sample, count/pagination metadata when available, and a structural/body hash.
+Previously proven layers remain closed unless a material invalidation is machine-established. Incidental recheck noise from a closed component does not overwrite its proven state.
 
-One causal repair is allowed. If the same resolver + same A4 stage + same failure signature persists, A-Ver must hold that capability and stop the same-strategy loop.
+## 9. Repeatability target
 
-## 8. Anti-loop controller
+Before promotion, A-Ver must freeze a **scoped A4 harness** that exercises only the declared capability profile and the fixed acceptance canaries relevant to that profile. Excluded Split/Wildcard modes are not retested.
 
-The same resolver + stage + failure signature may be retried once after a causal repair. A repeated identical failure forbids more same-strategy retries. The next action must change a causal dimension or terminate that capability as unresolved.
-
-Adding more candidate phrases is never a valid repair for a systemic resolver transport, mode-binding, or resultset failure.
-
-Successful prior layers remain closed. Authority/doc edits are not capability invalidation events.
-
-## 9. A4 repeatability law
-
-A4 full mode-matrix PASS is only the first repeatability observation. Before promotion, A-Ver requires a second distinct GitHub workflow run using:
-
-- the same exact commit SHA;
-- the same A4 harness;
-- the same fixed canaries;
-- no code/spec/authority change between the two runs;
-- `workflow_dispatch` for the second execution;
-- matching normalized semantic states.
-
-Re-running a job inside the same workflow run is insufficient. Touching a trigger file or making a no-op commit is also insufficient because it changes the commit identity being tested.
+Then A-Ver requires two distinct GitHub workflow runs using the same exact commit SHA, same scoped harness, same fixed canaries, and matching normalized semantic states. The second run should use `workflow_dispatch` without a code/spec/authority change. A same-run job retry or a no-op/trigger-file commit is insufficient.
 
 ## 10. Runtime evidence
 
-Runtime receipts are uploaded as GitHub Actions artifacts rather than committed back into the repository. This prevents runtime evidence from mutating specification authority and prevents self-triggering commit loops.
+Runtime receipts are GitHub Actions artifacts, not repository commits. This prevents self-triggering receipt loops and keeps specification authority separate from execution evidence.
 
-Every receipt binds the exact A-Ver commit SHA and workflow run ID. Raw public page bodies are hashed but not persisted by default; only minimal structural evidence required for reconstructability is stored.
+The causal repair evidence is bound to:
+
+- commit `2ccc13cfad2db042fcc7ffda49c640a69f3187a6`
+- workflow run `34700639830`
+- job `103571660230`
+- artifact `10299693567`
+- artifact digest `sha256:79e98e04c48d765ae5807901406c55fb4642761485c3bbc587d9885243a44a9c`
 
 ## 11. Production transition design lock
 
-Acceptance scripts must not become a disposable proof layer followed by an unrelated production reimplementation. After A4 repeatability, proven interaction and parsing primitives must be extracted into shared resolver modules. Both acceptance and production workflows must call the **same resolver implementation**.
+Acceptance code must not be discarded and rewritten independently for production. Proven resolver primitives must be extracted into shared modules and used by both acceptance and production execution.
 
-The intended shape is:
+Before promotion A-Ver requires versioned request and receipt schemas plus full contract-state coverage tests. Full testing means coverage of semantic states and failure boundaries, not increasing the number of real candidate phrases.
 
-`proven acceptance primitives -> shared resolver modules -> acceptance tests + production workflow`
+The contract test set must cover at least known positive, native zero, fuzzy multi-token behavior, resolver disagreement, transport failure, incomplete record binding, scope mismatch, missing required query dimension, similarity/G0-G4 HOLD, and evidence identity/hashing.
 
-not:
+A generic `safe=true` output is forbidden. A-Ver owns trademark evidence and TM decision only.
 
-`acceptance implementation -> separately rewritten production implementation`.
+## 12. Daily7 integration path
 
-Before production promotion, A-Ver also requires a versioned request schema and versioned receipt schema. A generic `safe=true` output is forbidden because A-Ver owns trademark evidence/decision only, not entertainment, copyright, persona, marketplace policy, or overall product safety.
+Daily7 integration is forbidden before promotion.
 
-## 12. Future caller integration
+After promotion, Daily7 should pin an exact approved A-Ver commit/release and send versioned request data only. A-Ver returns a versioned TM receipt. Daily7 independently validates the A-Ver identity/schema/receipt and then applies its own V3.3 gates.
 
-After promotion, callers should pin A-Ver to an exact approved commit or release rather than track mutable `main`.
+Daily7 keeps K5A/K5B, real-person/character, copyright/provenance, Amazon/content, market, source, focus, portfolio, Drive and ledger authority. A-Ver never mutates Daily7 state.
 
-The preferred contract is:
-
-`caller request data -> pinned A-Ver resolver -> versioned TM receipt -> caller independently validates receipt -> caller mutates only its own state`.
-
-The request contains data such as request ID, wording, intended-goods context, requested scope, caller reference, and contract version. The receipt binds A-Ver version/commit, request hash, query plan, resolver scopes used, material records, identifiers/status/classes/G&S, unresolved dimensions, TM decision, and evidence hashes.
-
-Cross-repository state mutation remains forbidden. Daily7 or any other caller must not import A-Ver internal state or resolver UI logic.
+The first integration must be **shadow-only** using a tiny set of existing HOLD canaries: no Drive, Used/Reserve, source/focus or portfolio-state mutation. Live TM gating may be enabled only after shadow receipts are validated.
 
 ## 13. Promotion law
 
-Acceptance success does not silently make production changes. Production requires a separate promotion commit that changes `CURRENT.json` and `spec/engine.json` from `ACCEPTANCE_ONLY` to the explicitly reviewed production state.
+Promotion requires:
 
-Promotion requires full A4 mode-matrix PASS, two distinct repeatable GitHub runs on the same exact commit, documented resolver scopes, shared resolver primitives, versioned request/receipt contracts, no control circumvention, explicit user approval, and the separate promotion commit.
+- A0-A3 closed PASS;
+- declared A4 capability profile PASS;
+- excluded modes explicitly zero-weighted;
+- complete required TM query-plan coverage using authorized capabilities, otherwise HOLD;
+- at least two repeatable runs on the same exact commit;
+- shared resolver primitives;
+- versioned request/receipt schemas;
+- full contract-state coverage tests;
+- documented resolver scopes;
+- no control circumvention;
+- explicit user approval;
+- a separate promotion commit.
 
-Until then, production TM decisions and Daily7 integration are forbidden.
+Until then `ACCEPTANCE_ONLY` and `production_tm_decisions_authorized=false` remain mandatory.
 
-## 14. Operational authority protection
+## 14. Authority protection
 
-Caller pinning to an exact approved A-Ver commit/release is the primary anti-drift boundary because it prevents a later mutable `main` commit from silently changing caller behavior.
+Resolver acceptance workflows and authority validation must remain separate. `CURRENT/spec/docs/tests` changes should invoke an Authority Guard, not rerun resolver acceptance phases.
 
-Before external production use, repository-side authority protection should also be hardened with appropriate branch/ruleset and required contract checks where available. This is defense in depth; it does not replace exact caller pinning.
+Caller pinning to an exact approved A-Ver commit/release is the primary anti-drift boundary. Before external production use, branch/ruleset protection and required Authority Guard checks should be enabled where available as defense in depth.
