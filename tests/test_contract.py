@@ -41,7 +41,8 @@ snapshot = current["acceptance_snapshot"]
 for phase in ["A0_TRANSPORT", "A1_KNOWN_POSITIVE_BINDING", "A2_QUERY_RESULTSET_SEMANTICS", "A3_NEGATIVE_RESULTSET_SEMANTICS"]:
     assert snapshot[phase] == "PASS_CLOSED", phase
 assert snapshot["A4_DECLARED_CAPABILITY_REPEATABILITY"] == "PASS_CLOSED_REPEATABLE_ADB32A9B"
-assert snapshot["PRE_PROMOTION_CONTRACT_HARDENING"] == "PENDING_MACHINE_CONTRACT_MATRIX"
+assert snapshot["PRE_PROMOTION_CONTRACT_HARDENING"] == "PASS_CLOSED_CONTRACT_MATRIX_34702668801"
+assert snapshot["PROMOTION_REVIEW"] == "PENDING_EXPLICIT_USER_APPROVAL"
 assert snapshot["tmhunt_split"] == "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT"
 assert snapshot["tmhunt_wildcard"] == "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT"
 
@@ -55,6 +56,16 @@ assert closure["run_2"]["phase_state"] == "A4_DECLARED_PROFILE_PASS"
 assert closure["normalized_semantic_states_match"] is True
 assert closure["split_wildcard_retested"] is False
 assert closure["daily7_candidate_queries_executed"] is False
+
+contract_closure = current["prepromotion_contract_closure"]
+assert contract_closure["tested_commit_sha"] == "6066da673117b80e10655f3833480d225dec0e0c"
+assert contract_closure["workflow_run_id"] == "34702668801"
+assert contract_closure["workflow_conclusion"] == "success"
+assert contract_closure["machine_marker"] == "AVER_CONTRACT_MATRIX_PASS"
+assert contract_closure["authority_contract_marker"] == "AVER_CONTRACT_TEST_PASS"
+assert contract_closure["resolver_transport_executed"] is False
+assert contract_closure["daily7_queries_executed"] is False
+assert contract_closure["production_decisions_authorized"] is False
 
 profile = current["declared_capability_profile"]
 assert profile["profile_id"] == "AVER_TM_PROFILE_0_1_SCOPED"
@@ -91,16 +102,26 @@ assert interface["legal_clearance_asserted_must_be_false"] is True
 assert interface["negative_pass_min_distinct_evidence_sources"] == 2
 
 scope = current["current_reopen_scope"]
-assert scope["only_layer"] == "PRE_PROMOTION_CONTRACT_HARDENING"
+assert scope["only_layer"] == "PROMOTION_REVIEW"
 assert scope["resolver_revalidation_forbidden_without_material_invalidation"] is True
 assert scope["candidate_or_market_queries_forbidden"] is True
 assert scope["daily7_integration_forbidden"] is True
-assert scope["production_promotion_forbidden"] is True
-assert scope["next_machine_gate"] == "A_VER_CONTRACT_MATRIX_PASS"
+assert scope["production_promotion_forbidden_without_explicit_user_approval"] is True
+assert scope["next_machine_gate"] == "EXPLICIT_USER_PROMOTION_APPROVAL"
 
 assert engine["acceptance"]["a4"]["status"] == "PASS_CLOSED_REPEATABLE_ADB32A9B"
 assert engine["acceptance"]["a4"]["repeatability_evidence"]["both_semantic_pass"] is True
-assert engine["acceptance"]["pre_promotion_contract_hardening"]["status"] == "PENDING_MACHINE_CONTRACT_MATRIX"
+pre = engine["acceptance"]["pre_promotion_contract_hardening"]
+assert pre["status"] == "PASS_CLOSED_CONTRACT_MATRIX_34702668801"
+assert pre["machine_evidence"]["tested_commit_sha"] == "6066da673117b80e10655f3833480d225dec0e0c"
+assert pre["machine_evidence"]["workflow_run_id"] == "34702668801"
+assert pre["machine_evidence"]["workflow_conclusion"] == "success"
+assert pre["machine_evidence"]["matrix_marker"] == "AVER_CONTRACT_MATRIX_PASS"
+assert pre["machine_evidence"]["resolver_transport_executed"] is False
+assert engine["acceptance"]["promotion_review"]["status"] == "PENDING_EXPLICIT_USER_APPROVAL"
+assert engine["acceptance"]["promotion_review"]["production_state_change_authorized"] is False
+assert engine["acceptance"]["promotion_review"]["daily7_integration_authorized"] is False
+
 assert engine["interface_contract"]["request_schema_version"] == "1.0"
 assert engine["interface_contract"]["receipt_schema_version"] == "1.0"
 assert engine["interface_contract"]["receipt_generic_safe_boolean_forbidden"] is True
@@ -111,8 +132,11 @@ assert engine["anti_loop"]["contract_status_update_may_not_retrigger_closed_reso
 assert engine["anti_loop"]["contract_matrix_status_update_may_not_retrigger_contract_matrix"] is True
 assert engine["orchestration"]["contract_matrix_is_pure_deterministic_no_resolver_transport"] is True
 
-assert "CURRENT.json" not in contract_workflow.split("paths:", 1)[1].split("workflow_dispatch:", 1)[0]
-assert "spec/engine.json" not in contract_workflow.split("paths:", 1)[1].split("workflow_dispatch:", 1)[0]
+trigger_scope = contract_workflow.split("paths:", 1)[1].split("workflow_dispatch:", 1)[0]
+assert "CURRENT.json" not in trigger_scope
+assert "spec/engine.json" not in trigger_scope
+assert "tests/test_contract.py" not in trigger_scope
+assert "docs/" not in trigger_scope
 
 transition = engine["production_transition"]
 assert transition["promotion_before_contract_matrix_pass_forbidden"] is True
