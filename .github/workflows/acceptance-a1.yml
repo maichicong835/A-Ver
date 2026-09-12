@@ -4,10 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'CURRENT.json'
-      - 'spec/**'
       - 'src/aver/acceptance_a1.py'
-      - 'tests/**'
       - '.github/workflows/acceptance-a1.yml'
   workflow_dispatch:
 
