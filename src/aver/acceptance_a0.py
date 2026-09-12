@@ -14,6 +14,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 
 ENGINE_VERSION = "0.1.0"
+HARNESS_REVISION = "a0.1"
 PHASE = "A0_TRANSPORT"
 OUT_DIR = Path("artifacts/a0")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -184,6 +185,7 @@ def main():
     receipt = {
         "schema": "AVER_ACCEPTANCE_RECEIPT",
         "engine_version": ENGINE_VERSION,
+        "harness_revision": HARNESS_REVISION,
         "mode": "ACCEPTANCE_ONLY",
         "phase": PHASE,
         "authority": {
