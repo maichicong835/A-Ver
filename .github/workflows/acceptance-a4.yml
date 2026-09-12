@@ -5,18 +5,21 @@ on:
     branches: [main]
     paths:
       - 'src/aver/acceptance_a4.py'
+      - 'src/aver/resolvers/**'
       - '.github/workflows/acceptance-a4.yml'
   workflow_dispatch:
+  create:
 
 permissions:
   contents: read
 
 concurrency:
-  group: aver-acceptance-a4
+  group: aver-acceptance-a4-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   acceptance-a4:
+    if: github.event_name != 'create' || startsWith(github.ref, 'refs/heads/a4-repeatability-')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
@@ -39,7 +42,7 @@ jobs:
           test "$EXTERNAL_SIDE_EFFECTS_AUTHORIZED" = "false"
           test "$PRODUCTION_TM_DECISIONS_AUTHORIZED" = "false"
           python3 tests/test_contract.py
-          sha256sum CURRENT.json spec/engine.json src/aver/acceptance_a4.py > /tmp/aver-a4-authority.before
+          sha256sum CURRENT.json spec/engine.json src/aver/acceptance_a4.py src/aver/resolvers/*.py > /tmp/aver-a4-authority.before
 
       - name: Prepare normal browser automation transport
         shell: bash
@@ -53,18 +56,18 @@ jobs:
             python3 -m playwright install chromium
           fi
 
-      - name: Run A4 fixed resolver matrix
+      - name: Run A4 declared capability profile
         run: python3 src/aver/acceptance_a4.py
 
-      - name: Verify authority and harness immutability
+      - name: Verify authority harness and shared resolver immutability
         shell: bash
         run: |
           set -euo pipefail
-          sha256sum CURRENT.json spec/engine.json src/aver/acceptance_a4.py > /tmp/aver-a4-authority.after
+          sha256sum CURRENT.json spec/engine.json src/aver/acceptance_a4.py src/aver/resolvers/*.py > /tmp/aver-a4-authority.after
           diff -u /tmp/aver-a4-authority.before /tmp/aver-a4-authority.after
           git diff --exit-code -- CURRENT.json spec/engine.json docs README.md src tests .github/workflows/acceptance-a4.yml
 
-      - name: Show compact A4 result
+      - name: Show compact A4 profile result
         shell: bash
         run: |
           python3 - <<'PY'
@@ -72,15 +75,20 @@ jobs:
           r=json.load(open('artifacts/a4/a4-receipt.json'))
           print('phase_state=',r['phase_state'])
           print('resolver_states=',json.dumps(r['resolver_states'],sort_keys=True))
+          print('commit_sha=',r['repeatability_identity']['commit_sha'])
+          print('run_id=',r['repeatability_identity']['run_id'])
+          print('harness_revision=',r['repeatability_identity']['harness_revision'])
+          print('excluded_modes_not_tested=',r['declared_capability_profile']['TMHUNT']['excluded_modes_not_tested'])
           for x in r['records']:
-              print(x['resolver'],x['mode'],x['state'],x.get('result_totals'),x.get('reported_total'),x.get('failure_signature'))
+              print(x['resolver'],x['mode'],x['state'],x.get('failure_signature'))
+          print('daily7_candidate_queries_executed=',r['daily7_candidate_queries_executed'])
           print('production_tm_decision_authorized=',r['production_tm_decision_authorized'])
           PY
 
-      - name: Upload immutable A4 evidence
+      - name: Upload immutable A4 profile evidence
         uses: actions/upload-artifact@v4
         with:
-          name: aver-a4-${{ github.run_id }}-${{ github.sha }}
+          name: aver-a4-profile-${{ github.run_id }}-${{ github.sha }}
           path: artifacts/a4/a4-receipt.json
           if-no-files-found: error
           retention-days: 30
