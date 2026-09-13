@@ -9,6 +9,18 @@ OUT = Path('artifacts/trademarkia-exact-probe')
 OUT.mkdir(parents=True, exist_ok=True)
 URL = 'https://www.trademarkia.com/trademark/search'
 KEYWORDS = ('exact', 'wordmark', 'field', 'builder', 'match', 'phrase')
+CONTROL_TAGS = {'BUTTON','INPUT','SELECT','LABEL'}
+CONTROL_ROLES = {'button','tab','combobox','radio','option','switch'}
+
+
+def control_candidate(text, at):
+    tag = (at.get('tag') or '').upper()
+    role = (at.get('role') or '').lower()
+    structured = ' '.join(str(at.get(k) or '') for k in ('id','name','value','type','role','placeholder','ariaSelected','ariaPressed','ariaChecked')).lower()
+    short_text = (text or '').strip().lower() if len((text or '').strip()) <= 90 else ''
+    if tag not in CONTROL_TAGS and role not in CONTROL_ROLES:
+        return False
+    return any(k in structured or k in short_text for k in KEYWORDS)
 
 
 def main():
@@ -16,6 +28,7 @@ def main():
     executable = os.getenv('AVER_BROWSER_EXECUTABLE') or None
     receipt = {
         'schema': 'AVER_TRADEMARKIA_EXACT_CONTROL_PROBE',
+        'probe_revision': '2-control-only',
         'probe_only': True,
         'candidate_queries_executed': False,
         'new_resolver_added': False,
@@ -32,7 +45,7 @@ def main():
         try:
             page.goto(URL, wait_until='domcontentloaded', timeout=30000)
             page.wait_for_timeout(1200)
-            loc = page.locator("button, [role='button'], [role='tab'], [role='combobox'], select, input, label, a")
+            loc = page.locator("button, [role='button'], [role='tab'], [role='combobox'], [role='radio'], [role='option'], select, input, label")
             for i in range(min(loc.count(), 500)):
                 el = loc.nth(i)
                 try:
@@ -40,15 +53,14 @@ def main():
                         continue
                 except Exception:
                     continue
-                text = safe_text(el, 320)
+                text = safe_text(el, 120)
                 at = attrs(el)
-                blob = (text + ' ' + json.dumps(at, sort_keys=True)).lower()
-                if not any(k in blob for k in KEYWORDS):
+                if not control_candidate(text, at):
                     continue
                 receipt['controls'].append({'text': text, 'attrs': at})
-                if len(receipt['controls']) >= 80:
+                if len(receipt['controls']) >= 60:
                     break
-            receipt['control_probe_state'] = 'EXACT_CONTROL_CANDIDATE_DISCOVERED' if receipt['controls'] else 'NO_EXPLICIT_EXACT_CONTROL_DISCOVERED'
+            receipt['control_probe_state'] = 'EXPLICIT_EXACT_CONTROL_CANDIDATE_DISCOVERED' if receipt['controls'] else 'NO_EXPLICIT_EXACT_CONTROL_DISCOVERED'
         finally:
             page.close()
             browser.close()
