@@ -1,0 +1,29 @@
+{
+  "source": {
+    "repository": "maichicong835/Amazon-Daily7Source",
+    "workflow_run_id": "34722878035",
+    "artifact_id": "10306408819",
+    "artifact_digest": "sha256:7251ad40baf0fad95f348419cd84d24b2cc1fd23d176e1c4d2690ccf640aa036",
+    "aver_pin": "689e06afcce007979025e68a095f9646d1d37591"
+  },
+  "canaries": [
+    {
+      "candidate_key": "nursing-school-hard-but-damn",
+      "mark_text": "NURSING SCHOOL JEWELS",
+      "serial": "90319838",
+      "expected_class": "016",
+      "raw_resolver_record_sha256": "c81cca7b422e27cd0bed8741913f80ea16ab44ed7e532f91265aebbb7535098c",
+      "body_excerpt_sha256": "434ca39a9dc8185fd16281436cec21bb15d245a5a5a5fc714826663ff87e3d72",
+      "body_excerpt": "2015 Live/Registered on 11 Feb 2026 17 Aug 2026 Educational services, namely, providing a website featuring technology... Class 042 NURSING SCHOOL JEWELS Nursing School Jewels LLC 90319838 14 Nov 2020 Live/Registered on 31 Aug 2021 31 Aug 2027 Notebooks; Flash cards; Notebook covers; Notebook dividers; Notebook p... Class 016 LITTLE NURSING SCHOOL LMS FRANCHISE SYSTEMS, LLC 86197868 19 Feb 2014 Live/Registered on 01 Nov 2024 11 Jun 2035 Entertainment and educational services, namely, providing seminars, cl... Class 041 LITTLE NURSING SCHOOL LMS FRANCHISE SYSTEMS, LLC 86203740 25 Feb 2014 Live/Registered on 07 Nov 2024 11 Jun 2035 Entertainment and educational services, namely, providing seminars, cl... Class 041"
+    },
+    {
+      "candidate_key": "powered-by-yarn-and-chaos",
+      "mark_text": "CHAOS BY ELSIE",
+      "serial": "90072046",
+      "expected_class": "018",
+      "raw_resolver_record_sha256": "33d102808caac03c26c578ae80ce8ad9949df4f4b43b6f15793ddd2c73bf3a82",
+      "body_excerpt_sha256": "7519286d8703e8690e16b4ea00db30292431559d4a971430bdf1e82abcae4dd3",
+      "body_excerpt": "Still want to file? Check Registrability Also try searching for: POWERED BY YARN AND CHAOS* POWE* *AOS PO*OS Mark Details Status Class/Description CHAOS BY ELSIE Shop LC Global Inc 90072046 24 Jul 2020 Live/Registered on 22 Jun 2021 22 Jun 2027 Handbags Class 018 POWERED BY P PRAGMATIC SEMICONDUCTOR LIMITED 79424150 24 Mar 2025 Live/Registered on 21 Apr 2026 21 Apr 2032 Electronic components in the nature of semiconductors, integrated circ... Class 007 Class 009 ... POWERED BY : P RingIt, Inc. 98505468 17 Apr 2024 Live/Registered on 01 Apr 2025 01 Apr 2031 Software as a service (SAAS) services featuring software for merchant ... Class 009 Class 035 ... POWERED BY X BODY BY X INC. 97461411 16 Jun 2022 Live/Registered on 18 Jul 2023 18 Jul 2029 Arranging and conducting of"
+    }
+  ]
+}
