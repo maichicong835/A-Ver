@@ -18,40 +18,58 @@ def plan_scope(primary_class, coordinated_classes=None, wording_kind='MULTI_TOKE
     for dim in REQUIRED_DIMENSIONS:
         entry = {
             'dimension': dim,
-            'positive_discovery': [],
-            'negative_evidence': [],
-            'negative_scope_complete_for_primary_class': False,
+            'positive_discovery_capabilities': [],
+            'negative_semantics_capabilities': [],
+            'dimension_can_be_fully_resolved_negative_today': False,
         }
         if dim in {'EXACT','NORMALIZED_EXACT','CORE_DOMINANT_TOKEN','EXPANDED_PARTIAL','PHONETIC_OR_SPELLING_WHEN_MATERIAL'}:
-            entry['positive_discovery'].append('TRADEMARKIA_BROAD_FEDERAL_RECALL')
+            entry['positive_discovery_capabilities'].append('TRADEMARKIA_BROAD_FEDERAL_RECALL')
         if dim == 'RELATED_GOODS_REVIEW':
-            entry['positive_discovery'].append('BOUND_RECORD_CLASS_AND_GOODS_CONTEXT')
+            entry['positive_discovery_capabilities'].append('BOUND_RECORD_CLASS_AND_GOODS_CONTEXT')
+            entry['dimension_can_be_fully_resolved_negative_today'] = True
 
         if primary == '025':
             if dim in {'EXACT','NORMALIZED_EXACT'}:
-                entry['negative_evidence'].append('TMHUNT_EXACT_ZERO_IC025')
-            if dim in {'CORE_DOMINANT_TOKEN','EXPANDED_PARTIAL'}:
-                entry['negative_evidence'].append('TMHUNT_PARTIAL_IC025')
+                entry['negative_semantics_capabilities'].append('TMHUNT_EXACT_ZERO_IC025')
+                entry['dimension_can_be_fully_resolved_negative_today'] = True
+            elif dim in {'CORE_DOMINANT_TOKEN','EXPANDED_PARTIAL'}:
+                entry['negative_semantics_capabilities'].append('TMHUNT_PARTIAL_IC025_DISCOVERY_ONLY')
 
         if wording_kind == 'OPAQUE_SINGLE_TOKEN' and dim in {'EXACT','NORMALIZED_EXACT'}:
-            entry['negative_evidence'].append('TRADEMARKIA_OPAQUE_SINGLE_TOKEN_ZERO_LIMITED')
+            entry['negative_semantics_capabilities'].append('TRADEMARKIA_OPAQUE_SINGLE_TOKEN_ZERO_LIMITED')
+            if primary != '016':
+                entry['dimension_can_be_fully_resolved_negative_today'] = True
 
-        if primary == '025' and len(set(entry['negative_evidence'])) >= 2:
-            entry['negative_scope_complete_for_primary_class'] = True
         coverage.append(entry)
 
-    unresolved_negative = [x['dimension'] for x in coverage if not x['negative_scope_complete_for_primary_class']]
-    pass_capable = not unresolved_negative
+    unresolved_dimensions = [x['dimension'] for x in coverage if not x['dimension_can_be_fully_resolved_negative_today']]
+    class_relevant_negative_sources = []
+    if primary == '025':
+        class_relevant_negative_sources.append('TMHUNT_IC025')
+    if wording_kind == 'OPAQUE_SINGLE_TOKEN':
+        class_relevant_negative_sources.append('TRADEMARKIA_OPAQUE_ZERO_LIMITED')
+
+    blockers = []
+    if primary == '016' and wording_kind == 'MULTI_TOKEN':
+        blockers.append('CLASS016_MULTI_TOKEN_EXACT_NEGATIVE_SEMANTICS_UNPROVEN')
+    if len(set(class_relevant_negative_sources)) < 2:
+        blockers.append('SECOND_DISTINCT_PRIMARY_CLASS_NEGATIVE_SOURCE_MISSING')
+    if unresolved_dimensions:
+        blockers.append('REQUIRED_QUERY_DIMENSIONS_NOT_NEGATIVELY_RESOLVABLE_WITH_CURRENT_PROFILE')
+
     return {
         'primary_class': primary,
         'coordinated_classes': sorted(coordinated),
         'wording_kind': wording_kind,
         'required_dimensions': REQUIRED_DIMENSIONS,
         'coverage': coverage,
-        'negative_pass_capable': pass_capable,
+        'class_relevant_negative_sources': sorted(set(class_relevant_negative_sources)),
+        'distinct_negative_source_count': len(set(class_relevant_negative_sources)),
+        'negative_pass_capable': not blockers,
         'tm_kill_capable_from_material_positive': True,
         'tm_hold_capable': True,
-        'unresolved_negative_dimensions': unresolved_negative,
-        'structural_blocker': None if pass_capable else 'PRIMARY_CLASS_NEGATIVE_CONVERGENCE_CAPABILITY_INCOMPLETE',
+        'unresolved_query_dimensions': unresolved_dimensions,
+        'structural_blockers': blockers,
         'probability_or_search_miss_may_not_fill_gap': True,
+        'resultset_positive_may_not_be_reinterpreted_as_negative_scope_coverage': True,
     }
