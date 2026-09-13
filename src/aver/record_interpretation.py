@@ -6,12 +6,7 @@ def normalize_text(value):
     return re.sub(r"\s+", " ", value or "").strip()
 
 
-def bind_record_anchor(body_text, mark_text, serial, expected_class=None, before=500, after=1400):
-    """Bind a known mark+serial anchor to nearby status/class/goods context.
-
-    This is an interpretation primitive, not a search resolver. It consumes
-    already-captured resultset text and never upgrades a resultset to TM PASS.
-    """
+def bind_record_anchor(body_text, mark_text, serial, expected_class=None, before=500, after=1400, max_mark_serial_gap=80):
     body = normalize_text(body_text)
     mark = normalize_text(mark_text)
     serial = str(serial).strip()
@@ -23,6 +18,13 @@ def bind_record_anchor(body_text, mark_text, serial, expected_class=None, before
     mark_pos = left.lower().rfind(mark.lower()) if mark else -1
     if mark_pos < 0:
         return {"bound": False, "failure_signature": "MARK_NOT_BOUND_TO_SERIAL"}
+
+    between = left[mark_pos + len(mark):]
+    low_between = between.lower()
+    if "mark details" in low_between or "class/description" in low_between:
+        return {"bound": False, "failure_signature": "MARK_CROSSES_RESULT_HEADER", "identifier": serial, "mark_text": mark}
+    if len(between) > max_mark_serial_gap:
+        return {"bound": False, "failure_signature": "MARK_TOO_FAR_FROM_SERIAL", "identifier": serial, "mark_text": mark, "gap": len(between)}
 
     tail = body[pos:pos + after]
     status_match = re.search(
@@ -40,13 +42,7 @@ def bind_record_anchor(body_text, mark_text, serial, expected_class=None, before
     if not classes:
         return {"bound": False, "failure_signature": "CLASS_CONTEXT_NOT_BOUND", "identifier": serial, "mark_text": mark}
     if expected_class and expected_class not in classes:
-        return {
-            "bound": False,
-            "failure_signature": "EXPECTED_CLASS_NOT_BOUND",
-            "identifier": serial,
-            "mark_text": mark,
-            "classes": classes,
-        }
+        return {"bound": False, "failure_signature": "EXPECTED_CLASS_NOT_BOUND", "identifier": serial, "mark_text": mark, "classes": classes}
 
     context_start = max(0, pos - min(240, before))
     context = body[context_start:pos + after]
@@ -57,5 +53,6 @@ def bind_record_anchor(body_text, mark_text, serial, expected_class=None, before
         "status": status_match.group(0),
         "classes": classes,
         "expected_class": expected_class,
+        "mark_to_serial_gap": len(between),
         "class_or_goods_services_context": context,
     }
