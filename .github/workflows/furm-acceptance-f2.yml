@@ -1,0 +1,83 @@
+name: A-Ver Furm Acceptance F2
+
+on:
+  push:
+    branches:
+      - 'class016-resolver-acceptance'
+    paths:
+      - 'src/aver/furm_acceptance_f2.py'
+      - '.github/workflows/furm-acceptance-f2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  f2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      DAILY7_LIVE_GATE_AUTHORIZED: 'false'
+      DAILY7_STATE_MUTATION_AUTHORIZED: 'false'
+      DRIVE_MUTATION_AUTHORIZED: 'false'
+    steps:
+      - name: Checkout exact branch commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Verify isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$DAILY7_LIVE_GATE_AUTHORIZED" = "false"
+          test "$DAILY7_STATE_MUTATION_AUTHORIZED" = "false"
+          test "$DRIVE_MUTATION_AUTHORIZED" = "false"
+          python3 - <<'PY'
+          import json
+          c=json.load(open('CURRENT.json'))
+          assert c['current_reopen_scope']['daily7_live_gate_authorized'] is False
+          print('AVER_FURM_F2_ISOLATION_PASS')
+          PY
+
+      - name: Prepare browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+          browser="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$browser" ]; then
+            echo "AVER_BROWSER_EXECUTABLE=$browser" >> "$GITHUB_ENV"
+          else
+            python3 -m playwright install chromium
+          fi
+
+      - name: Run fixed known-positive query only
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src python3 src/aver/furm_acceptance_f2.py
+
+      - name: Assert bounded F2 semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          r=json.load(open('artifacts/furm-f2/receipt.json'))
+          assert r['acceptance_only'] is True
+          assert r['daily7_candidate_queries_executed'] is False
+          assert r['live_gate_authorized'] is False
+          assert r['fixed_canary']=={'query':'FURMA','expected_serial':'98682115'}
+          assert r['state'] in ('FURM_F2_KNOWN_POSITIVE_QUERY_PASS','FURM_F2_UNPROVEN')
+          print('AVER_FURM_F2_SEMANTIC_PASS')
+          PY
+
+      - name: Upload F2 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: aver-furm-f2-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/furm-f2/receipt.json
+          if-no-files-found: error
+          retention-days: 30
