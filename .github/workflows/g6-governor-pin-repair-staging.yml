@@ -1,0 +1,36 @@
+name: A-Ver G6 Governor Pin Repair Staging
+
+on:
+  push:
+    branches: [g6-governor-pin-repair-staging]
+    paths:
+      - 'src/aver/live_readiness.py'
+      - 'tests/test_live_readiness_g6_identity.py'
+      - '.github/workflows/g6-governor-pin-repair-staging.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 -m pip install --disable-pip-version-check --quiet jsonschema==4.25.1
+      - run: python3 tests/test_contract.py
+      - run: python3 tests/test_contract_matrix.py
+      - run: PYTHONPATH=src python3 tests/test_live_readiness_g6_identity.py
+      - run: python3 src/aver/live_readiness.py --candidate-sha "$GITHUB_SHA" --authority-contract-pass --contract-matrix-pass
+      - name: Assert current state remains G6-blocked until closure is recorded
+        run: |
+          python3 - <<'PY'
+          import json
+          r=json.load(open('artifacts/live-readiness/receipt.json'))
+          assert r['terminal_state']=='BLOCKED'
+          assert r['first_blocking_gate']=='G6_LIVE_BOUNDARY_REHEARSAL'
+          assert r['live_authorized'] is False
+          print('AVER_G6_GOVERNOR_PIN_REPAIR_STAGING_PASS')
+          PY
