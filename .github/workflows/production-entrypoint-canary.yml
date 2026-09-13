@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'src/aver/production_entrypoint.py'
       - 'src/aver/production.py'
       - 'src/aver/query_plan.py'
       - 'src/aver/decision.py'
@@ -35,12 +36,12 @@ jobs:
           json.dump(req('g6b.pass','Quietly Off Course'),open('artifacts/production-entrypoint/pass-request.json','w'),indent=2)
           json.dump(req('g6b.hold','Quietly Off Course Today Somehow'),open('artifacts/production-entrypoint/hold-request.json','w'),indent=2)
           PY
-      - name: Execute generic production entrypoint
+      - name: Execute generic production entrypoint wrapper
         env:
           AVER_ENGINE_COMMIT_SHA: ${{ github.sha }}
         run: |
-          PYTHONPATH=src python3 src/aver/production.py --request artifacts/production-entrypoint/pass-request.json --output artifacts/production-entrypoint/pass-receipt.json
-          PYTHONPATH=src python3 src/aver/production.py --request artifacts/production-entrypoint/hold-request.json --output artifacts/production-entrypoint/hold-receipt.json
+          PYTHONPATH=src python3 src/aver/production_entrypoint.py --request artifacts/production-entrypoint/pass-request.json --output artifacts/production-entrypoint/pass-receipt.json
+          PYTHONPATH=src python3 src/aver/production_entrypoint.py --request artifacts/production-entrypoint/hold-request.json --output artifacts/production-entrypoint/hold-receipt.json
       - name: Assert utility and fail-closed semantics
         run: |
           python3 - <<'PY'
@@ -55,7 +56,7 @@ jobs:
           assert b['decision']=='TM_HOLD', b
           assert 'SECOND_SCOPE_QUALIFIED_NEGATIVE_SOURCE' in b['unresolved_dimensions']
           assert a['legal_clearance_asserted'] is False and b['legal_clearance_asserted'] is False
-          print('AVER_PRODUCTION_ENTRYPOINT_UTILITY_AND_FAIL_CLOSED_PASS')
+          print('AVER_PRODUCTION_ENTRYPOINT_WRAPPER_UTILITY_AND_FAIL_CLOSED_PASS')
           PY
       - uses: actions/upload-artifact@v4
         with:
