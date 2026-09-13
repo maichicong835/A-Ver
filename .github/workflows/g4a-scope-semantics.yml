@@ -1,0 +1,26 @@
+name: A-Ver G4A Scope Semantics
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/aver/scope_semantics.py'
+      - 'tests/test_scope_semantics.py'
+      - '.github/workflows/g4a-scope-semantics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  g4a:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Run G4A scope semantics matrix
+        run: PYTHONPATH=src python3 tests/test_scope_semantics.py
