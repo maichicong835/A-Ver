@@ -4,8 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/aver/live_readiness.py'
+      - 'CURRENT.json'
+      - 'spec/engine.json'
       - 'spec/live-readiness.json'
+      - 'spec/live-readiness-state.json'
+      - 'src/aver/live_readiness.py'
       - 'src/aver/decision.py'
       - 'spec/receipt.schema.json'
       - 'tests/test_contract_matrix.py'
