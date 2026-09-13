@@ -40,7 +40,8 @@
     "aver_may_not_self_authorize_daily7_live": true,
     "any_unproven_live_readiness_gate_blocks_live": true,
     "safe_live_requires_scope_semantics_and_operational_clean_pass_path": true,
-    "g4_reachability_does_not_substitute_for_g6_live_path_utility": true
+    "g4_reachability_does_not_substitute_for_g6_live_path_utility": true,
+    "governance_head_may_advance_only_if_closed_gate_semantic_pin_manifest_still_matches": true
   },
   "acceptance_snapshot": {
     "A0_TRANSPORT": "PASS_CLOSED",
@@ -52,92 +53,33 @@
     "PROMOTION_REVIEW": "PASS_CLOSED_EXPLICIT_USER_APPROVAL_2026_09_13",
     "DAILY7_SHADOW_INTEGRATION": "PASS_CLOSED_RESULTSET_LAYER_RUN_34722878035",
     "SHADOW_DEEP_TM_INTERPRETATION": "PASS_CLOSED_DEEP_DECISION_CANARY_34749315746",
-    "LIVE_READINESS_G4_SCOPE_COMPLETENESS_AND_DECISION": "PASS_CLOSED_G4B_PRODUCTION_SHAPED_TM_PASS_34752804112"
+    "LIVE_READINESS_G4_SCOPE_COMPLETENESS_AND_DECISION": "PASS_CLOSED_G4B_PRODUCTION_SHAPED_TM_PASS_34752804112",
+    "G5_DAILY7_DEEP_SHADOW": "PASS_CLOSED_DAILY7_DEEP_SHADOW_34756443557"
   },
-  "promotion_closure": {
-    "production_commit_sha": "689e06afcce007979025e68a095f9646d1d37591",
-    "daily7_live_gate_authorized": false
-  },
-  "daily7_shadow_closure": {
-    "workflow_run_id": "34722878035",
-    "artifact_id": "10306408819",
-    "workflow_conclusion": "success",
+  "promotion_closure": {"production_commit_sha":"689e06afcce007979025e68a095f9646d1d37591","daily7_live_gate_authorized":false},
+  "daily7_shadow_closure": {"workflow_run_id":"34722878035","artifact_id":"10306408819","workflow_conclusion":"success","request_schema_validated":true,"receipt_schema_validated":true,"engine_identity_pin_validated":true,"caller_state_mutation_authorized":false,"drive_mutation_authorized":false,"false_tm_pass_observed":false,"resultset_layer_machine_resolved":true,"canaries":[{"candidate_key":"nursing-school-hard-but-damn","tm_decision":"TM_HOLD"},{"candidate_key":"powered-by-yarn-and-chaos","tm_decision":"TM_HOLD"}]},
+  "deep_interpretation_closure": {"workflow_run_id":"34749315746","tested_commit_sha":"69bef60a93b5b767b7dcc8622ec29c19ada27e58","artifact_id":"10315312192","artifact_digest":"sha256:b3d72ec552316c2585c2fca479f14cf2b2f3aa0db9db9ed4ebcba817140b117a","both_existing_hold_canaries_deterministic_hold":true,"false_tm_pass_observed":false,"false_tm_kill_observed":false,"required_query_scope_complete":false,"next_gate":"G4_SCOPE_COMPLETENESS_AND_DECISION"},
+  "g4_closure": {"scope_semantics_workflow_run_id":"34750387046","official_uspto_workflow_run_id":"34750591436","trademarkia_second_source_exact_sha":"727455012cc42f191ec3851215cfe93b75233fdb","trademarkia_repeatability_run_ids":["34752875960","34752928838"],"production_clean_pass_workflow_run_id":"34752804112","production_clean_pass_artifact_id":"10316761745","production_clean_pass_artifact_digest":"sha256:d06c7326b606206371313f9aff5a65cf68e771075f864fda340c6ba60dc3eca2","decision":"TM_PASS","unresolved_dimensions":[],"proof_scope":"ONE_FIXED_CLEAN_CLASS016_PRODUCTION_SHAPED_CANARY","does_not_prove_arbitrary_daily7_phrase_pass":true,"g6_live_path_pass_branch_still_required":true},
+  "g5_closure": {
+    "daily7_workflow_run_id": "34756443557",
+    "daily7_execution_head_sha": "18fd4eb75a00d416a8c9169be5856c8062037723",
+    "daily7_clean_head_sha": "137ba103ba3ed1b9e3a21d7dc12cdb9e21c11895",
+    "daily7_repo_guard_run_id": "34756679084",
+    "daily7_repo_guard_conclusion": "success",
+    "aver_execution_pin_sha": "fba76d8e90d9a6e3c01721228362ba70529d94c6",
+    "artifact_id": "10317692195",
+    "artifact_digest": "sha256:730be8d14f89396be2aad22dbe5f363abebcce858d41723c545b9e0ebf26c24b",
     "request_schema_validated": true,
     "receipt_schema_validated": true,
-    "engine_identity_pin_validated": true,
-    "caller_state_mutation_authorized": false,
-    "drive_mutation_authorized": false,
-    "false_tm_pass_observed": false,
-    "resultset_layer_machine_resolved": true,
-    "canaries": [
-      {"candidate_key": "nursing-school-hard-but-damn", "tm_decision": "TM_HOLD"},
-      {"candidate_key": "powered-by-yarn-and-chaos", "tm_decision": "TM_HOLD"}
-    ]
-  },
-  "deep_interpretation_closure": {
-    "workflow_run_id": "34749315746",
-    "tested_commit_sha": "69bef60a93b5b767b7dcc8622ec29c19ada27e58",
-    "artifact_id": "10315312192",
-    "artifact_digest": "sha256:b3d72ec552316c2585c2fca479f14cf2b2f3aa0db9db9ed4ebcba817140b117a",
-    "both_existing_hold_canaries_deterministic_hold": true,
+    "decisions": ["TM_HOLD", "TM_HOLD"],
     "false_tm_pass_observed": false,
     "false_tm_kill_observed": false,
-    "required_query_scope_complete": false,
-    "next_gate": "G4_SCOPE_COMPLETENESS_AND_DECISION"
+    "caller_drive_used_reserve_mutation_observed": false,
+    "semantic_pin_manifest_required_to_remain_identical": true
   },
-  "g4_closure": {
-    "scope_semantics_workflow_run_id": "34750387046",
-    "official_uspto_workflow_run_id": "34750591436",
-    "trademarkia_second_source_exact_sha": "727455012cc42f191ec3851215cfe93b75233fdb",
-    "trademarkia_repeatability_run_ids": ["34752875960", "34752928838"],
-    "production_clean_pass_workflow_run_id": "34752804112",
-    "production_clean_pass_artifact_id": "10316761745",
-    "production_clean_pass_artifact_digest": "sha256:d06c7326b606206371313f9aff5a65cf68e771075f864fda340c6ba60dc3eca2",
-    "decision": "TM_PASS",
-    "unresolved_dimensions": [],
-    "proof_scope": "ONE_FIXED_CLEAN_CLASS016_PRODUCTION_SHAPED_CANARY",
-    "does_not_prove_arbitrary_daily7_phrase_pass": true,
-    "g6_live_path_pass_branch_still_required": true
-  },
-  "interface_contract": {
-    "request_schema": "spec/request.schema.json",
-    "receipt_schema": "spec/receipt.schema.json",
-    "decision_controller": "src/aver/decision.py",
-    "contract_matrix": "tests/test_contract_matrix.py",
-    "generic_safe_boolean_forbidden": true,
-    "legal_clearance_asserted_must_be_false": true,
-    "negative_pass_min_scope_qualified_distinct_evidence_sources": 2
-  },
-  "current_reopen_scope": {
-    "only_layer": "G5_DAILY7_DEEP_SHADOW",
-    "new_candidate_or_market_discovery_forbidden": true,
-    "daily7_live_gate_authorized": false,
-    "next_machine_gate": "G5_DAILY7_DEEP_SHADOW_ON_EXACT_AVER_PIN"
-  },
-  "scope_completeness_law": {
-    "required_tm_query_plan_must_remain_complete": true,
-    "excluded_capability_has_zero_coverage_weight": true,
-    "if_authorized_capabilities_cannot_complete_required_query_dimension": "TM_HOLD_EVIDENCE_NOT_TM_PASS",
-    "raw_negative_source_count_is_observability_only": true,
-    "negative_pass_requires_scope_qualified_convergence": true,
-    "live_usefulness_requires_machine_proven_clean_class016_pass_path": true
-  },
-  "decision_law": {
-    "material_positive_with_material_similarity_and_goods_relatedness": "TM_KILL",
-    "incomplete_or_unresolved_required_evidence": "TM_HOLD",
-    "transport_or_control_block": "TM_HOLD",
-    "negative_pass_requires_complete_scope_and_two_scope_qualified_distinct_negative_sources": true,
-    "tm_pass_is_not_legal_clearance": true
-  },
-  "live_readiness_governance": {
-    "policy": "spec/live-readiness.json",
-    "evidence_state_index": "spec/live-readiness-state.json",
-    "governor": "src/aver/live_readiness.py",
-    "workflow": ".github/workflows/live-readiness-governor.yml",
-    "terminal_states": ["BLOCKED", "READY_FOR_EXPLICIT_LIVE_AUTHORIZATION"],
-    "workflow_success_is_not_readiness": true,
-    "aver_self_authorization_for_daily7_live_forbidden": true,
-    "g7_owned_by_daily7_caller_governance": true,
-    "current_machine_first_blocking_gate": "G5_DAILY7_DEEP_SHADOW"
-  }
+  "interface_contract": {"request_schema":"spec/request.schema.json","receipt_schema":"spec/receipt.schema.json","decision_controller":"src/aver/decision.py","contract_matrix":"tests/test_contract_matrix.py","generic_safe_boolean_forbidden":true,"legal_clearance_asserted_must_be_false":true,"negative_pass_min_scope_qualified_distinct_evidence_sources":2},
+  "current_reopen_scope": {"only_layer":"G6_LIVE_BOUNDARY_REHEARSAL","new_candidate_or_market_discovery_forbidden":true,"daily7_live_gate_authorized":false,"next_machine_gate":"G6_SAME_INTENDED_LIVE_PATH_REHEARSAL_MUTATION_OFF"},
+  "scope_completeness_law": {"required_tm_query_plan_must_remain_complete":true,"excluded_capability_has_zero_coverage_weight":true,"if_authorized_capabilities_cannot_complete_required_query_dimension":"TM_HOLD_EVIDENCE_NOT_TM_PASS","raw_negative_source_count_is_observability_only":true,"negative_pass_requires_scope_qualified_convergence":true,"live_usefulness_requires_machine_proven_clean_class016_pass_path":true},
+  "decision_law": {"material_positive_with_material_similarity_and_goods_relatedness":"TM_KILL","incomplete_or_unresolved_required_evidence":"TM_HOLD","transport_or_control_block":"TM_HOLD","negative_pass_requires_complete_scope_and_two_scope_qualified_distinct_negative_sources":true,"tm_pass_is_not_legal_clearance":true},
+  "live_readiness_governance": {"policy":"spec/live-readiness.json","evidence_state_index":"spec/live-readiness-state.json","governor":"src/aver/live_readiness.py","workflow":".github/workflows/live-readiness-governor.yml","terminal_states":["BLOCKED","READY_FOR_EXPLICIT_LIVE_AUTHORIZATION"],"workflow_success_is_not_readiness":true,"aver_self_authorization_for_daily7_live_forbidden":true,"g7_owned_by_daily7_caller_governance":true,"current_machine_first_blocking_gate":"G6_LIVE_BOUNDARY_REHEARSAL","closed_gate_semantic_identity_is_manifest_bound":true}
 }
