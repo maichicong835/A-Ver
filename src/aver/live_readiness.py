@@ -13,7 +13,7 @@ def _block(gate_id, blockers, evidence=None):
     return {"gate_id": gate_id, "state": "BLOCKED", "evidence": evidence or {}, "blockers": list(blockers)}
 
 
-def evaluate(current, engine, policy, *, candidate_sha, contract_matrix_pass):
+def evaluate(current, engine, policy, state, *, candidate_sha, contract_matrix_pass):
     gates = []
 
     g1_ok = (
@@ -23,6 +23,8 @@ def evaluate(current, engine, policy, *, candidate_sha, contract_matrix_pass):
         and engine.get("mode") == "PRODUCTION_SCOPED"
         and current.get("external_side_effects_authorized") is False
         and engine.get("interface_contract", {}).get("receipt_must_bind_exact_engine_commit") is True
+        and state.get("state_is_evidence_index_not_authorization") is True
+        and state.get("live_authorized") is False
     )
     gates.append(_pass("G1_AUTHORITY_AND_ENGINE_IDENTITY", {
         "candidate_sha": candidate_sha,
@@ -30,6 +32,7 @@ def evaluate(current, engine, policy, *, candidate_sha, contract_matrix_pass):
         "branch": current.get("canonical_branch"),
         "engine_version": current.get("engine_version"),
         "external_side_effects_authorized": current.get("external_side_effects_authorized"),
+        "evidence_state_is_not_authorization": state.get("state_is_evidence_index_not_authorization"),
     }) if g1_ok else _block("G1_AUTHORITY_AND_ENGINE_IDENTITY", ["AUTHORITY_OR_ENGINE_IDENTITY_NOT_PROVEN"]))
 
     if contract_matrix_pass:
@@ -40,7 +43,7 @@ def evaluate(current, engine, policy, *, candidate_sha, contract_matrix_pass):
     else:
         gates.append(_block("G2_DECISION_CONTRACT_INTEGRITY", ["CONTRACT_MATRIX_NOT_PROVEN_ON_CANDIDATE_SHA"]))
 
-    deep = current.get("deep_interpretation_closure") or {}
+    deep = state.get("deep_interpretation_closure") or {}
     deep_required = {
         "material_frontier_machine_pass": True,
         "single_token_false_kill_guard_machine_pass": True,
@@ -55,7 +58,7 @@ def evaluate(current, engine, policy, *, candidate_sha, contract_matrix_pass):
         deep,
     ))
 
-    scope = current.get("decision_scope_closure") or {}
+    scope = state.get("decision_scope_closure") or {}
     scope_required = {
         "required_query_scope_semantics_complete": True,
         "scope_qualified_negative_convergence_enforced": True,
@@ -69,7 +72,7 @@ def evaluate(current, engine, policy, *, candidate_sha, contract_matrix_pass):
         scope,
     ))
 
-    shadow = current.get("daily7_deep_shadow_closure") or {}
+    shadow = state.get("daily7_deep_shadow_closure") or {}
     shadow_ok = (
         shadow.get("state") == "PASS_CLOSED"
         and shadow.get("aver_pin_sha") == candidate_sha
@@ -85,7 +88,7 @@ def evaluate(current, engine, policy, *, candidate_sha, contract_matrix_pass):
         shadow,
     ))
 
-    rehearsal = current.get("live_boundary_rehearsal_closure") or {}
+    rehearsal = state.get("live_boundary_rehearsal_closure") or {}
     rehearsal_ok = (
         rehearsal.get("state") == "PASS_CLOSED"
         and rehearsal.get("aver_pin_sha") == candidate_sha
@@ -127,11 +130,13 @@ def main():
     current = json.loads(Path("CURRENT.json").read_text())
     engine = json.loads(Path("spec/engine.json").read_text())
     policy = json.loads(Path("spec/live-readiness.json").read_text())
+    state = json.loads(Path("spec/live-readiness-state.json").read_text())
 
     receipt = evaluate(
         current,
         engine,
         policy,
+        state,
         candidate_sha=args.candidate_sha,
         contract_matrix_pass=args.contract_matrix_pass,
     )
