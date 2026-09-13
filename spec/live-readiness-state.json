@@ -21,90 +21,55 @@
   },
   "decision_scope_closure": {
     "required_query_scope_semantics_complete": true,
-    "scope_semantics_machine_evidence": {
-      "workflow_run_id": "34750387046",
-      "commit_sha": "8a1076d994134a8a412a17029e106bc8f449f6b4",
-      "workflow_conclusion": "success",
-      "machine_marker": "AVER_G4A_SCOPE_SEMANTICS_PASS"
-    },
+    "scope_semantics_machine_evidence": {"workflow_run_id":"34750387046","commit_sha":"8a1076d994134a8a412a17029e106bc8f449f6b4","workflow_conclusion":"success","machine_marker":"AVER_G4A_SCOPE_SEMANTICS_PASS"},
     "g4b_subgates": {
       "official_uspto_multiword_exact_semantics_machine_proven": true,
-      "official_uspto_multiword_exact_evidence": {
-        "workflow_run_id": "34750591436",
-        "commit_sha": "d8f5346f419d4d49aba4c4fd773a79b154317c35",
-        "artifact_id": "10315705951",
-        "artifact_digest": "sha256:4adccc503683b3fe03b73e1b32510f9e93f3c8a5107fa4f8b4bbec6c0ba4c7e0",
-        "phase_state": "USPTO_DIRECT_FIELDTAG_MULTIWORD_SEMANTICS_PASS",
-        "known_positive_multiword_result_count": 63,
-        "opaque_multiword_exact_zero": true
-      },
+      "official_uspto_multiword_exact_evidence": {"workflow_run_id":"34750591436","commit_sha":"d8f5346f419d4d49aba4c4fd773a79b154317c35","artifact_id":"10315705951","artifact_digest":"sha256:4adccc503683b3fe03b73e1b32510f9e93f3c8a5107fa4f8b4bbec6c0ba4c7e0","phase_state":"USPTO_DIRECT_FIELDTAG_MULTIWORD_SEMANTICS_PASS","known_positive_multiword_result_count":63,"opaque_multiword_exact_zero":true},
       "second_independent_multiword_negative_source_machine_proven": true,
-      "second_source_evidence": {
-        "source": "TRADEMARKIA_QUOTED_MULTIWORD_FIXED_PRODUCTION_PHRASE",
-        "exact_semantic_scope": "FIXED_PRODUCTION_PHRASE_ONLY_NO_ARBITRARY_PHRASE_GENERALIZATION",
-        "exact_commit_sha": "727455012cc42f191ec3851215cfe93b75233fdb",
-        "run_1": {
-          "workflow_run_id": "34752875960",
-          "artifact_id": "10316527489",
-          "artifact_digest": "sha256:a527c79aa62b1df41f073304ad2a32d529273b63b2aaf0cef70d1b9a721068f6"
-        },
-        "run_2": {
-          "workflow_run_id": "34752928838",
-          "artifact_id": "10315862850",
-          "artifact_digest": "sha256:8e7e8231a18a598c39cbb78ec8bd23455f0611e5f7cf8578f3766d7d789b2d48"
-        },
-        "both_same_exact_sha": true,
-        "both_known_positive_and_fixed_phrase_zero_pass": true
-      },
+      "second_source_evidence": {"source":"TRADEMARKIA_QUOTED_MULTIWORD_FIXED_PRODUCTION_PHRASE","exact_semantic_scope":"FIXED_PRODUCTION_PHRASE_ONLY_NO_ARBITRARY_PHRASE_GENERALIZATION","exact_commit_sha":"727455012cc42f191ec3851215cfe93b75233fdb","run_1":{"workflow_run_id":"34752875960","artifact_id":"10316527489","artifact_digest":"sha256:a527c79aa62b1df41f073304ad2a32d529273b63b2aaf0cef70d1b9a721068f6"},"run_2":{"workflow_run_id":"34752928838","artifact_id":"10315862850","artifact_digest":"sha256:8e7e8231a18a598c39cbb78ec8bd23455f0611e5f7cf8578f3766d7d789b2d48"},"both_same_exact_sha":true,"both_known_positive_and_fixed_phrase_zero_pass":true},
       "multiword_scope_qualified_negative_convergence_machine_proven": true,
-      "multiword_convergence_evidence": {
-        "sources": ["USPTO_OFFICIAL_DIRECT_FIELDTAG", "TRADEMARKIA_QUOTED_MULTIWORD_FIXED_PRODUCTION_PHRASE"],
-        "tmhunt_ic025_counted_for_class016": false,
-        "fixed_phrase": "Mildly Lost, Weirdly Optimistic",
-        "production_canary_run_id": "34752804112"
-      },
+      "multiword_convergence_evidence": {"sources":["USPTO_OFFICIAL_DIRECT_FIELDTAG","TRADEMARKIA_QUOTED_MULTIWORD_FIXED_PRODUCTION_PHRASE"],"tmhunt_ic025_counted_for_class016":false,"fixed_phrase":"Mildly Lost, Weirdly Optimistic","production_canary_run_id":"34752804112"},
       "production_reachable_clean_pass_machine_proven": true,
-      "production_clean_pass_evidence": {
-        "workflow_run_id": "34752804112",
-        "commit_sha": "e92beeec5ea3d41fdce7f19eb6fb782464541525",
-        "artifact_id": "10316761745",
-        "artifact_digest": "sha256:d06c7326b606206371313f9aff5a65cf68e771075f864fda340c6ba60dc3eca2",
-        "phase_state": "G4B_PRODUCTION_SHAPED_TM_PASS_PROVEN",
-        "decision": "TM_PASS",
-        "unresolved_dimensions": [],
-        "post_pass_to_current_semantic_implementation_changed": false,
-        "proof_scope": "ONE_FIXED_CLEAN_CLASS016_PRODUCTION_SHAPED_CANARY",
-        "does_not_prove_arbitrary_daily7_phrase_pass": true,
-        "g6_live_path_pass_branch_still_required": true
-      }
+      "production_clean_pass_evidence": {"workflow_run_id":"34752804112","commit_sha":"e92beeec5ea3d41fdce7f19eb6fb782464541525","artifact_id":"10316761745","artifact_digest":"sha256:d06c7326b606206371313f9aff5a65cf68e771075f864fda340c6ba60dc3eca2","phase_state":"G4B_PRODUCTION_SHAPED_TM_PASS_PROVEN","decision":"TM_PASS","unresolved_dimensions":[],"post_pass_to_current_semantic_implementation_changed":false,"proof_scope":"ONE_FIXED_CLEAN_CLASS016_PRODUCTION_SHAPED_CANARY","does_not_prove_arbitrary_daily7_phrase_pass":true,"g6_live_path_pass_branch_still_required":true}
     },
     "class016_clean_pass_path_machine_proven": true,
-    "class016_clean_pass_path_evidence": {
-      "workflow_run_id": "34752804112",
-      "artifact_id": "10316761745",
-      "decision": "TM_PASS",
-      "unresolved_dimensions": []
-    },
+    "class016_clean_pass_path_evidence": {"workflow_run_id":"34752804112","artifact_id":"10316761745","decision":"TM_PASS","unresolved_dimensions":[]},
     "scope_qualified_negative_convergence_enforced": true,
-    "scope_qualified_convergence_evidence": {
-      "workflow_run_id": "34749114948",
-      "commit_sha": "aae8dbc195476fc5863912c225916bf65d8ff67c",
-      "workflow_conclusion": "success"
-    },
+    "scope_qualified_convergence_evidence": {"workflow_run_id":"34749114948","commit_sha":"aae8dbc195476fc5863912c225916bf65d8ff67c","workflow_conclusion":"success"},
     "capability_failure_separated_from_candidate_risk": true,
     "existing_canaries_deterministic_for_correct_reason": true,
-    "existing_canaries_decision_evidence": {
-      "workflow_run_id": "34749315746",
-      "artifact_id": "10315312192",
-      "nursing": "TM_HOLD_FOR_MATERIAL_GOODS_WITH_UNRESOLVED_SIMILARITY_AND_INCOMPLETE_SCOPE",
-      "yarn": "TM_HOLD_FOR_MATERIAL_GOODS_WITH_SINGLE_TOKEN_STRENGTH_UNRESOLVED_AND_INCOMPLETE_SCOPE"
-    },
+    "existing_canaries_decision_evidence": {"workflow_run_id":"34749315746","artifact_id":"10315312192","nursing":"TM_HOLD_FOR_MATERIAL_GOODS_WITH_UNRESOLVED_SIMILARITY_AND_INCOMPLETE_SCOPE","yarn":"TM_HOLD_FOR_MATERIAL_GOODS_WITH_SINGLE_TOKEN_STRENGTH_UNRESOLVED_AND_INCOMPLETE_SCOPE"},
     "remaining_blocker_order": []
   },
-  "daily7_deep_shadow_closure": null,
+  "daily7_deep_shadow_closure": {
+    "state": "PASS_CLOSED",
+    "workflow_repository": "maichicong835/Amazon-Daily7Source",
+    "workflow_run_id": "34756443557",
+    "daily7_execution_head_sha": "18fd4eb75a00d416a8c9169be5856c8062037723",
+    "daily7_current_clean_head_sha": "137ba103ba3ed1b9e3a21d7dc12cdb9e21c11895",
+    "daily7_repo_guard_run_id": "34756679084",
+    "daily7_repo_guard_conclusion": "success",
+    "aver_pin_sha": "fba76d8e90d9a6e3c01721228362ba70529d94c6",
+    "artifact_id": "10317692195",
+    "artifact_digest": "sha256:730be8d14f89396be2aad22dbe5f363abebcce858d41723c545b9e0ebf26c24b",
+    "request_schema_validated": true,
+    "receipt_schema_validated": true,
+    "caller_mutation_observed": false,
+    "drive_mutation_observed": false,
+    "used_reserve_mutation_observed": false,
+    "false_tm_pass_observed": false,
+    "false_tm_kill_observed": false,
+    "decisions": ["TM_HOLD", "TM_HOLD"],
+    "semantic_pin_manifest": {
+      "src/aver/deep_decision_canary.py": "5692e1acdaab1ddbf47a35abc71e1f79d167ef76",
+      "src/aver/decision.py": "bde07a5d94d2251d20854d68c4a680db945b31d1",
+      "src/aver/similarity.py": "1a0ea3650fc7c669c3e86aa39c247c2b8eec9e5c",
+      "spec/request.schema.json": "d8413748bd90d5992f37b0c0e1b9dd1c5c063c74",
+      "spec/receipt.schema.json": "61282aae267c0b48009bd3172d5ea4d983a0b80b"
+    },
+    "semantic_pin_manifest_must_match_current_governance_head": true,
+    "evidence_harness_retired_after_immutable_artifact": true
+  },
   "live_boundary_rehearsal_closure": null,
-  "g7_explicit_live_authorization": {
-    "state": "NOT_REQUESTED_AFTER_G1_G6_READY",
-    "owned_by": "DAILY7_CALLER_GOVERNANCE"
-  }
+  "g7_explicit_live_authorization": {"state":"NOT_REQUESTED_AFTER_G1_G6_READY","owned_by":"DAILY7_CALLER_GOVERNANCE"}
 }
