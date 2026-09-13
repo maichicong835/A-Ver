@@ -19,8 +19,8 @@ assert c['daily7_live_gate_authorized'] is False
 assert c['acceptance_snapshot']['G5_DAILY7_DEEP_SHADOW']=='PASS_CLOSED_DAILY7_MAIN_G5_REPROOF_34788711694'
 assert c['acceptance_snapshot']['G6_LIVE_BOUNDARY_REHEARSAL']=='PASS_CLOSED_DAILY7_MAIN_G6_REHEARSAL_34788711694'
 assert c['acceptance_snapshot']['G6B_PRODUCTION_INVOCATION_REACHABILITY']=='PASS_CLOSED_DAILY7_MAIN_G6B_PRODUCTION_INVOCATION_34788711694'
-assert c['current_reopen_scope']['only_layer']=='LIVE_READINESS_GOVERNOR_RECEIPT'
-assert c['current_reopen_scope']['next_machine_gate']=='RUN_GOVERNOR_EXPECT_READY_THEN_G7_EXPLICIT_AUTHORIZATION'
+assert c['current_reopen_scope']['only_layer']=='G7_EXPLICIT_LIVE_AUTHORIZATION'
+assert c['current_reopen_scope']['next_machine_gate']=='G7_EXPLICIT_USER_AUTHORIZATION_AFTER_READY_RECEIPT'
 assert e['acceptance']['daily7_deep_shadow_g5']['status']=='PASS_CLOSED_DAILY7_MAIN_G5_REPROOF_34788711694'
 assert e['acceptance']['live_boundary_rehearsal_g6']['status']=='PASS_CLOSED_DAILY7_MAIN_G6_REHEARSAL_34788711694'
 assert e['acceptance']['production_invocation_g6b']['status']=='PASS_CLOSED_DAILY7_MAIN_G6B_PRODUCTION_INVOCATION_34788711694'
@@ -75,4 +75,4 @@ assert g6b['used_reserve_mutation_observed'] is False
 
 assert s['g7_explicit_live_authorization']['state']=='AWAITING_EXPLICIT_USER_AUTHORIZATION_AFTER_G1_G6B_READY'
 assert s['g7_explicit_live_authorization']['owned_by']=='DAILY7_CALLER_GOVERNANCE'
-print('AVER_CONTRACT_TEST_G6B_MAIN_CLOSURE_PASS')
+print('AVER_CONTRACT_TEST_G7_ONLY_REOPEN_PASS')
