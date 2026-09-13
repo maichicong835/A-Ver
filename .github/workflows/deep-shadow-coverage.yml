@@ -1,0 +1,52 @@
+name: A-Ver Deep Shadow Coverage
+
+on:
+  push:
+    branches:
+      - 'deep-shadow-*'
+    paths:
+      - 'src/aver/coverage.py'
+      - 'tests/test_coverage.py'
+      - '.github/workflows/deep-shadow-coverage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact A-Ver commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Verify live gate remains locked
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          c=json.load(open('CURRENT.json'))
+          assert c['current_reopen_scope']['only_layer']=='SHADOW_DEEP_TM_INTERPRETATION'
+          assert c['current_reopen_scope']['daily7_live_gate_authorized'] is False
+          print('AVER_COVERAGE_LOCKS_PASS')
+          PY
+
+      - name: Test current resolver coverage topology
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src python3 tests/test_coverage.py
+          PYTHONPATH=src python3 - <<'PY'
+          import json
+          from aver.coverage import plan_scope
+          p=plan_scope('016',['025'],'MULTI_TOKEN')
+          print(json.dumps(p,indent=2))
+          assert p['negative_pass_capable'] is False
+          assert p['structural_blocker']=='PRIMARY_CLASS_NEGATIVE_CONVERGENCE_CAPABILITY_INCOMPLETE'
+          print('AVER_CLASS016_PASS_CAPABILITY_BLOCKER_PROVEN')
+          PY
