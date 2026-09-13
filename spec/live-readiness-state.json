@@ -5,48 +5,25 @@
   "live_authorized": false,
   "deep_interpretation_closure": {
     "material_frontier_machine_pass": true,
-    "material_frontier_evidence": {
-      "workflow_run_id": "34746827135",
-      "artifact_id": "10313893571",
-      "artifact_digest": "sha256:d0061e03a332c9b596d6bf90bac5307dea6521ee29014e37efc8659c6080001f"
-    },
     "single_token_false_kill_guard_machine_pass": true,
-    "single_token_guard_evidence": {
-      "workflow_run_id": "34746827135",
-      "commit_sha": "a178c1f32ec4c61afffc490b82bcc1b59e081abb"
-    },
     "official_component_strength_evidence_machine_pass": true,
-    "official_component_strength_evidence": {
-      "workflow_run_id": "34747615542",
-      "artifact_id": "10314457270",
-      "artifact_digest": "sha256:8fe53074861870105b9417d526b3f882ad50888dc60630d390c4d28677e23bd3",
-      "record": "90319838",
-      "machine_fact": "NURSING SCHOOL component officially disclaimed"
-    },
     "required_query_plan_machine_pass": true,
-    "required_query_plan_evidence": {
-      "workflow_run_id": "34747035078",
-      "artifact_id": "10314905596",
-      "artifact_digest": "sha256:3a8799c7e29d124a9555682189d83d9948d7964aa913154aec681ca112510315",
-      "semantic_state": "QUERY_PLAN_EXECUTION_PASS_SCOPE_INCOMPLETE"
-    },
     "deep_canary_interpretation_complete": true,
     "deep_canary_interpretation_evidence": {
       "workflow_run_id": "34749315746",
       "commit_sha": "69bef60a93b5b767b7dcc8622ec29c19ada27e58",
       "artifact_id": "10315312192",
       "artifact_digest": "sha256:b3d72ec552316c2585c2fca479f14cf2b2f3aa0db9db9ed4ebcba817140b117a",
-      "phase_state": "DEEP_CANARY_INTERPRETATION_PASS",
       "decisions": ["TM_HOLD", "TM_HOLD"],
       "false_tm_pass_observed": false,
-      "false_tm_kill_observed": false,
-      "required_query_scope_complete": false,
-      "next_gate": "G4_SCOPE_COMPLETENESS_AND_DECISION"
-    },
-    "remaining_blocker": null
+      "false_tm_kill_observed": false
+    }
   },
   "decision_scope_closure": {
     "required_query_scope_semantics_complete": false,
+    "scope_semantics_machine_evidence": null,
+    "class016_clean_pass_path_machine_proven": false,
+    "class016_clean_pass_path_evidence": null,
     "scope_qualified_negative_convergence_enforced": true,
     "scope_qualified_convergence_evidence": {
       "workflow_run_id": "34749114948",
@@ -54,20 +31,17 @@
       "workflow_conclusion": "success"
     },
     "capability_failure_separated_from_candidate_risk": true,
-    "capability_separation_evidence": {
-      "uspto_search_ui_state": "HOLD_CAPABILITY_UI_BINDING",
-      "tsdr_yarn_state": "HOLD_CAPABILITY_AFTER_BOUNDED_RETRY",
-      "candidate_risk_inference_from_capability_failure": false
-    },
     "existing_canaries_deterministic_for_correct_reason": true,
     "existing_canaries_decision_evidence": {
       "workflow_run_id": "34749315746",
       "artifact_id": "10315312192",
-      "artifact_digest": "sha256:b3d72ec552316c2585c2fca479f14cf2b2f3aa0db9db9ed4ebcba817140b117a",
-      "nursing": "TM_HOLD_DUE_TO_MATERIAL_POSITIVE_WITH_UNRESOLVED_SIMILARITY_AND_INCOMPLETE_REQUIRED_SCOPE",
-      "yarn": "TM_HOLD_DUE_TO_MATERIAL_GOODS_SINGLE_TOKEN_STRENGTH_UNRESOLVED_AND_INCOMPLETE_REQUIRED_SCOPE"
+      "nursing": "TM_HOLD_FOR_MATERIAL_GOODS_WITH_UNRESOLVED_SIMILARITY_AND_INCOMPLETE_SCOPE",
+      "yarn": "TM_HOLD_FOR_MATERIAL_GOODS_WITH_SINGLE_TOKEN_STRENGTH_UNRESOLVED_AND_INCOMPLETE_SCOPE"
     },
-    "remaining_blocker": "REQUIRED_QUERY_SCOPE_SEMANTICS_INCOMPLETE"
+    "remaining_blocker_order": [
+      "G4A_REQUIRED_QUERY_SCOPE_SEMANTICS",
+      "G4B_CLASS016_OPERATIONAL_CLEAN_PASS_PATH"
+    ]
   },
   "daily7_deep_shadow_closure": null,
   "live_boundary_rehearsal_closure": null,
