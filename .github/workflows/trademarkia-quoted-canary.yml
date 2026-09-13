@@ -1,7 +1,9 @@
 name: A-Ver Trademarkia Quoted Canary
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'g4b-repeatability-*'
     paths:
       - 'src/aver/trademarkia_quoted_canary.py'
       - '.github/workflows/trademarkia-quoted-canary.yml'
