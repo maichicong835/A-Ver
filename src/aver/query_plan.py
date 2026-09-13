@@ -19,6 +19,10 @@ def normalize_wording(value):
     return " ".join(_tokens(value)).upper()
 
 
+def _surface_upper(value):
+    return re.sub(r"\s+", " ", (value or "").strip()).upper()
+
+
 def _longest_contiguous_shared(a, b):
     best=[]
     for i in range(len(a)):
@@ -62,14 +66,14 @@ def derive_core_queries(candidate_wording, priority_queue, limit=2):
 
 def build_query_plan(candidate_wording, priority_queue):
     normalized=normalize_wording(candidate_wording)
-    original_normalized=normalize_wording(candidate_wording)
+    surface=_surface_upper(candidate_wording)
     cores=derive_core_queries(candidate_wording,priority_queue,limit=2)
     return {
         "required_dimensions":list(REQUIRED_DIMENSIONS),
         "EXACT":{"queries":[candidate_wording],"negative_semantics_required":"US_FEDERAL_EXACT_NEGATIVE"},
         "NORMALIZED_EXACT":{
             "queries":[normalized],
-            "equivalent_to_exact_after_normalization": normalized==original_normalized,
+            "equivalent_to_exact_after_normalization": normalized==surface,
             "negative_semantics_required":"US_FEDERAL_NORMALIZED_EXACT_NEGATIVE",
         },
         "CORE_DOMINANT_TOKEN":{"queries":[x["query"] for x in cores],"derivation":cores},
