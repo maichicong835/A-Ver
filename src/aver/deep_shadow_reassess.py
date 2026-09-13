@@ -14,7 +14,8 @@ def main():
     fixture = json.loads(FIXTURE.read_text(encoding='utf-8'))
     receipt = {
         'schema': 'AVER_DEEP_SHADOW_REASSESSMENT_RECEIPT',
-        'source': fixture['source'],
+        'record_binding_source': fixture['record_binding_source'],
+        'result_row_source': fixture['result_row_source'],
         'fixture_only_not_runtime_authority': True,
         'caller_state_mutation_authorized': False,
         'drive_mutation_authorized': False,
@@ -23,9 +24,8 @@ def main():
     }
     for rec in fixture['records']:
         lexical = lexical_materiality(rec['candidate_wording'], rec['mark_text'])
-        goods_text = '; '.join(rec.get('goods_markers') or [])
-        goods = g0_g4(goods_text, rec.get('class_codes') or [])
-        final_goods = 'MATERIAL' if goods['bucket'] == 'G0' else 'UNRESOLVED'
+        goods = g0_g4(rec.get('goods_excerpt') or '', rec.get('class_codes') or [])
+        final_goods = 'UNRESOLVED'
         final_similarity = 'UNRESOLVED'
         state = {
             'material_positive_record_present': True,
@@ -42,6 +42,7 @@ def main():
                 'PHONETIC_OR_SPELLING_WHEN_MATERIAL',
                 'RELATED_GOODS_REVIEW',
                 'FINAL_SIMILARITY',
+                'FINAL_GOODS_RELATEDNESS',
             ],
             'negative_evidence_distinct_sources': 0,
             'transport_blocked': False,
@@ -64,11 +65,11 @@ def main():
         raise SystemExit('DEEP_REASSESS_FALSE_NON_HOLD')
     nursing = next(x for x in receipt['records'] if x['serial'] == '90319838')
     chaos = next(x for x in receipt['records'] if x['serial'] == '90072046')
-    if nursing['g0_g4_reassessment']['bucket'] != 'G0':
-        raise SystemExit('NURSING_RECORD_NOT_G0_AFTER_DETAIL_BINDING')
+    if nursing['g0_g4_reassessment']['bucket'] != 'G1':
+        raise SystemExit('NURSING_RECORD_NOT_G1_FROM_PROVEN_GOODS_CONTEXT')
     if chaos['g0_g4_reassessment']['bucket'] != 'G3':
-        raise SystemExit('CHAOS_RECORD_NOT_G3')
-    receipt['phase_state'] = 'RECORD_DETAIL_AND_G0_G4_REASSESSMENT_PASS_SIMILARITY_AND_SCOPE_HOLD'
+        raise SystemExit('CHAOS_RECORD_NOT_G3_FROM_PROVEN_GOODS_CONTEXT')
+    receipt['phase_state'] = 'RECORD_DETAIL_AND_G0_G4_TRIAGE_PASS_SIMILARITY_AND_SCOPE_HOLD'
     receipt['next_machine_gate'] = 'SIMILARITY_COMMERCIAL_IMPRESSION_AND_REMAINING_REQUIRED_QUERY_SCOPE'
     (OUT / 'reassessment.json').write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
     print('AVER_DEEP_SHADOW_REASSESSMENT_PASS')
