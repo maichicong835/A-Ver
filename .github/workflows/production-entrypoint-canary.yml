@@ -1,0 +1,65 @@
+name: A-Ver Production Entrypoint Canary
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/aver/production.py'
+      - 'src/aver/query_plan.py'
+      - 'src/aver/decision.py'
+      - 'src/aver/resolvers/**'
+      - 'src/aver/uspto_fieldtag_direct_canary.py'
+      - 'spec/request.schema.json'
+      - 'spec/receipt.schema.json'
+      - '.github/workflows/production-entrypoint-canary.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  canary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Build fixed non-Daily7 production requests
+        run: |
+          mkdir -p artifacts/production-entrypoint
+          python3 - <<'PY'
+          import json
+          dims=['EXACT','NORMALIZED_EXACT','CORE_DOMINANT_TOKEN','EXPANDED_PARTIAL','PHONETIC_OR_SPELLING_WHEN_MATERIAL','RELATED_GOODS_REVIEW']
+          def req(i,w): return {'schema':'AVER_TM_REQUEST','schema_version':'1.0','request_id':i,'wording':w,'intended_goods_context':{'primary_class':'016','description':'decorative adhesive stickers','channels':['online marketplace'],'purchasers':['US consumers']},'requested_scope':{'country':'US','federal_registry':True,'related_goods_review':True,'query_dimensions':dims},'caller':{'system':'G6B_CANARY','reference':'fixed-non-daily7'}}
+          json.dump(req('g6b.pass','Quietly Off Course'),open('artifacts/production-entrypoint/pass-request.json','w'),indent=2)
+          json.dump(req('g6b.hold','Quietly Off Course Today Somehow'),open('artifacts/production-entrypoint/hold-request.json','w'),indent=2)
+          PY
+      - name: Execute generic production entrypoint
+        env:
+          AVER_ENGINE_COMMIT_SHA: ${{ github.sha }}
+        run: |
+          PYTHONPATH=src python3 src/aver/production.py --request artifacts/production-entrypoint/pass-request.json --output artifacts/production-entrypoint/pass-receipt.json
+          PYTHONPATH=src python3 src/aver/production.py --request artifacts/production-entrypoint/hold-request.json --output artifacts/production-entrypoint/hold-receipt.json
+      - name: Assert utility and fail-closed semantics
+        run: |
+          python3 - <<'PY'
+          import json, jsonschema, os
+          schema=json.load(open('spec/receipt.schema.json'))
+          a=json.load(open('artifacts/production-entrypoint/pass-receipt.json')); b=json.load(open('artifacts/production-entrypoint/hold-receipt.json'))
+          jsonschema.Draft202012Validator(schema).validate(a); jsonschema.Draft202012Validator(schema).validate(b)
+          assert a['engine_commit_sha']==os.environ['GITHUB_SHA'] and b['engine_commit_sha']==os.environ['GITHUB_SHA']
+          assert a['decision']=='TM_PASS', a
+          assert a['scope_coverage']['scope_qualified_negative_evidence_distinct_sources']>=2
+          assert a['unresolved_dimensions']==[]
+          assert b['decision']=='TM_HOLD', b
+          assert 'SECOND_SCOPE_QUALIFIED_NEGATIVE_SOURCE' in b['unresolved_dimensions']
+          assert a['legal_clearance_asserted'] is False and b['legal_clearance_asserted'] is False
+          print('AVER_PRODUCTION_ENTRYPOINT_UTILITY_AND_FAIL_CLOSED_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aver-production-entrypoint-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/production-entrypoint/
+          if-no-files-found: error
+          retention-days: 30
