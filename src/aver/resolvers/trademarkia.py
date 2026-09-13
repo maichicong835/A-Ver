@@ -65,13 +65,6 @@ class TrademarkiaResolver:
         return result
 
     def _bind_query_stably(self, page, query, max_attempts=3):
-        """Machine-attest query binding before submission.
-
-        Trademarkia's public React surface can re-render/hydrate after the first
-        visible input is found. A click/fill call is therefore not sufficient
-        evidence that the query remained bound. This routine is deliberately
-        bounded and re-acquires the visible search input on every attempt.
-        """
         attempts = []
         latest_candidates = []
         for attempt in range(1, max_attempts + 1):
@@ -118,7 +111,7 @@ class TrademarkiaResolver:
 
         return None, None, latest_candidates, {"bound": False, "attempts": attempts, "max_attempts": max_attempts}
 
-    def search(self, query, expected_kind, expected_identifier=None):
+    def search(self, query, expected_kind, expected_identifier=None, post_terminal_observer=None):
         page = self.browser.new_page(viewport={"width": 1440, "height": 1000})
         rec = {"resolver": "TRADEMARKIA", "mode": expected_kind, "query": query, "state": "CAPABILITY_UNPROVEN", "failure_signature": None}
         try:
@@ -140,6 +133,14 @@ class TrademarkiaResolver:
             rec["submission"] = submit_scoped(page, page, input_el)
             terminal = wait_for(page, lambda: self._search_probe(page, query, expected_identifier), timeout_seconds=16)
             rec["terminal_result"] = terminal
+            if post_terminal_observer is not None and terminal.get("terminal") == "POSITIVE_RESULTSET":
+                try:
+                    rec["post_terminal_observation"] = post_terminal_observer(page, terminal)
+                    rec["post_terminal_observer_state"] = "OBSERVED"
+                except Exception as exc:
+                    rec["post_terminal_observation"] = None
+                    rec["post_terminal_observer_state"] = "OBSERVER_ERROR"
+                    rec["post_terminal_observer_error"] = f"{type(exc).__name__}:{str(exc)[:220]}"
             rec["final_url"] = page.url
             rec["body_sha256"] = sha(page.content())
             if terminal.get("terminal") == "CONTROL_BLOCKED":
