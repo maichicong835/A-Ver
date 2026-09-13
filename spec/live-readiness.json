@@ -10,15 +10,17 @@
     "RAW_NEGATIVE_SOURCE_COUNT_EQUALS_SCOPE_QUALIFIED_CONVERGENCE",
     "CAPABILITY_HOLD_EQUALS_CANDIDATE_RISK",
     "SCOPE_SEMANTICS_COMPLETE_EQUALS_OPERATIONALLY_USEFUL_PASS_PATH",
+    "ONE_OFFICIAL_NEGATIVE_SOURCE_EQUALS_G4B_PASS",
+    "SYNTHETIC_REACHABILITY_EQUALS_DAILY7_LIVE_UTILITY",
     "CONVERSATION_APPROXIMATION_EQUALS_MACHINE_EVIDENCE"
   ],
   "gates": [
     {"id":"G1_AUTHORITY_AND_ENGINE_IDENTITY","requires":["canonical A-Ver repository/branch proven","authority contract passes on exact candidate commit","PRODUCTION_SCOPED engine mode","external side effects disabled","receipt binds exact engine commit"]},
     {"id":"G2_DECISION_CONTRACT_INTEGRITY","requires":["contract matrix passes on exact candidate commit","TM_PASS requires scope-qualified negative convergence","Class016 cannot count TMHunt IC025 as Class016 negative convergence","positive conflict asymmetry and fail-closed HOLD semantics remain intact"]},
     {"id":"G3_DEEP_TM_INTERPRETATION","requires":["material records dynamically prioritized and bound","similarity and component-strength evidence cannot false-KILL","goods relatedness resolved where material","existing hold canaries reach deterministic HOLD for correct reason"]},
-    {"id":"G4_SCOPE_COMPLETENESS_AND_DECISION","requires":["G4A required query dimensions have deterministic RESOLVED MATERIAL_POSITIVE HOLD_CAPABILITY or HOLD_EVIDENCE semantics","no TM_PASS from incomplete query scope","no TM_PASS from resolver scope leakage","capability failures remain separate from candidate-risk decisions","G4B at least one Class016 clean canary reaches TM_PASS using at least two Class016-scope-qualified independent negative evidence sources","G4B may not count TMHunt IC025 toward Class016 negative convergence"]},
+    {"id":"G4_SCOPE_COMPLETENESS_AND_DECISION","requires":["G4A required query dimensions have deterministic RESOLVED MATERIAL_POSITIVE HOLD_CAPABILITY or HOLD_EVIDENCE semantics","no TM_PASS from incomplete query scope","no TM_PASS from resolver scope leakage","capability failures remain separate from candidate-risk decisions","G4B1 official USPTO multiword exact positive and zero semantics are machine-proven","G4B2 a second independent multiword negative source is machine-proven with scope relevant to US federal Class016 review","G4B3 multiword scope-qualified negative convergence is machine-proven without counting TMHunt IC025","G4B4 the production decision path reaches TM_PASS for at least one Class016 clean canary","G4B reachability alone does not authorize Daily7 live utility"]},
     {"id":"G5_DAILY7_DEEP_SHADOW","requires":["Daily7 calls exact A-Ver candidate commit","versioned request/receipt validation passes","deep interpretation is exercised end-to-end","no caller Drive Used Reserve mutation","no false PASS or false KILL"]},
-    {"id":"G6_LIVE_BOUNDARY_REHEARSAL","requires":["same exact A-Ver pin and same Daily7 integration path as intended live use","mutation remains disabled during rehearsal","caller demonstrates PASS KILL HOLD handling without bypass","failures stop at correct gate and preserve unaffected state"]},
+    {"id":"G6_LIVE_BOUNDARY_REHEARSAL","requires":["same exact A-Ver pin and same Daily7 integration path as intended live use","mutation remains disabled during rehearsal","caller demonstrates PASS KILL HOLD handling without bypass","failures stop at correct gate and preserve unaffected state","PASS branch is exercised on the intended live integration path so synthetic reachability cannot substitute for live utility"]},
     {"id":"G7_EXPLICIT_LIVE_AUTHORIZATION","requires":["G1-G6 all machine-proven PASS","explicit user authorization after reviewing readiness receipt","Daily7 authority records exact approved A-Ver pin","A-Ver itself does not mutate Daily7 state"],"owned_by":"DAILY7_CALLER_GOVERNANCE_NOT_AVER_SELF_AUTHORIZATION"}
   ],
   "authorization_law": {
