@@ -1,11 +1,18 @@
 {
   "schema": "AVER_RECORD_BINDING_FIXTURE",
   "fixture_only_not_runtime_authority": true,
-  "source": {
-    "workflow_run_id": "34735150433",
-    "artifact_id": "10310488107",
-    "artifact_digest": "sha256:abfcf78af1d555e4d31350c6d5a08cc3e43726d197fae60a8e3c5ff00222dda0",
-    "head_sha": "c67878705f6f0e62b5fee8753acfffa9ae6ab056"
+  "record_binding_source": {
+    "workflow_run_id": "34735296226",
+    "artifact_id": "10310732168",
+    "artifact_digest": "sha256:ac3bbd6acea8c6e9d56c68dce47295cdecbda360cf3fddcc0d0100ee3683d6ce",
+    "head_sha": "d10008bc1c3c42f02ca19c786b59cca3e21fe00d",
+    "goods_services_labeled_context_bound": false,
+    "whole_page_goods_markers_authoritative": false
+  },
+  "result_row_source": {
+    "workflow_run_id": "34722878035",
+    "artifact_id": "10306408819",
+    "artifact_digest": "sha256:7251ad40baf0fad95f348419cd84d24b2cc1fd23d176e1c4d2690ccf640aa036"
   },
   "records": [
     {
@@ -16,8 +23,9 @@
       "record_binding_state": "RECORD_BINDING_PASS",
       "status_tokens": ["live", "registered"],
       "class_codes": ["016"],
-      "goods_markers": ["stickers", "sticker", "stationery", "notebooks", "printed", "paper goods"],
-      "record_body_sha256": "2f0d68d02cc74a1f26011d8590ca6962de89da6049635a8f466a770db273161c"
+      "goods_evidence_source": "NATIVE_RESULT_ROW",
+      "goods_excerpt": "Notebooks; flash cards; notebook covers; notebook dividers; notebook paper; stationery",
+      "record_body_sha256": "ffd193430dfec62b3521561119fa66fb24a1e180089993ba2d44d244a636c969"
     },
     {
       "candidate_key": "powered-by-yarn-and-chaos",
@@ -27,8 +35,9 @@
       "record_binding_state": "RECORD_BINDING_PASS",
       "status_tokens": ["live", "registered"],
       "class_codes": ["018"],
-      "goods_markers": ["handbags", "clothing"],
-      "record_body_sha256": "06d973b1f44fb463a5dbfdfeba51d44715779fdd43b297f9813c4c892714a866"
+      "goods_evidence_source": "NATIVE_RESULT_ROW",
+      "goods_excerpt": "Handbags",
+      "record_body_sha256": "ba5f0510079ee673d3474ef418e5ac6e99dce1ecdbdd3d3a55e8f3a8428a9a71"
     }
   ]
 }
