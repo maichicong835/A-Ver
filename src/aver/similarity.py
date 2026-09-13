@@ -21,9 +21,11 @@ def _longest_contiguous_shared(a, b):
 def analyze_word_mark_similarity(candidate_wording, record_mark, component_strength_state="UNRESOLVED"):
     """Produce bounded word-mark similarity evidence without legal conclusion.
 
-    A shared component cannot by itself become MATERIAL when its strength is
-    unresolved and both marks contain substantial different remainder wording.
-    Conversely this function never returns CLEAR solely from different tails.
+    Exact wording may be material on its face. Full containment of a multi-token
+    mark may also be material. But a single-token mark contained inside a longer
+    phrase must not become MATERIAL unless the shared component has separately
+    been machine-proven strong/distinctive. This prevents common, descriptive,
+    or semantically different single words from creating an automatic conflict.
     """
     c=_tokens(candidate_wording)
     r=_tokens(record_mark)
@@ -34,10 +36,23 @@ def analyze_word_mark_similarity(candidate_wording, record_mark, component_stren
     exact=(c==r and bool(c))
     record_contained=bool(r) and any(c[i:i+len(r)]==r for i in range(max(0,len(c)-len(r)+1)))
     candidate_contained=bool(c) and any(r[i:i+len(c)]==c for i in range(max(0,len(r)-len(c)+1)))
+    containment=record_contained or candidate_contained
+    contained_token_count=min(len(c),len(r)) if containment else 0
+    single_token_containment=bool(containment and not exact and contained_token_count==1)
 
-    if exact or record_contained or candidate_contained:
+    if exact:
         assessment="MATERIAL"
-        reasons=["EXACT_OR_FULL_MARK_CONTAINMENT"]
+        reasons=["EXACT_WORDING"]
+    elif single_token_containment:
+        if component_strength_state == "STRONG_OR_DISTINCTIVE":
+            assessment="MATERIAL"
+            reasons=["SINGLE_TOKEN_CONTAINMENT", "SHARED_COMPONENT_MACHINE_PROVEN_STRONG"]
+        else:
+            assessment="UNRESOLVED"
+            reasons=["SINGLE_TOKEN_CONTAINMENT", "SHARED_COMPONENT_STRENGTH_UNRESOLVED", "SEMANTIC_AND_COMMERCIAL_IMPRESSION_REVIEW_REQUIRED"]
+    elif containment:
+        assessment="MATERIAL"
+        reasons=["MULTI_TOKEN_FULL_MARK_CONTAINMENT"]
     elif len(contiguous) >= 2 and candidate_only and record_only:
         if component_strength_state == "STRONG_OR_DISTINCTIVE":
             assessment="MATERIAL"
@@ -64,6 +79,7 @@ def analyze_word_mark_similarity(candidate_wording, record_mark, component_stren
         "exact": exact,
         "record_mark_fully_contained": record_contained,
         "candidate_fully_contained": candidate_contained,
+        "single_token_containment": single_token_containment,
         "component_strength_state": component_strength_state,
         "phonetic_review_complete": False,
         "semantic_review_complete": False,
