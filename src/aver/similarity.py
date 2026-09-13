@@ -18,14 +18,27 @@ def _longest_contiguous_shared(a, b):
     return best
 
 
+def _unresolved_component_reasons(prefix, component_strength_state):
+    if component_strength_state == "DISCLAIMED_COMPONENT":
+        return [
+            prefix,
+            "SHARED_COMPONENT_OFFICIALLY_DISCLAIMED_IN_BOUND_RECORD",
+            "DISCLAIMER_PREVENTS_AUTOMATIC_STRONG_COMPONENT_INFERENCE",
+            "DISCLAIMER_DOES_NOT_BY_ITSELF_PROVE_NO_LIKELIHOOD_OF_CONFUSION",
+            "SEMANTIC_AND_COMMERCIAL_IMPRESSION_REVIEW_REQUIRED",
+        ]
+    return [prefix, "SHARED_COMPONENT_STRENGTH_UNRESOLVED", "SEMANTIC_AND_COMMERCIAL_IMPRESSION_REVIEW_REQUIRED"]
+
+
 def analyze_word_mark_similarity(candidate_wording, record_mark, component_strength_state="UNRESOLVED"):
     """Produce bounded word-mark similarity evidence without legal conclusion.
 
     Exact wording may be material on its face. Full containment of a multi-token
-    mark may also be material. But a single-token mark contained inside a longer
-    phrase must not become MATERIAL unless the shared component has separately
-    been machine-proven strong/distinctive. This prevents common, descriptive,
-    or semantically different single words from creating an automatic conflict.
+    mark may also be material. Single-token containment or a shared multi-token
+    component only becomes MATERIAL from component strength when that strength
+    was separately machine-proven. An official disclaimer is evidence against
+    automatically treating the shared component as exclusively strong, but it
+    never becomes a CLEAR/no-confusion conclusion on its own.
     """
     c=_tokens(candidate_wording)
     r=_tokens(record_mark)
@@ -49,7 +62,7 @@ def analyze_word_mark_similarity(candidate_wording, record_mark, component_stren
             reasons=["SINGLE_TOKEN_CONTAINMENT", "SHARED_COMPONENT_MACHINE_PROVEN_STRONG"]
         else:
             assessment="UNRESOLVED"
-            reasons=["SINGLE_TOKEN_CONTAINMENT", "SHARED_COMPONENT_STRENGTH_UNRESOLVED", "SEMANTIC_AND_COMMERCIAL_IMPRESSION_REVIEW_REQUIRED"]
+            reasons=_unresolved_component_reasons("SINGLE_TOKEN_CONTAINMENT",component_strength_state)
     elif containment:
         assessment="MATERIAL"
         reasons=["MULTI_TOKEN_FULL_MARK_CONTAINMENT"]
@@ -59,7 +72,7 @@ def analyze_word_mark_similarity(candidate_wording, record_mark, component_stren
             reasons=["SHARED_CONTIGUOUS_COMPONENT", "SHARED_COMPONENT_MACHINE_PROVEN_STRONG"]
         else:
             assessment="UNRESOLVED"
-            reasons=["SHARED_CONTIGUOUS_COMPONENT", "DISTINCT_REMAINDERS_PRESENT", "SHARED_COMPONENT_STRENGTH_UNRESOLVED"]
+            reasons=["SHARED_CONTIGUOUS_COMPONENT", "DISTINCT_REMAINDERS_PRESENT"] + _unresolved_component_reasons("COMPONENT_STRENGTH_GATE",component_strength_state)[1:]
     elif not shared:
         assessment="UNRESOLVED"
         reasons=["NO_SHARED_WORD_TOKENS", "PHONETIC_SEMANTIC_APPEARANCE_REVIEW_NOT_COMPLETED"]
