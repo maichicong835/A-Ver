@@ -1,0 +1,39 @@
+name: A-Ver USPTO Direct Field-Tag Canary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/aver/uspto_fieldtag_direct_canary.py'
+      - '.github/workflows/uspto-fieldtag-direct-canary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Prepare browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+          echo "AVER_BROWSER_EXECUTABLE=/usr/bin/google-chrome" >> "$GITHUB_ENV"
+      - name: Run direct field-tag canary
+        run: PYTHONPATH=src python3 src/aver/uspto_fieldtag_direct_canary.py
+      - name: Upload immutable field-tag evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aver-uspto-fieldtag-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/uspto-fieldtag/receipt.json
+          if-no-files-found: error
+          retention-days: 30
