@@ -62,14 +62,15 @@ jobs:
           python3 - <<'PY'
           import json
           r=json.load(open('artifacts/deep-shadow-reassess/reassessment.json'))
-          assert r['phase_state']=='RECORD_DETAIL_AND_G0_G4_REASSESSMENT_PASS_SIMILARITY_AND_SCOPE_HOLD'
+          assert r['phase_state']=='RECORD_DETAIL_AND_G0_G4_TRIAGE_PASS_SIMILARITY_AND_SCOPE_HOLD'
           assert r['next_machine_gate']=='SIMILARITY_COMMERCIAL_IMPRESSION_AND_REMAINING_REQUIRED_QUERY_SCOPE'
           assert r['live_gate_authorized'] is False
           assert len(r['records'])==2
           assert all(x['decision']['decision']=='TM_HOLD' for x in r['records'])
           assert all(x['exact_dimension_resolved'] is False for x in r['records'])
           buckets={x['serial']:x['g0_g4_reassessment']['bucket'] for x in r['records']}
-          assert buckets=={'90319838':'G0','90072046':'G3'}
+          assert buckets=={'90319838':'G1','90072046':'G3'}
+          assert all(x['final_goods_relatedness']=='UNRESOLVED' for x in r['records'])
           print('AVER_DEEP_REASSESS_SEMANTIC_PASS')
           PY
 
