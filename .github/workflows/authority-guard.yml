@@ -8,6 +8,7 @@ on:
       - 'spec/**'
       - 'docs/**'
       - 'tests/**'
+      - 'src/aver/record_interpretation.py'
       - '.github/workflows/authority-guard.yml'
   workflow_dispatch:
 
@@ -35,7 +36,8 @@ jobs:
           set -euo pipefail
           python3 -m json.tool CURRENT.json >/dev/null
           python3 -m json.tool spec/engine.json >/dev/null
-          python3 tests/test_contract.py
+          PYTHONPATH=src python3 tests/test_contract.py
+          PYTHONPATH=src python3 tests/test_record_interpretation.py
 
       - name: Verify production authority and side-effect locks
         shell: bash
@@ -87,6 +89,7 @@ jobs:
           print('prepromotion_state=',s['PRE_PROMOTION_CONTRACT_HARDENING'])
           print('promotion_state=',s['PROMOTION_REVIEW'])
           print('shadow_state=',s['DAILY7_SHADOW_INTEGRATION'])
+          print('deep_interpretation_state=',s.get('SHADOW_DEEP_TM_INTERPRETATION','NOT_PRESENT'))
           print('daily7_live_gate_authorized=',c['promotion_closure']['daily7_live_gate_authorized'])
           print('current_reopen_scope=',c['current_reopen_scope']['only_layer'])
           PY
