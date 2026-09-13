@@ -1,0 +1,41 @@
+name: A-Ver G6 Closure G7 Ready Staging
+
+on:
+  push:
+    branches: [g6-closure-g7-ready-staging]
+    paths:
+      - 'CURRENT.json'
+      - 'spec/engine.json'
+      - 'spec/live-readiness-state.json'
+      - 'tests/test_contract.py'
+      - '.github/workflows/g6-closure-g7-ready-staging.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 -m pip install --disable-pip-version-check --quiet jsonschema==4.25.1
+      - run: python3 tests/test_contract.py
+      - run: python3 tests/test_contract_matrix.py
+      - run: PYTHONPATH=src python3 tests/test_live_readiness_g6_identity.py
+      - run: python3 src/aver/live_readiness.py --candidate-sha "$GITHUB_SHA" --authority-contract-pass --contract-matrix-pass
+      - name: Assert ready but not live
+        run: |
+          python3 - <<'PY'
+          import json
+          r=json.load(open('artifacts/live-readiness/receipt.json'))
+          assert r['terminal_state']=='READY_FOR_EXPLICIT_LIVE_AUTHORIZATION'
+          assert r['first_blocking_gate'] is None
+          assert all(g['state']=='PASS' for g in r['gates'])
+          assert r['live_authorized'] is False
+          assert r['aver_may_self_authorize_daily7_live'] is False
+          assert r['g7_explicit_live_authorization_required_after_ready'] is True
+          print('AVER_G6_CLOSURE_G7_READY_STAGING_PASS')
+          PY
