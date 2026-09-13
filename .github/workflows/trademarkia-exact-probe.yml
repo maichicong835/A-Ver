@@ -1,0 +1,80 @@
+name: A-Ver Trademarkia Exact Control Probe
+
+on:
+  push:
+    branches:
+      - 'deep-shadow-*'
+    paths:
+      - 'src/aver/trademarkia_exact_probe.py'
+      - '.github/workflows/trademarkia-exact-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      DAILY7_LIVE_GATE_AUTHORIZED: 'false'
+    steps:
+      - name: Checkout exact A-Ver commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Verify isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$DAILY7_LIVE_GATE_AUTHORIZED" = "false"
+          python3 - <<'PY'
+          import json
+          c=json.load(open('CURRENT.json'))
+          assert c['current_reopen_scope']['only_layer']=='SHADOW_DEEP_TM_INTERPRETATION'
+          assert c['current_reopen_scope']['daily7_live_gate_authorized'] is False
+          print('AVER_EXACT_PROBE_LOCKS_PASS')
+          PY
+
+      - name: Prepare browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+          browser="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$browser" ]; then
+            echo "AVER_BROWSER_EXECUTABLE=$browser" >> "$GITHUB_ENV"
+          else
+            python3 -m playwright install chromium
+          fi
+
+      - name: Probe visible exact-search controls only
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src python3 src/aver/trademarkia_exact_probe.py
+
+      - name: Assert diagnostic-only semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          r=json.load(open('artifacts/trademarkia-exact-probe/probe.json'))
+          assert r['probe_only'] is True
+          assert r['candidate_queries_executed'] is False
+          assert r['new_resolver_added'] is False
+          assert r['live_gate_authorized'] is False
+          assert r['exact_semantics_proven'] is False
+          print('AVER_EXACT_PROBE_SEMANTIC_PASS')
+          PY
+
+      - name: Upload probe evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: aver-trademarkia-exact-probe-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/trademarkia-exact-probe/probe.json
+          if-no-files-found: error
+          retention-days: 30
