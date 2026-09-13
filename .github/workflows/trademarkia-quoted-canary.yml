@@ -1,0 +1,23 @@
+name: A-Ver Trademarkia Quoted Canary
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/aver/trademarkia_quoted_canary.py'
+      - '.github/workflows/trademarkia-quoted-canary.yml'
+permissions:
+  contents: read
+jobs:
+  canary:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 -m pip install --quiet playwright==1.55.0
+      - run: PYTHONPATH=src AVER_BROWSER_EXECUTABLE=/usr/bin/google-chrome python3 src/aver/trademarkia_quoted_canary.py
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aver-trademarkia-quoted-${{ github.run_id }}
+          path: artifacts/trademarkia-quoted/receipt.json
