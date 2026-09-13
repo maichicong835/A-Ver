@@ -6,7 +6,13 @@ def evaluate_tm_state(state):
 
     This is not legal clearance. A-Ver uses conservative asymmetry:
     material positive evidence can stop immediately, while negative PASS requires
-    complete required scope plus convergent negative evidence.
+    complete required scope plus scope-qualified convergent negative evidence.
+
+    `negative_evidence_distinct_sources` is raw observability only. It may include
+    resolvers whose proven scope is not relevant to the candidate's required
+    goods/classes. Only `scope_qualified_negative_evidence_distinct_sources` may
+    satisfy the convergence threshold for TM_PASS. If that field is absent, the
+    controller fails closed to zero qualified sources.
     """
     material_positive = bool(state.get("material_positive_record_present"))
     record_binding_complete = bool(state.get("record_binding_complete"))
@@ -15,7 +21,8 @@ def evaluate_tm_state(state):
     required_complete = bool(state.get("required_query_dimensions_complete"))
     resolver_scope_complete = bool(state.get("resolver_scope_complete"))
     unresolved = list(state.get("unresolved_dimensions") or [])
-    negative_sources = int(state.get("negative_evidence_distinct_sources") or 0)
+    raw_negative_sources = int(state.get("negative_evidence_distinct_sources") or 0)
+    qualified_negative_sources = int(state.get("scope_qualified_negative_evidence_distinct_sources") or 0)
     transport_blocked = bool(state.get("transport_blocked"))
     control_blocked = bool(state.get("control_blocked"))
     source_discordance = bool(state.get("source_discordance"))
@@ -26,6 +33,8 @@ def evaluate_tm_state(state):
             "confidence_label": confidence,
             "legal_clearance_asserted": False,
             "decision_reason_codes": reasons,
+            "negative_evidence_distinct_sources_observed": raw_negative_sources,
+            "scope_qualified_negative_evidence_distinct_sources": qualified_negative_sources,
         }
 
     if material_positive:
@@ -52,7 +61,7 @@ def evaluate_tm_state(state):
         return result("TM_HOLD", "EVIDENCE_INCOMPLETE", ["SIMILARITY_UNRESOLVED"])
     if goods == "UNRESOLVED":
         return result("TM_HOLD", "EVIDENCE_INCOMPLETE", ["GOODS_RELATEDNESS_UNRESOLVED"])
-    if negative_sources < 2:
-        return result("TM_HOLD", "EVIDENCE_INCOMPLETE", ["NEGATIVE_EVIDENCE_CONVERGENCE_INSUFFICIENT"])
+    if qualified_negative_sources < 2:
+        return result("TM_HOLD", "EVIDENCE_INCOMPLETE", ["SCOPE_QUALIFIED_NEGATIVE_EVIDENCE_CONVERGENCE_INSUFFICIENT"])
 
-    return result("TM_PASS", "FALLBACK_HIGH_CONFIDENCE", ["REQUIRED_SCOPE_COMPLETE", "NO_MATERIAL_CONFLICT_DETECTED", "NEGATIVE_EVIDENCE_CONVERGED"])
+    return result("TM_PASS", "FALLBACK_HIGH_CONFIDENCE", ["REQUIRED_SCOPE_COMPLETE", "NO_MATERIAL_CONFLICT_DETECTED", "SCOPE_QUALIFIED_NEGATIVE_EVIDENCE_CONVERGED"])
