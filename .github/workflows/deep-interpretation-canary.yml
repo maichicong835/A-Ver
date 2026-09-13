@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'src/aver/deep_interpretation_canary.py'
+      - 'src/aver/material_record_priority_canary.py'
+      - 'src/aver/material_record_priority.py'
       - 'src/aver/record_interpretation.py'
       - 'src/aver/record_details.py'
       - 'src/aver/record_detail_browser.py'
@@ -25,7 +27,7 @@ concurrency:
 jobs:
   canary:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 12
     env:
       EXTERNAL_SIDE_EFFECTS_AUTHORIZED: 'false'
       DAILY7_LIVE_GATE_AUTHORIZED: 'false'
@@ -73,12 +75,18 @@ jobs:
           set -euo pipefail
           PYTHONPATH=src python3 src/aver/deep_interpretation_canary.py
 
+      - name: Run candidate-driven material-record prioritization
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src python3 src/aver/material_record_priority_canary.py
+
       - name: Upload immutable evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: aver-deep-interpretation-${{ github.run_id }}-${{ github.sha }}
-          path: artifacts/deep-interpretation/receipt.json
+          path: artifacts/deep-interpretation/
           if-no-files-found: error
           retention-days: 30
 
@@ -89,6 +97,7 @@ jobs:
           python3 - <<'PY'
           import json
           r=json.load(open('artifacts/deep-interpretation/receipt.json'))
+          p=json.load(open('artifacts/deep-interpretation/priority-receipt.json'))
           assert r['phase_state']=='BRANCH_SPECIFIC_DEEP_EVIDENCE_PASS'
           assert r['shadow_only'] is True
           assert r['candidate_breadth_expanded'] is False
@@ -97,5 +106,10 @@ jobs:
           assert all(x['similarity_evidence_pass'] is True for x in r['canaries'])
           assert all(x['commercial_source_evidence']['state']=='COMMERCIAL_SOURCE_PASS' for x in r['canaries'])
           assert all(x['commercial_g3_g4_pass'] is True for x in r['canaries'])
-          print('AVER_BRANCH_SPECIFIC_DEEP_EVIDENCE_PASS')
+          assert p['phase_state']=='MATERIAL_RECORD_PRIORITY_PASS'
+          assert p['shadow_only'] is True
+          assert p['candidate_breadth_expanded'] is False
+          assert p['tm_decision_authorized'] is False
+          assert all(x['triage_does_not_decide_safety'] is True for x in p['canaries'])
+          print('AVER_DEEP_AND_MATERIAL_RECORD_PRIORITY_PASS')
           PY
