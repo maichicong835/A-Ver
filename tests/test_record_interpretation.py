@@ -27,6 +27,6 @@ assert wrong_class['failure_signature'] == 'EXPECTED_CLASS_NOT_BOUND'
 yarn = fixture['canaries'][1]
 wrong_mark = bind_record_anchor(yarn['body_excerpt'], 'POWERED BY YARN AND CHAOS', yarn['serial'], yarn['expected_class'])
 assert wrong_mark['bound'] is False
-assert wrong_mark['failure_signature'] == 'MARK_NOT_BOUND_TO_SERIAL'
+assert wrong_mark['failure_signature'] in {'MARK_CROSSES_RESULT_HEADER', 'MARK_TOO_FAR_FROM_SERIAL'}
 
 print('AVER_RECORD_INTERPRETATION_TEST_PASS')
