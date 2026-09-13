@@ -1,0 +1,27 @@
+name: A-Ver G4B Production Shaped Canary
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/aver/query_plan.py'
+      - 'tests/test_negative_path_query_plan.py'
+      - 'src/aver/g4b_production_canary.py'
+      - '.github/workflows/g4b-production-canary.yml'
+permissions:
+  contents: read
+jobs:
+  canary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 -m pip install --quiet playwright==1.55.0
+      - run: PYTHONPATH=src python3 tests/test_negative_path_query_plan.py
+      - run: PYTHONPATH=src AVER_BROWSER_EXECUTABLE=/usr/bin/google-chrome python3 src/aver/g4b_production_canary.py
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aver-g4b-production-${{ github.run_id }}
+          path: artifacts/g4b-production/receipt.json
