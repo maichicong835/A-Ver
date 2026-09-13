@@ -30,8 +30,20 @@
       "artifact_digest": "sha256:3a8799c7e29d124a9555682189d83d9948d7964aa913154aec681ca112510315",
       "semantic_state": "QUERY_PLAN_EXECUTION_PASS_SCOPE_INCOMPLETE"
     },
-    "deep_canary_interpretation_complete": false,
-    "remaining_blocker": "COMPLETE_DETERMINISTIC_DEEP_INTERPRETATION_FOR_EXISTING_TWO_HOLD_CANARIES_WITHOUT_FALSE_KILL_OR_FALSE_PASS"
+    "deep_canary_interpretation_complete": true,
+    "deep_canary_interpretation_evidence": {
+      "workflow_run_id": "34749315746",
+      "commit_sha": "69bef60a93b5b767b7dcc8622ec29c19ada27e58",
+      "artifact_id": "10315312192",
+      "artifact_digest": "sha256:b3d72ec552316c2585c2fca479f14cf2b2f3aa0db9db9ed4ebcba817140b117a",
+      "phase_state": "DEEP_CANARY_INTERPRETATION_PASS",
+      "decisions": ["TM_HOLD", "TM_HOLD"],
+      "false_tm_pass_observed": false,
+      "false_tm_kill_observed": false,
+      "required_query_scope_complete": false,
+      "next_gate": "G4_SCOPE_COMPLETENESS_AND_DECISION"
+    },
+    "remaining_blocker": null
   },
   "decision_scope_closure": {
     "required_query_scope_semantics_complete": false,
@@ -47,8 +59,15 @@
       "tsdr_yarn_state": "HOLD_CAPABILITY_AFTER_BOUNDED_RETRY",
       "candidate_risk_inference_from_capability_failure": false
     },
-    "existing_canaries_deterministic_for_correct_reason": false,
-    "remaining_blocker": "REQUIRED_QUERY_SCOPE_AND_DEEP_CANARY_DECISIONS_NOT_YET COMPLETE"
+    "existing_canaries_deterministic_for_correct_reason": true,
+    "existing_canaries_decision_evidence": {
+      "workflow_run_id": "34749315746",
+      "artifact_id": "10315312192",
+      "artifact_digest": "sha256:b3d72ec552316c2585c2fca479f14cf2b2f3aa0db9db9ed4ebcba817140b117a",
+      "nursing": "TM_HOLD_DUE_TO_MATERIAL_POSITIVE_WITH_UNRESOLVED_SIMILARITY_AND_INCOMPLETE_REQUIRED_SCOPE",
+      "yarn": "TM_HOLD_DUE_TO_MATERIAL_GOODS_SINGLE_TOKEN_STRENGTH_UNRESOLVED_AND_INCOMPLETE_REQUIRED_SCOPE"
+    },
+    "remaining_blocker": "REQUIRED_QUERY_SCOPE_SEMANTICS_INCOMPLETE"
   },
   "daily7_deep_shadow_closure": null,
   "live_boundary_rehearsal_closure": null,
