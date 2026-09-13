@@ -16,7 +16,8 @@ jobs:
           persist-credentials: false
       - run: python3 -m pip install --quiet playwright==1.55.0
       - run: PYTHONPATH=src AVER_BROWSER_EXECUTABLE=/usr/bin/google-chrome python3 src/aver/trademarkia_multiword_negative_canary.py
-      - uses: actions/upload-artifact@v4
+      - if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: aver-trademarkia-multiword-${{ github.run_id }}
           path: artifacts/trademarkia-multiword/receipt.json
