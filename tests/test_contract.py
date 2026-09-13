@@ -44,7 +44,8 @@ assert state['state_is_evidence_index_not_authorization'] is True
 assert state['live_authorized'] is False
 assert state['deep_interpretation_closure']['deep_canary_interpretation_complete'] is True
 assert state['decision_scope_closure']['existing_canaries_deterministic_for_correct_reason'] is True
-assert state['decision_scope_closure']['required_query_scope_semantics_complete'] is False
+assert state['decision_scope_closure']['required_query_scope_semantics_complete'] is True
+assert state['decision_scope_closure']['class016_clean_pass_path_machine_proven'] is False
 
 trigger_scope=contract_workflow.split('paths:',1)[1].split('workflow_dispatch:',1)[0]
 for forbidden in ['CURRENT.json','spec/engine.json','tests/test_contract.py','docs/']:
