@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 URL="https://tmsearch.uspto.gov/"
 CASES=[
     {"name":"KNOWN_POSITIVE_MULTIWORD_EXACT","query":"CM:\"JUST DO IT\"","expected":"POSITIVE"},
-    {"name":"OPAQUE_MULTIWORD_EXACT_ZERO","query":"CM:\"QZXJ VMRK PLN 91372\"","expected":"ZERO"},
+    {"name":"OPAQUE_MULTIWORD_EXACT_ZERO","query":"CM:\"QZXJVMRKPLNX VQTKRMNZXJQW\"","expected":"ZERO"},
 ]
 
 

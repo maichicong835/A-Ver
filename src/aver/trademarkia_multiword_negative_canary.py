@@ -15,7 +15,7 @@ CASES = [
     },
     {
         "name": "OPAQUE_MULTIWORD_ZERO_FIXED_CANARY",
-        "query": "QZXJ VMRK PLN 91372",
+        "query": "QZXJVMRKPLNX VQTKRMNZXJQW",
         "expected_kind": "OPAQUE_ZERO",
         "expected_identifier": None,
     },
