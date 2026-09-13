@@ -1,0 +1,62 @@
+name: A-Ver Deep Decision Canary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/aver/deep_decision_canary.py'
+      - 'src/aver/similarity.py'
+      - 'src/aver/decision.py'
+      - '.github/workflows/deep-decision-canary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deep-decision:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      EXTERNAL_SIDE_EFFECTS_AUTHORIZED: 'false'
+      DAILY7_LIVE_MUTATION_AUTHORIZED: 'false'
+    steps:
+      - name: Checkout exact A-Ver commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Verify bounded canary locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$EXTERNAL_SIDE_EFFECTS_AUTHORIZED" = "false"
+          test "$DAILY7_LIVE_MUTATION_AUTHORIZED" = "false"
+
+      - name: Run deterministic deep interpretation canary
+        run: PYTHONPATH=src/aver python3 src/aver/deep_decision_canary.py
+
+      - name: Upload immutable deep-decision evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: aver-deep-decision-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/deep-decision/receipt.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Assert deep interpretation closes G3 only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          r=json.load(open('artifacts/deep-decision/receipt.json'))
+          assert r['phase_state']=='DEEP_CANARY_INTERPRETATION_PASS'
+          assert r['all_decisions']==['TM_HOLD','TM_HOLD']
+          assert r['false_tm_pass_observed'] is False
+          assert r['false_tm_kill_observed'] is False
+          assert r['required_query_scope_complete'] is False
+          assert r['next_gate']=='G4_SCOPE_COMPLETENESS_AND_DECISION'
+          print('AVER_G3_DEEP_INTERPRETATION_PASS_G4_STILL_BLOCKED')
+          PY
