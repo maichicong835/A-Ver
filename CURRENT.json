@@ -4,18 +4,17 @@
   "status": "PRODUCTION_APPROVED_SCOPED",
   "canonical_repository": "maichicong835/A-Ver",
   "canonical_branch": "main",
-  "public_repository": true,
   "authority_files": ["CURRENT.json", "spec/engine.json", "spec/live-readiness.json", "spec/live-readiness-state.json"],
   "runtime_evidence": "GITHUB_ACTIONS_RUN_AND_ARTIFACTS",
   "external_side_effects_authorized": false,
   "production_tm_decisions_authorized": true,
+  "daily7_live_gate_authorized": false,
   "absolute_invariants": {
     "caller_state_is_not_aver_authority": true,
     "conversation_memory_is_not_runtime_authority": true,
     "resolver_transport_success_is_not_tm_clearance": true,
     "search_engine_miss_is_not_native_zero_result": true,
     "single_third_party_negative_may_not_set_pass": true,
-    "credible_positive_record_may_escalate": true,
     "positive_material_hit_is_not_cancelled_by_another_resolver_negative": true,
     "resolver_scope_may_not_be_generalized": true,
     "tmhunt_scope_class025_only_unless_machine_evidence_proves_broader_scope": true,
@@ -25,19 +24,13 @@
     "capability_state_may_not_be_serialized_as_tm_decision_state": true,
     "acceptance_receipt_may_not_release_external_hold": true,
     "successful_acceptance_layers_remain_closed_unless_materially_invalidated": true,
-    "authority_or_documentation_change_alone_does_not_reopen_closed_acceptance_layers": true,
-    "unproven_optional_resolver_mode_may_be_excluded_but_may_not_be_counted_as_coverage": true,
-    "scope_reduction_of_transport_capability_may_not_reduce_required_tm_query_or_safety_scope": true,
-    "acceptance_and_future_production_must_share_resolver_implementation": true,
     "generic_safe_boolean_output_forbidden": true,
     "legal_clearance_claim_forbidden": true,
     "request_data_may_not_override_engine_authority": true,
-    "no_captcha_waf_rate_limit_circumvention": true,
     "no_external_repository_write": true,
     "no_drive_write": true,
     "no_marketplace_ledger_write": true,
     "no_creative_generation": true,
-    "no_hidden_or_private_endpoint_dependency": true,
     "production_approval_does_not_authorize_daily7_live_gate": true,
     "shadow_integration_may_not_mutate_caller_state": true,
     "resultset_resolution_success_does_not_imply_tm_pass": true,
@@ -45,19 +38,9 @@
     "raw_negative_source_count_may_not_substitute_for_scope_qualified_negative_convergence": true,
     "workflow_success_does_not_imply_daily7_live_readiness": true,
     "aver_may_not_self_authorize_daily7_live": true,
-    "any_unproven_live_readiness_gate_blocks_live": true
+    "any_unproven_live_readiness_gate_blocks_live": true,
+    "safe_live_requires_scope_semantics_and_operational_clean_pass_path": true
   },
-  "acceptance_sequence": [
-    "A0_TRANSPORT",
-    "A1_KNOWN_POSITIVE_BINDING",
-    "A2_QUERY_RESULTSET_SEMANTICS",
-    "A3_NEGATIVE_RESULTSET_SEMANTICS",
-    "A4_DECLARED_CAPABILITY_REPEATABILITY",
-    "PRE_PROMOTION_CONTRACT_HARDENING",
-    "PROMOTION_REVIEW",
-    "DAILY7_SHADOW_INTEGRATION",
-    "SHADOW_DEEP_TM_INTERPRETATION"
-  ],
   "acceptance_snapshot": {
     "A0_TRANSPORT": "PASS_CLOSED",
     "A1_KNOWN_POSITIVE_BINDING": "PASS_CLOSED",
@@ -67,56 +50,17 @@
     "PRE_PROMOTION_CONTRACT_HARDENING": "PASS_CLOSED_CONTRACT_MATRIX_34702668801",
     "PROMOTION_REVIEW": "PASS_CLOSED_EXPLICIT_USER_APPROVAL_2026_09_13",
     "DAILY7_SHADOW_INTEGRATION": "PASS_CLOSED_RESULTSET_LAYER_RUN_34722878035",
-    "SHADOW_DEEP_TM_INTERPRETATION": "PENDING",
-    "tmhunt_split": "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT",
-    "tmhunt_wildcard": "CAPABILITY_EXCLUDED_UNPROVEN_ZERO_COVERAGE_WEIGHT"
-  },
-  "a4_repeatability_closure": {
-    "exact_commit_sha": "adb32a9b554a420f9dedc1c6d2916bcaec16d9b6",
-    "harness_revision": "a4.3-query-binding-stability",
-    "run_1": {"workflow_run_id": "34702194480", "artifact_id": "10300745366", "artifact_digest": "sha256:27cca92464c23cdeb7cba73cc412d3b884f132fed949d5daf670b94f1c6b7ff4", "phase_state": "A4_DECLARED_PROFILE_PASS"},
-    "run_2": {"workflow_run_id": "34702254867", "artifact_id": "10300339408", "artifact_digest": "sha256:7f64025e65f8f2f64ae3dcb0b4fa8c9460dddc15198af749ec72f1ea537e42fb", "phase_state": "A4_DECLARED_PROFILE_PASS"},
-    "normalized_semantic_states_match": true,
-    "fixed_canaries_match": true,
-    "split_wildcard_retested": false,
-    "daily7_candidate_queries_executed": false,
-    "production_decisions_authorized": false
-  },
-  "prepromotion_contract_closure": {
-    "tested_commit_sha": "6066da673117b80e10655f3833480d225dec0e0c",
-    "workflow_run_id": "34702668801",
-    "workflow_name": "A-Ver Contract Matrix",
-    "workflow_conclusion": "success",
-    "machine_marker": "AVER_CONTRACT_MATRIX_PASS",
-    "authority_contract_marker": "AVER_CONTRACT_TEST_PASS",
-    "request_schema_version": "1.0",
-    "receipt_schema_version": "1.0",
-    "resolver_transport_executed": false,
-    "daily7_queries_executed": false,
-    "production_decisions_authorized": false
+    "SHADOW_DEEP_TM_INTERPRETATION": "PASS_CLOSED_DEEP_DECISION_CANARY_34749315746",
+    "LIVE_READINESS_G4_SCOPE_COMPLETENESS_AND_DECISION": "PENDING"
   },
   "promotion_closure": {
-    "approved_on": "2026-09-13",
-    "approval_source": "EXPLICIT_USER_INSTRUCTION",
-    "promoted_from_commit_sha": "6719628204414ac5003d1f5be9e9d8fb66c1e9f3",
     "production_commit_sha": "689e06afcce007979025e68a095f9646d1d37591",
-    "production_tm_decisions_authorized": true,
-    "external_side_effects_authorized": false,
-    "daily7_shadow_integration_authorized": true,
-    "daily7_live_gate_authorized": false,
-    "cross_repository_state_mutation_authorized": false,
-    "authority_guard_run_id": "34722809905",
-    "authority_guard_conclusion": "success"
+    "daily7_live_gate_authorized": false
   },
   "daily7_shadow_closure": {
-    "workflow_repository": "maichicong835/Amazon-Daily7Source",
     "workflow_run_id": "34722878035",
-    "daily7_head_sha": "bce20fb9db9e6ff4ff8bfbc1aa67daacbd4e1723",
-    "aver_pin_sha": "689e06afcce007979025e68a095f9646d1d37591",
     "artifact_id": "10306408819",
-    "artifact_digest": "sha256:7251ad40baf0fad95f348419cd84d24b2cc1fd23d176e1c4d2690ccf640aa036",
     "workflow_conclusion": "success",
-    "machine_marker": "AVER_DAILY7_SHADOW_PASS",
     "request_schema_validated": true,
     "receipt_schema_validated": true,
     "engine_identity_pin_validated": true,
@@ -125,30 +69,52 @@
     "false_tm_pass_observed": false,
     "resultset_layer_machine_resolved": true,
     "canaries": [
-      {"candidate_key": "nursing-school-hard-but-damn", "wording": "I KNOW THEY SAID NURSING SCHOOL WAS HARD, BUT DAMN", "trademarkia_terminal": "POSITIVE_RESULTSET", "tmhunt_ic025_terminal": "ZERO_RESULTSET", "tm_decision": "TM_HOLD"},
-      {"candidate_key": "powered-by-yarn-and-chaos", "wording": "POWERED BY YARN AND CHAOS", "trademarkia_terminal": "POSITIVE_RESULTSET", "tmhunt_ic025_terminal": "ZERO_RESULTSET", "tm_decision": "TM_HOLD"}
-    ],
-    "remaining_unresolved_layer": "MATERIAL_RECORD_BINDING_SIMILARITY_G0_G4_AND_REQUIRED_QUERY_SCOPE"
+      {"candidate_key": "nursing-school-hard-but-damn", "tm_decision": "TM_HOLD"},
+      {"candidate_key": "powered-by-yarn-and-chaos", "tm_decision": "TM_HOLD"}
+    ]
   },
-  "declared_capability_profile": {
-    "profile_id": "AVER_TM_PROFILE_0_1_SCOPED",
-    "TRADEMARKIA": {"role": "BROAD_US_FEDERAL_RECORD_RESOLVER", "accepted_capabilities": ["KNOWN_POSITIVE_SEARCH", "KNOWN_RECORD_BINDING", "BROAD_FUZZY_OR_TOKEN_RECALL", "OPAQUE_SINGLE_TOKEN_ZERO_SEMANTICS_WITH_LIMITED_MEANING"], "query_binding_stability_required_before_submit": true, "multi_token_exact_negative_clearance_from_opaque_zero_forbidden": true},
-    "TMHUNT": {"role": "IC025_APPAREL_ADJACENT_RESOLVER", "accepted_modes": ["EXACT", "PARTIAL"], "accepted_negative_semantics": ["EXACT_ZERO_WITHIN_IC025"], "excluded_unproven_modes": ["SPLIT", "WILDCARD"], "excluded_modes_have_zero_coverage_weight": true}
+  "deep_interpretation_closure": {
+    "workflow_run_id": "34749315746",
+    "tested_commit_sha": "69bef60a93b5b767b7dcc8622ec29c19ada27e58",
+    "artifact_id": "10315312192",
+    "artifact_digest": "sha256:b3d72ec552316c2585c2fca479f14cf2b2f3aa0db9db9ed4ebcba817140b117a",
+    "both_existing_hold_canaries_deterministic_hold": true,
+    "false_tm_pass_observed": false,
+    "false_tm_kill_observed": false,
+    "required_query_scope_complete": false,
+    "next_gate": "G4_SCOPE_COMPLETENESS_AND_DECISION"
   },
-  "shared_resolver_lock": {"shared_module_root": "src/aver/resolvers", "scoped_a4_must_import_shared_resolvers": true, "future_production_must_import_same_resolvers": true, "parallel_production_resolver_reimplementation_forbidden": true},
-  "interface_contract": {"request_schema": "spec/request.schema.json", "request_schema_version": "1.0", "receipt_schema": "spec/receipt.schema.json", "receipt_schema_version": "1.0", "decision_controller": "src/aver/decision.py", "contract_matrix": "tests/test_contract_matrix.py", "generic_safe_boolean_forbidden": true, "legal_clearance_asserted_must_be_false": true, "negative_pass_min_scope_qualified_distinct_evidence_sources": 2},
+  "interface_contract": {
+    "request_schema": "spec/request.schema.json",
+    "receipt_schema": "spec/receipt.schema.json",
+    "decision_controller": "src/aver/decision.py",
+    "contract_matrix": "tests/test_contract_matrix.py",
+    "generic_safe_boolean_forbidden": true,
+    "legal_clearance_asserted_must_be_false": true,
+    "negative_pass_min_scope_qualified_distinct_evidence_sources": 2
+  },
   "current_reopen_scope": {
-    "only_layer": "SHADOW_DEEP_TM_INTERPRETATION",
-    "resolver_revalidation_forbidden_without_material_invalidation": true,
+    "only_layer": "LIVE_READINESS_G4_SCOPE_COMPLETENESS_AND_DECISION",
     "new_candidate_or_market_discovery_forbidden": true,
     "only_existing_hold_canaries_authorized": true,
     "daily7_live_gate_authorized": false,
-    "production_tm_decisions_authorized": true,
-    "next_machine_gate": "G3_DEEP_CANARY_INTERPRETATION_THEN_G4_SCOPE_COMPLETENESS"
+    "next_machine_gate": "G4_SCOPE_SEMANTICS_THEN_OPERATIONAL_PASS_PATH"
   },
-  "scope_completeness_law": {"full_site_ui_feature_coverage_is_not_tm_safety_scope": true, "required_tm_query_plan_must_remain_complete": true, "excluded_capability_has_zero_coverage_weight": true, "if_authorized_capabilities_cannot_complete_a_required_query_dimension": "TM_HOLD_EVIDENCE_NOT_TM_PASS", "raw_negative_source_count_is_observability_only": true, "negative_pass_requires_scope_qualified_convergence": true},
-  "decision_law": {"material_positive_with_material_similarity_and_goods_relatedness": "TM_KILL", "incomplete_or_unresolved_required_evidence": "TM_HOLD", "transport_or_control_block": "TM_HOLD", "single_scope_qualified_negative_source": "TM_HOLD", "negative_pass_requires_complete_scope_and_two_scope_qualified_distinct_negative_sources": true, "tm_pass_confidence_label": "FALLBACK_HIGH_CONFIDENCE", "tm_pass_is_not_legal_clearance": true},
-  "post_acceptance_design_lock": {"production_approval_does_not_authorize_daily7_live_gate": true, "caller_should_pin_exact_aver_commit_or_release": true, "cross_repository_state_mutation_remains_forbidden": true, "daily7_shadow_integration_required_before_live_tm_gate": true, "resultset_only_shadow_pass_does_not_authorize_live_gate": true, "independent_live_readiness_governor_required": true},
+  "scope_completeness_law": {
+    "required_tm_query_plan_must_remain_complete": true,
+    "excluded_capability_has_zero_coverage_weight": true,
+    "if_authorized_capabilities_cannot_complete_required_query_dimension": "TM_HOLD_EVIDENCE_NOT_TM_PASS",
+    "raw_negative_source_count_is_observability_only": true,
+    "negative_pass_requires_scope_qualified_convergence": true,
+    "live_usefulness_requires_machine_proven_clean_class016_pass_path": true
+  },
+  "decision_law": {
+    "material_positive_with_material_similarity_and_goods_relatedness": "TM_KILL",
+    "incomplete_or_unresolved_required_evidence": "TM_HOLD",
+    "transport_or_control_block": "TM_HOLD",
+    "negative_pass_requires_complete_scope_and_two_scope_qualified_distinct_negative_sources": true,
+    "tm_pass_is_not_legal_clearance": true
+  },
   "live_readiness_governance": {
     "policy": "spec/live-readiness.json",
     "evidence_state_index": "spec/live-readiness-state.json",
@@ -158,7 +124,6 @@
     "workflow_success_is_not_readiness": true,
     "aver_self_authorization_for_daily7_live_forbidden": true,
     "g7_owned_by_daily7_caller_governance": true,
-    "current_machine_first_blocking_gate": "G3_DEEP_TM_INTERPRETATION"
-  },
-  "promotion_requires": {"a0_a4_closed_pass": true, "unproven_modes_excluded_with_zero_coverage_weight": true, "required_tm_query_plan_coverage_complete": true, "scope_documented": true, "shared_resolver_primitives_defined": true, "versioned_request_and_receipt_contracts_defined": true, "full_contract_state_coverage_test_pass": true, "no_control_circumvention": true, "explicit_user_approval": true, "separate_promotion_commit": true}
+    "current_machine_first_blocking_gate": "G4_SCOPE_COMPLETENESS_AND_DECISION"
+  }
 }
