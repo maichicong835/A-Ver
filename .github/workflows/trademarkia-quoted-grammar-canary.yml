@@ -1,0 +1,30 @@
+name: A-Ver Trademarkia Quoted Grammar Canary
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/aver/trademarkia_quoted_grammar_canary.py'
+      - 'src/aver/resolvers/**'
+      - '.github/workflows/trademarkia-quoted-grammar-canary.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  canary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Run bounded grammar canary
+        run: PYTHONPATH=src python3 src/aver/trademarkia_quoted_grammar_canary.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aver-trademarkia-quoted-grammar-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/trademarkia-quoted-grammar/receipt.json
+          if-no-files-found: error
+          retention-days: 30
