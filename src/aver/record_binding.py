@@ -24,8 +24,7 @@ class TextParser(HTMLParser):
 
 
 def slugify(mark_text):
-    value = re.sub(r'[^a-z0-9]+', '-', (mark_text or '').lower()).strip('-')
-    return value
+    return re.sub(r'[^a-z0-9]+', '-', (mark_text or '').lower()).strip('-')
 
 
 def fetch_public_record(url, limit=2_000_000):
@@ -54,6 +53,20 @@ def fetch_public_record(url, limit=2_000_000):
     return rec, body.decode('utf-8', errors='ignore')
 
 
+def labeled_context(text, labels, max_chars=2200):
+    lower = text.lower()
+    starts = []
+    for label in labels:
+        pos = lower.find(label.lower())
+        if pos >= 0:
+            starts.append((pos, label))
+    if not starts:
+        return {'label': None, 'excerpt': None}
+    pos, label = min(starts, key=lambda x: x[0])
+    excerpt = text[pos:pos + max_chars]
+    return {'label': label, 'excerpt': excerpt}
+
+
 def bind_trademarkia_record(mark_text, serial):
     slug = slugify(mark_text)
     url = f'https://www.trademarkia.com/{quote(slug)}-{serial}'
@@ -72,11 +85,16 @@ def bind_trademarkia_record(mark_text, serial):
     class_codes = sorted(set(re.findall(r'(?:class|international class)\s*0?(\d{1,3})\b', lower)))
     class_codes = [x.zfill(3) for x in class_codes]
     registration_numbers = sorted(set(re.findall(r'(?:registration(?: number| no\.?| #)?)[^0-9]{0,20}(\d{6,8})', lower)))[:8]
-    disclaimer_match = re.search(r'(?:disclaimer|disclaimed)[^.!?]{0,220}', text, re.I)
-    goods_markers = []
+
+    goods_context = labeled_context(text, ['Goods and Services', 'Goods & Services', 'Goods/Services'])
+    goods_excerpt = goods_context['excerpt'] or ''
+    goods_lower = goods_excerpt.lower()
+    scoped_goods_markers = []
     for token in ('stickers','sticker','stationery','notebooks','handbags','printed','paper goods','clothing','apparel'):
-        if token in lower:
-            goods_markers.append(token)
+        if token in goods_lower:
+            scoped_goods_markers.append(token)
+
+    disclaimer_context = labeled_context(text, ['Disclaimer', 'Disclaimed'])
     state = 'RECORD_BINDING_PASS' if fetch['status'] == 200 and serial_seen and mark_seen and status_tokens and class_codes else 'RECORD_BINDING_INCOMPLETE'
     return {
         'resolver': 'TRADEMARKIA_PUBLIC_RECORD',
@@ -90,8 +108,11 @@ def bind_trademarkia_record(mark_text, serial):
         'status_tokens': status_tokens[:8],
         'class_codes': class_codes[:12],
         'registration_numbers': registration_numbers,
-        'goods_markers': goods_markers,
-        'disclaimer_excerpt': disclaimer_match.group(0)[:260] if disclaimer_match else None,
-        'body_excerpt': text[:4000],
+        'goods_services_label': goods_context['label'],
+        'goods_services_excerpt': goods_excerpt[:2200] if goods_excerpt else None,
+        'scoped_goods_markers': scoped_goods_markers,
+        'whole_page_goods_markers_not_authoritative': True,
+        'disclaimer_excerpt': disclaimer_context['excerpt'][:500] if disclaimer_context['excerpt'] else None,
+        'body_sha256': fetch.get('sha256'),
         'legal_clearance_asserted': False,
     }
