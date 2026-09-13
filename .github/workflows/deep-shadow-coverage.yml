@@ -47,6 +47,9 @@ jobs:
           p=plan_scope('016',['025'],'MULTI_TOKEN')
           print(json.dumps(p,indent=2))
           assert p['negative_pass_capable'] is False
-          assert p['structural_blocker']=='PRIMARY_CLASS_NEGATIVE_CONVERGENCE_CAPABILITY_INCOMPLETE'
-          print('AVER_CLASS016_PASS_CAPABILITY_BLOCKER_PROVEN')
+          assert 'CLASS016_MULTI_TOKEN_EXACT_NEGATIVE_SEMANTICS_UNPROVEN' in p['structural_blockers']
+          assert 'SECOND_DISTINCT_PRIMARY_CLASS_NEGATIVE_SOURCE_MISSING' in p['structural_blockers']
+          assert 'REQUIRED_QUERY_DIMENSIONS_NOT_NEGATIVELY_RESOLVABLE_WITH_CURRENT_PROFILE' in p['structural_blockers']
+          assert 'RELATED_GOODS_REVIEW' not in p['unresolved_query_dimensions']
+          print('AVER_CLASS016_PASS_CAPABILITY_BLOCKERS_PROVEN')
           PY
