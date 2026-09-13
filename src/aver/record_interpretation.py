@@ -56,3 +56,67 @@ def bind_record_anchor(body_text, mark_text, serial, expected_class=None, before
         "mark_to_serial_gap": len(between),
         "class_or_goods_services_context": context,
     }
+
+
+def discover_record_anchors_from_page(page, limit=12):
+    """Observe actual Trademarkia record anchors after a resultset is terminal.
+
+    This function is deliberately separate from transport polling. It only reads
+    the already-rendered page, rejects navigation links, and returns bounded raw
+    anchor/container evidence. It does not make TM decisions.
+    """
+    found = []
+    seen = set()
+    anchors = page.locator("a[href]")
+    for i in range(min(anchors.count(), 500)):
+        if len(found) >= limit:
+            break
+        el = anchors.nth(i)
+        try:
+            if not el.is_visible():
+                continue
+            href = el.get_attribute("href") or ""
+        except Exception:
+            continue
+        m = re.search(r"-(\d{8})(?:[/?#]|$)", href)
+        if not m:
+            continue
+        serial = m.group(1)
+        if serial in seen:
+            continue
+        try:
+            snapshot = el.evaluate(
+                """el => {
+                  let n = el;
+                  let best = null;
+                  for (let depth = 0; depth < 8 && n; depth++, n = n.parentElement) {
+                    const t = (n.innerText || '').replace(/\s+/g, ' ').trim();
+                    const hasSerial = /\b\d{8}\b/.test(t);
+                    const hasStatus = /(Live\/(Registered|Pending)|Dead\/(Cancelled|Abandoned)|Registered|Pending)/i.test(t);
+                    const hasClass = /Class\s+\d{3}/i.test(t);
+                    if (t.length >= 30 && t.length <= 2400 && hasSerial && hasStatus && hasClass) {
+                      best = n;
+                      break;
+                    }
+                  }
+                  const root = best || el.parentElement || el;
+                  return {
+                    href: el.href || el.getAttribute('href') || '',
+                    anchorText: (el.innerText || '').replace(/\s+/g, ' ').trim(),
+                    containerText: (root.innerText || '').replace(/\s+/g, ' ').trim()
+                  };
+                }"""
+            )
+        except Exception:
+            continue
+        container = normalize_text(snapshot.get("containerText") or "")
+        if serial not in container:
+            continue
+        found.append({
+            "identifier": serial,
+            "record_url": snapshot.get("href") or href,
+            "anchor_text": normalize_text(snapshot.get("anchorText") or ""),
+            "container_text": container[:2000],
+        })
+        seen.add(serial)
+    return found
