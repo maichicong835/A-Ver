@@ -62,14 +62,15 @@ def main():
                 g34_pass=bool(g34["G3_CHANNELS_AND_PURCHASERS"]["state"]=="UNRESOLVED" and g34["G4_REGISTRANT_MARKETPLACE_OR_MERCH_PRESENCE"]["state"]=="RESOLVED" and g34["G4_REGISTRANT_MARKETPLACE_OR_MERCH_PRESENCE"]["material"] is False)
 
             passed=bool(rec.get("state")=="CAPABILITY_PASS" and target and bound and bound.get("bound") is True and atomic_class_pass and direct_pass and structured_pass and expanded_pass and goods_pass and similarity_pass and commercial_pass and g34_pass)
-            output["canaries"].append({**c,"resolver_state":rec.get("state"),"terminal":(rec.get("terminal_result") or {}).get("terminal"),"expected_anchor":target,"record_binding":bound,"direct_record_pass":direct_pass,"structured_record_detail_pass":structured_pass,"expanded_goods_detail_pass":expanded_pass,"goods_relatedness_g0_g4":goods,"similarity_analysis":similarity,"similarity_evidence_pass":similarity_pass,"commercial_source_evidence":commercial,"g3_g4_evidence":g34,"commercial_g3_g4_pass":g34_pass,"pass":passed})
+            output["canaries"].append({**c,"resolver_state":rec.get("state"),"terminal":(rec.get("terminal_result") or {}).get("terminal"),"expected_anchor":target,"record_binding":bound,"direct_record_pass":direct_pass,"structured_record_detail_pass":structured_pass,"expanded_record_detail":expanded,"expanded_goods_detail_pass":expanded_pass,"goods_relatedness_g0_g4":goods,"similarity_analysis":similarity,"similarity_evidence_pass":similarity_pass,"commercial_source_evidence":commercial,"g3_g4_evidence":g34,"commercial_g3_g4_pass":g34_pass,"pass":passed})
         browser.close()
     if len(output["canaries"])==2 and all(x["pass"] for x in output["canaries"]): output["phase_state"]="BRANCH_SPECIFIC_DEEP_EVIDENCE_PASS"
     out=Path("artifacts/deep-interpretation"); out.mkdir(parents=True,exist_ok=True)
     (out/"receipt.json").write_text(json.dumps(output,indent=2)+"\n",encoding="utf-8")
     print("phase_state=",output["phase_state"])
     for x in output["canaries"]:
-        print(x["candidate_key"],"similarity=",x["similarity_analysis"]["assessment"],"G3=",x["g3_g4_evidence"]["G3_CHANNELS_AND_PURCHASERS"]["state"],"G4=",x["g3_g4_evidence"]["G4_REGISTRANT_MARKETPLACE_OR_MERCH_PRESENCE"]["state"])
+        exp=x.get("expanded_record_detail") or {}
+        print(x["candidate_key"],"expanded_state=",exp.get("state"),"expanded_failure=",exp.get("failure_signature"),"similarity=",x["similarity_analysis"]["assessment"],"G3=",x["g3_g4_evidence"]["G3_CHANNELS_AND_PURCHASERS"]["state"],"G4=",x["g3_g4_evidence"]["G4_REGISTRANT_MARKETPLACE_OR_MERCH_PRESENCE"]["state"])
     if output["phase_state"]!="BRANCH_SPECIFIC_DEEP_EVIDENCE_PASS": raise SystemExit("BRANCH_SPECIFIC_DEEP_EVIDENCE_NOT_PASS")
 
 if __name__=="__main__": main()
