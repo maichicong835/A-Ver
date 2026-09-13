@@ -80,9 +80,25 @@ def evaluate(current, engine, policy, state, *, candidate_sha, authority_contrac
     rehearsal_evidence={**rehearsal,"expected_execution_pin_from_g5":expected_execution_pin,"governance_head_sha":candidate_sha,"execution_pin_is_governance_head":expected_execution_pin==candidate_sha}
     gates.append(_pass("G6_LIVE_BOUNDARY_REHEARSAL",rehearsal_evidence) if rehearsal_ok else _block("G6_LIVE_BOUNDARY_REHEARSAL",["LIVE_BOUNDARY_REHEARSAL_NOT_MACHINE_PROVEN_ON_G5_EXECUTION_PIN_AND_CANONICAL_DAILY7_HEAD"],rehearsal_evidence))
 
+    production=state.get("production_invocation_closure") or {}
+    production_ok=(
+        production.get("state")=="PASS_CLOSED"
+        and production.get("generic_entrypoint_machine_proven") is True
+        and production.get("request_schema_validated") is True
+        and production.get("receipt_schema_validated") is True
+        and production.get("arbitrary_unproven_scope_fails_closed") is True
+        and production.get("daily7_caller_exact_pin_invocation_proven") is True
+        and production.get("same_g6_router_used") is True
+        and production.get("aver_pin_sha")==expected_execution_pin
+        and isinstance(production.get("artifact_id"),(str,int))
+        and isinstance(production.get("artifact_digest"),str) and production.get("artifact_digest").startswith("sha256:")
+    )
+    production_evidence={**production,"expected_execution_pin_from_g5":expected_execution_pin}
+    gates.append(_pass("G6B_PRODUCTION_INVOCATION_REACHABILITY",production_evidence) if production_ok else _block("G6B_PRODUCTION_INVOCATION_REACHABILITY",["GENERIC_PRODUCTION_ENTRYPOINT_OR_DAILY7_EXACT_PIN_INVOCATION_NOT_MACHINE_PROVEN"],production_evidence))
+
     blocking=[g for g in gates if g["state"]!="PASS"]
     terminal="READY_FOR_EXPLICIT_LIVE_AUTHORIZATION" if not blocking else "BLOCKED"
-    return {"schema":"AVER_DAILY7_LIVE_READINESS_RECEIPT","schema_version":"1.0","candidate_sha":candidate_sha,"terminal_state":terminal,"first_blocking_gate":blocking[0]["gate_id"] if blocking else None,"workflow_success_implies_live_ready":False,"aver_may_self_authorize_daily7_live":False,"g7_explicit_live_authorization_required_after_ready":True,"gates":gates,"live_authorized":False}
+    return {"schema":"AVER_DAILY7_LIVE_READINESS_RECEIPT","schema_version":"1.1","candidate_sha":candidate_sha,"terminal_state":terminal,"first_blocking_gate":blocking[0]["gate_id"] if blocking else None,"workflow_success_implies_live_ready":False,"aver_may_self_authorize_daily7_live":False,"g7_explicit_live_authorization_required_after_ready":True,"gates":gates,"live_authorized":False}
 
 
 def main():
