@@ -1,7 +1,7 @@
 {
   "schema": "AVER_DAILY7_LIVE_READINESS_POLICY",
-  "schema_version": "1.0",
-  "purpose": "Independent fail-closed governor for deciding whether an exact A-Ver engine commit is ready to be presented to Daily7 for explicit live authorization.",
+  "schema_version": "1.1",
+  "purpose": "Independent fail-closed governor for deciding whether an exact A-Ver engine commit is ready to be presented to Daily7 for explicit live authorization and activation.",
   "terminal_states": ["BLOCKED", "READY_FOR_EXPLICIT_LIVE_AUTHORIZATION"],
   "forbidden_shortcuts": [
     "WORKFLOW_SUCCESS_EQUALS_LIVE_READY",
@@ -12,6 +12,8 @@
     "SCOPE_SEMANTICS_COMPLETE_EQUALS_OPERATIONALLY_USEFUL_PASS_PATH",
     "ONE_OFFICIAL_NEGATIVE_SOURCE_EQUALS_G4B_PASS",
     "SYNTHETIC_REACHABILITY_EQUALS_DAILY7_LIVE_UTILITY",
+    "BOUNDARY_REHEARSAL_EQUALS_EXECUTABLE_PRODUCTION_INVOCATION",
+    "EXPLICIT_USER_AUTHORIZATION_EQUALS_TECHNICAL_ACTIVATION",
     "CONVERSATION_APPROXIMATION_EQUALS_MACHINE_EVIDENCE"
   ],
   "gates": [
@@ -21,12 +23,14 @@
     {"id":"G4_SCOPE_COMPLETENESS_AND_DECISION","requires":["G4A required query dimensions have deterministic RESOLVED MATERIAL_POSITIVE HOLD_CAPABILITY or HOLD_EVIDENCE semantics","no TM_PASS from incomplete query scope","no TM_PASS from resolver scope leakage","capability failures remain separate from candidate-risk decisions","G4B1 official USPTO multiword exact positive and zero semantics are machine-proven","G4B2 a second independent multiword negative source is machine-proven with scope relevant to US federal Class016 review","G4B3 multiword scope-qualified negative convergence is machine-proven without counting TMHunt IC025","G4B4 the production decision path reaches TM_PASS for at least one Class016 clean canary","G4B reachability alone does not authorize Daily7 live utility"]},
     {"id":"G5_DAILY7_DEEP_SHADOW","requires":["Daily7 calls exact A-Ver candidate commit","versioned request/receipt validation passes","deep interpretation is exercised end-to-end","no caller Drive Used Reserve mutation","no false PASS or false KILL"]},
     {"id":"G6_LIVE_BOUNDARY_REHEARSAL","requires":["same exact A-Ver pin and same Daily7 integration path as intended live use","mutation remains disabled during rehearsal","caller demonstrates PASS KILL HOLD handling without bypass","failures stop at correct gate and preserve unaffected state","PASS branch is exercised on the intended live integration path so synthetic reachability cannot substitute for live utility"]},
-    {"id":"G7_EXPLICIT_LIVE_AUTHORIZATION","requires":["G1-G6 all machine-proven PASS","explicit user authorization after reviewing readiness receipt","Daily7 authority records exact approved A-Ver pin","A-Ver itself does not mutate Daily7 state"],"owned_by":"DAILY7_CALLER_GOVERNANCE_NOT_AVER_SELF_AUTHORIZATION"}
+    {"id":"G6B_PRODUCTION_INVOCATION_REACHABILITY","requires":["generic executable A-Ver production entrypoint accepts AVER_TM_REQUEST","production entrypoint emits schema-valid AVER_TM_RECEIPT bound to exact engine commit","Daily7 caller can invoke that entrypoint on the exact approved pin","arbitrary unproven scope fails closed to TM_HOLD rather than inheriting fixed-canary negative semantics","receipt is routed through the same G6-proven Daily7 router","production invocation evidence is immutable and machine-verifiable"]},
+    {"id":"G7_EXPLICIT_LIVE_AUTHORIZATION","requires":["G1-G6B all machine-proven PASS","explicit user authorization after reviewing readiness receipt","Daily7 authority records exact approved A-Ver pin","A-Ver itself does not mutate Daily7 state"],"owned_by":"DAILY7_CALLER_GOVERNANCE_NOT_AVER_SELF_AUTHORIZATION"}
   ],
   "authorization_law": {
     "aver_may_emit_daily7_live_authorized": false,
     "aver_may_emit_ready_for_explicit_live_authorization": true,
-    "daily7_live_requires_g1_through_g6_machine_pass_and_separate_g7_approval": true,
+    "daily7_live_requires_g1_through_g6b_machine_pass_and_separate_g7_approval": true,
+    "explicit_user_authorization_may_be_recorded_before_g6b_closure_but_activation_must_remain_blocked": true,
     "any_unproven_gate_blocks_live": true
   }
 }
