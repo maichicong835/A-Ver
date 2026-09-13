@@ -10,7 +10,6 @@ engine=json.loads(Path('spec/engine.json').read_text())
 policy=json.loads(Path('spec/live-readiness.json').read_text())
 state=json.loads(Path('spec/live-readiness-state.json').read_text())
 
-# Preserve all already-closed evidence, then inject a canonical-shaped G6 closure.
 base=copy.deepcopy(state)
 pin=base['daily7_deep_shadow_closure']['aver_pin_sha']
 closure={
@@ -31,17 +30,19 @@ closure={
     'g7_authorized':False,
 }
 base['live_boundary_rehearsal_closure']=closure
+base['production_invocation_closure']=None
 
-# Governance head intentionally differs from execution pin. That must not block G6.
 r=evaluate(current,engine,policy,base,candidate_sha='1'*40,authority_contract_pass=True,contract_matrix_pass=True)
 g6=next(g for g in r['gates'] if g['gate_id']=='G6_LIVE_BOUNDARY_REHEARSAL')
+g6b=next(g for g in r['gates'] if g['gate_id']=='G6B_PRODUCTION_INVOCATION_REACHABILITY')
 assert g6['state']=='PASS'
 assert g6['evidence']['expected_execution_pin_from_g5']==pin
 assert g6['evidence']['execution_pin_is_governance_head'] is False
-assert r['terminal_state']=='READY_FOR_EXPLICIT_LIVE_AUTHORIZATION'
+assert g6b['state']=='BLOCKED'
+assert r['terminal_state']=='BLOCKED'
+assert r['first_blocking_gate']=='G6B_PRODUCTION_INVOCATION_REACHABILITY'
 assert r['live_authorized'] is False
 
-# Wrong execution pin must fail closed.
 bad=copy.deepcopy(base)
 bad['live_boundary_rehearsal_closure']['aver_pin_sha']='2'*40
 r=evaluate(current,engine,policy,bad,candidate_sha='1'*40,authority_contract_pass=True,contract_matrix_pass=True)
@@ -49,7 +50,6 @@ g6=next(g for g in r['gates'] if g['gate_id']=='G6_LIVE_BOUNDARY_REHEARSAL')
 assert g6['state']=='BLOCKED'
 assert r['terminal_state']=='BLOCKED'
 
-# Repo Guard failure, mutation, missing fail-closed evidence, or premature G7 all block.
 for field,value in [
     ('daily7_repo_guard_conclusion','failure'),
     ('mutation_enabled',True),
