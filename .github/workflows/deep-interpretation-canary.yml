@@ -24,21 +24,21 @@ concurrency:
   group: aver-deep-interpretation-canary
   cancel-in-progress: false
 
+env:
+  EXTERNAL_SIDE_EFFECTS_AUTHORIZED: 'false'
+  DAILY7_LIVE_GATE_AUTHORIZED: 'false'
+  TM_DECISION_AUTHORIZED: 'false'
+
 jobs:
-  canary:
+  deep-evidence:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
-    env:
-      EXTERNAL_SIDE_EFFECTS_AUTHORIZED: 'false'
-      DAILY7_LIVE_GATE_AUTHORIZED: 'false'
-      TM_DECISION_AUTHORIZED: 'false'
+    timeout-minutes: 10
     steps:
       - name: Checkout exact A-Ver commit
         uses: actions/checkout@v4
         with:
           persist-credentials: false
           fetch-depth: 1
-
       - name: Verify authority locks
         shell: bash
         run: |
@@ -56,48 +56,33 @@ jobs:
           assert c['current_reopen_scope']['daily7_live_gate_authorized'] is False
           print('AVER_DEEP_CANARY_LOCK_PASS')
           PY
-
       - name: Prepare browser
         shell: bash
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
           browser="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
-          if [ -n "$browser" ]; then
-            echo "AVER_BROWSER_EXECUTABLE=$browser" >> "$GITHUB_ENV"
-          else
-            python3 -m playwright install chromium
-          fi
-
+          if [ -n "$browser" ]; then echo "AVER_BROWSER_EXECUTABLE=$browser" >> "$GITHUB_ENV"; else python3 -m playwright install chromium; fi
       - name: Run fixed deep interpretation canaries
         shell: bash
         run: |
           set -euo pipefail
           PYTHONPATH=src python3 src/aver/deep_interpretation_canary.py
-
-      - name: Run candidate-driven material-record prioritization
-        shell: bash
-        run: |
-          set -euo pipefail
-          PYTHONPATH=src python3 src/aver/material_record_priority_canary.py
-
-      - name: Upload immutable evidence
+      - name: Upload immutable deep evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: aver-deep-interpretation-${{ github.run_id }}-${{ github.sha }}
-          path: artifacts/deep-interpretation/
+          name: aver-deep-evidence-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/deep-interpretation/receipt.json
           if-no-files-found: error
           retention-days: 30
-
-      - name: Assert semantic pass
+      - name: Assert deep semantic pass
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import json
           r=json.load(open('artifacts/deep-interpretation/receipt.json'))
-          p=json.load(open('artifacts/deep-interpretation/priority-receipt.json'))
           assert r['phase_state']=='BRANCH_SPECIFIC_DEEP_EVIDENCE_PASS'
           assert r['shadow_only'] is True
           assert r['candidate_breadth_expanded'] is False
@@ -106,10 +91,66 @@ jobs:
           assert all(x['similarity_evidence_pass'] is True for x in r['canaries'])
           assert all(x['commercial_source_evidence']['state']=='COMMERCIAL_SOURCE_PASS' for x in r['canaries'])
           assert all(x['commercial_g3_g4_pass'] is True for x in r['canaries'])
+          print('AVER_BRANCH_SPECIFIC_DEEP_EVIDENCE_PASS')
+          PY
+
+  material-priority:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact A-Ver commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify authority locks
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$EXTERNAL_SIDE_EFFECTS_AUTHORIZED" = "false"
+          test "$DAILY7_LIVE_GATE_AUTHORIZED" = "false"
+          test "$TM_DECISION_AUTHORIZED" = "false"
+          python3 - <<'PY'
+          import json
+          c=json.load(open('CURRENT.json'))
+          assert c['status']=='PRODUCTION_APPROVED_SCOPED'
+          assert c['current_reopen_scope']['only_layer']=='SHADOW_DEEP_TM_INTERPRETATION'
+          assert c['current_reopen_scope']['new_candidate_or_market_discovery_forbidden'] is True
+          assert c['current_reopen_scope']['only_existing_hold_canaries_authorized'] is True
+          assert c['current_reopen_scope']['daily7_live_gate_authorized'] is False
+          print('AVER_PRIORITY_CANARY_LOCK_PASS')
+          PY
+      - name: Prepare browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+          browser="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -n "$browser" ]; then echo "AVER_BROWSER_EXECUTABLE=$browser" >> "$GITHUB_ENV"; else python3 -m playwright install chromium; fi
+      - name: Run candidate-driven material-record prioritization
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=src python3 src/aver/material_record_priority_canary.py
+      - name: Upload immutable priority evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aver-material-priority-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/deep-interpretation/priority-receipt.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Assert material-priority semantic pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          p=json.load(open('artifacts/deep-interpretation/priority-receipt.json'))
           assert p['phase_state']=='MATERIAL_RECORD_PRIORITY_PASS'
           assert p['shadow_only'] is True
           assert p['candidate_breadth_expanded'] is False
           assert p['tm_decision_authorized'] is False
           assert all(x['triage_does_not_decide_safety'] is True for x in p['canaries'])
-          print('AVER_DEEP_AND_MATERIAL_RECORD_PRIORITY_PASS')
+          print('AVER_MATERIAL_RECORD_PRIORITY_PASS')
           PY
