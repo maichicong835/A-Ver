@@ -27,6 +27,21 @@
       "workflow_conclusion": "success",
       "machine_marker": "AVER_G4A_SCOPE_SEMANTICS_PASS"
     },
+    "g4b_subgates": {
+      "official_uspto_multiword_exact_semantics_machine_proven": true,
+      "official_uspto_multiword_exact_evidence": {
+        "workflow_run_id": "34750591436",
+        "commit_sha": "d8f5346f419d4d49aba4c4fd773a79b154317c35",
+        "artifact_id": "10315705951",
+        "artifact_digest": "sha256:4adccc503683b3fe03b73e1b32510f9e93f3c8a5107fa4f8b4bbec6c0ba4c7e0",
+        "phase_state": "USPTO_DIRECT_FIELDTAG_MULTIWORD_SEMANTICS_PASS",
+        "known_positive_multiword_result_count": 63,
+        "opaque_multiword_exact_zero": true
+      },
+      "second_independent_multiword_negative_source_machine_proven": false,
+      "multiword_scope_qualified_negative_convergence_machine_proven": false,
+      "production_reachable_clean_pass_machine_proven": false
+    },
     "class016_clean_pass_path_machine_proven": false,
     "class016_clean_pass_path_evidence": null,
     "scope_qualified_negative_convergence_enforced": true,
@@ -43,7 +58,11 @@
       "nursing": "TM_HOLD_FOR_MATERIAL_GOODS_WITH_UNRESOLVED_SIMILARITY_AND_INCOMPLETE_SCOPE",
       "yarn": "TM_HOLD_FOR_MATERIAL_GOODS_WITH_SINGLE_TOKEN_STRENGTH_UNRESOLVED_AND_INCOMPLETE_SCOPE"
     },
-    "remaining_blocker_order": ["G4B_CLASS016_OPERATIONAL_CLEAN_PASS_PATH"]
+    "remaining_blocker_order": [
+      "G4B_SECOND_INDEPENDENT_MULTIWORD_NEGATIVE_SOURCE",
+      "G4B_MULTIWORD_SCOPE_QUALIFIED_CONVERGENCE",
+      "G4B_PRODUCTION_REACHABLE_CLEAN_PASS"
+    ]
   },
   "daily7_deep_shadow_closure": null,
   "live_boundary_rehearsal_closure": null,
