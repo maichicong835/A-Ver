@@ -33,11 +33,7 @@
     "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "decision": {"enum": ["TM_PASS", "TM_KILL", "TM_HOLD"]},
     "confidence_label": {
-      "enum": [
-        "FALLBACK_HIGH_CONFIDENCE",
-        "POSITIVE_CONFLICT_HIGH_CONFIDENCE",
-        "EVIDENCE_INCOMPLETE"
-      ]
+      "enum": ["FALLBACK_HIGH_CONFIDENCE", "POSITIVE_CONFLICT_HIGH_CONFIDENCE", "EVIDENCE_INCOMPLETE"]
     },
     "legal_clearance_asserted": {"const": false},
     "decision_reason_codes": {
@@ -101,7 +97,8 @@
       "properties": {
         "required_query_dimensions_complete": {"type": "boolean"},
         "resolver_scope_complete": {"type": "boolean"},
-        "negative_evidence_distinct_sources": {"type": "integer", "minimum": 0}
+        "negative_evidence_distinct_sources": {"type": "integer", "minimum": 0},
+        "scope_qualified_negative_evidence_distinct_sources": {"type": "integer", "minimum": 0}
       }
     },
     "similarity_analysis": {"enum": ["CLEAR", "MATERIAL", "UNRESOLVED"]},
