@@ -5,18 +5,19 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
+from aver.record_detail_browser import capture_expanded_trademarkia_record
 from aver.record_details import parse_trademarkia_record_detail
 from aver.record_interpretation import bind_record_anchor, discover_record_anchors_from_page
 from aver.resolvers import TrademarkiaResolver
 
 CANARIES = [
-    {"candidate_key":"nursing-school-hard-but-damn","wording":"I KNOW THEY SAID NURSING SCHOOL WAS HARD, BUT DAMN","expected_mark":"NURSING SCHOOL JEWELS","expected_serial":"90319838","expected_class":"016","expected_goods_token":"Notebooks"},
-    {"candidate_key":"powered-by-yarn-and-chaos","wording":"POWERED BY YARN AND CHAOS","expected_mark":"CHAOS BY ELSIE","expected_serial":"90072046","expected_class":"018","expected_goods_token":"Handbags"}
+    {"candidate_key":"nursing-school-hard-but-damn","wording":"I KNOW THEY SAID NURSING SCHOOL WAS HARD, BUT DAMN","expected_mark":"NURSING SCHOOL JEWELS","expected_serial":"90319838","expected_class":"016","expected_goods_token":"Notebooks","expanded_goods_token":"Stickers"},
+    {"candidate_key":"powered-by-yarn-and-chaos","wording":"POWERED BY YARN AND CHAOS","expected_mark":"CHAOS BY ELSIE","expected_serial":"90072046","expected_class":"018","expected_goods_token":"Handbags","expanded_goods_token":"Handbags"}
 ]
 
 
 def main():
-    output={"schema":"AVER_DEEP_INTERPRETATION_CANARY_RECEIPT","shadow_only":True,"candidate_breadth_expanded":False,"tm_decision_authorized":False,"daily7_live_gate_authorized":False,"canaries":[],"phase_state":"STRUCTURED_RECORD_DETAIL_PARTIAL"}
+    output={"schema":"AVER_DEEP_INTERPRETATION_CANARY_RECEIPT","shadow_only":True,"candidate_breadth_expanded":False,"tm_decision_authorized":False,"daily7_live_gate_authorized":False,"canaries":[],"phase_state":"EXPANDED_GOODS_DETAIL_PARTIAL"}
     executable=os.getenv("AVER_BROWSER_EXECUTABLE") or None
     with sync_playwright() as p:
         launch={"headless":True}
@@ -42,14 +43,25 @@ def main():
                 and class_detail
                 and c["expected_goods_token"].lower() in (class_detail.get("goods_services_text") or "").lower()
             )
-            passed=bool(rec.get("state")=="CAPABILITY_PASS" and (rec.get("terminal_result") or {}).get("terminal")=="POSITIVE_RESULTSET" and rec.get("post_terminal_observer_state")=="OBSERVED" and target and bound and bound.get("bound") is True and atomic_class_pass and direct_pass and structured_pass)
-            output["canaries"].append({**c,"resolver_state":rec.get("state"),"terminal":(rec.get("terminal_result") or {}).get("terminal"),"observer_state":rec.get("post_terminal_observer_state"),"anchor_count":len(anchors),"expected_anchor_found":target is not None,"expected_anchor":target,"record_binding":bound,"atomic_class_pass":atomic_class_pass,"direct_record_binding":direct,"direct_record_pass":direct_pass,"structured_record_detail":structured,"structured_record_detail_pass":structured_pass,"pass":passed,"failure_signature":rec.get("failure_signature"),"observer_error":rec.get("post_terminal_observer_error")})
+            expanded=capture_expanded_trademarkia_record(browser,target.get("record_url")) if target else None
+            expanded_structured=(expanded or {}).get("structured_record_detail") or {}
+            expanded_class=next((x for x in expanded_structured.get("class_details",[]) if x.get("class_code")==c["expected_class"]),None)
+            expanded_pass=bool(
+                expanded
+                and expanded.get("state")=="EXPANDED_RECORD_PASS"
+                and expanded_structured.get("serial_number")==c["expected_serial"]
+                and expanded_structured.get("registration_number")
+                and expanded_class
+                and c["expanded_goods_token"].lower() in (expanded_class.get("goods_services_text") or "").lower()
+            )
+            passed=bool(rec.get("state")=="CAPABILITY_PASS" and (rec.get("terminal_result") or {}).get("terminal")=="POSITIVE_RESULTSET" and rec.get("post_terminal_observer_state")=="OBSERVED" and target and bound and bound.get("bound") is True and atomic_class_pass and direct_pass and structured_pass and expanded_pass)
+            output["canaries"].append({**c,"resolver_state":rec.get("state"),"terminal":(rec.get("terminal_result") or {}).get("terminal"),"observer_state":rec.get("post_terminal_observer_state"),"anchor_count":len(anchors),"expected_anchor_found":target is not None,"expected_anchor":target,"record_binding":bound,"atomic_class_pass":atomic_class_pass,"direct_record_binding":direct,"direct_record_pass":direct_pass,"structured_record_detail":structured,"structured_record_detail_pass":structured_pass,"expanded_record_detail":expanded,"expanded_goods_detail_pass":expanded_pass,"pass":passed,"failure_signature":rec.get("failure_signature"),"observer_error":rec.get("post_terminal_observer_error")})
         browser.close()
-    if len(output["canaries"])==2 and all(x["pass"] for x in output["canaries"]): output["phase_state"]="STRUCTURED_RECORD_DETAIL_PASS"
+    if len(output["canaries"])==2 and all(x["pass"] for x in output["canaries"]): output["phase_state"]="EXPANDED_GOODS_DETAIL_PASS"
     out=Path("artifacts/deep-interpretation"); out.mkdir(parents=True,exist_ok=True)
     (out/"receipt.json").write_text(json.dumps(output,indent=2)+"\n",encoding="utf-8")
     print("phase_state=",output["phase_state"])
-    for x in output["canaries"]: print(x["candidate_key"],"anchor=",x["expected_anchor_found"],"direct=",x["direct_record_pass"],"structured=",x["structured_record_detail_pass"])
-    if output["phase_state"]!="STRUCTURED_RECORD_DETAIL_PASS": raise SystemExit("STRUCTURED_RECORD_DETAIL_NOT_PASS")
+    for x in output["canaries"]: print(x["candidate_key"],"direct=",x["direct_record_pass"],"structured=",x["structured_record_detail_pass"],"expanded=",x["expanded_goods_detail_pass"])
+    if output["phase_state"]!="EXPANDED_GOODS_DETAIL_PASS": raise SystemExit("EXPANDED_GOODS_DETAIL_NOT_PASS")
 
 if __name__=="__main__": main()
