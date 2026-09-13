@@ -14,7 +14,7 @@ from aver.resolvers import TrademarkiaResolver
 from aver.similarity import analyze_word_mark_similarity
 
 CANARIES = [
-    {"candidate_key":"nursing-school-hard-but-damn","wording":"I KNOW THEY SAID NURSING SCHOOL WAS HARD, BUT DAMN","expected_mark":"NURSING SCHOOL JEWELS","expected_serial":"90319838","expected_class":"016","expected_goods_token":"Notebooks","expanded_goods_token":"Stickers","expected_goods_assessment":"MATERIAL","commercial_source_id":"NURSING_SCHOOL_JEWELS_OFFICIAL","commercial_required_tokens":["nursing students","Shop Now"],"expected_similarity":"UNRESOLVED"},
+    {"candidate_key":"nursing-school-hard-but-damn","wording":"I KNOW THEY SAID NURSING SCHOOL WAS HARD, BUT DAMN","expected_mark":"NURSING SCHOOL JEWELS","expected_serial":"90319838","expected_class":"016","expected_goods_token":"Notebooks","expanded_goods_token":"Stickers","expected_goods_assessment":"MATERIAL","commercial_source_id":"NURSING_SCHOOL_JEWELS_OFFICIAL","commercial_required_tokens":["nursing students","Shop Nursing School Jewels"],"expected_similarity":"UNRESOLVED"},
     {"candidate_key":"powered-by-yarn-and-chaos","wording":"POWERED BY YARN AND CHAOS","expected_mark":"CHAOS BY ELSIE","expected_serial":"90072046","expected_class":"018","expected_goods_token":"Handbags","expanded_goods_token":"Handbags","expected_goods_assessment":"UNRESOLVED","commercial_source_id":"CHAOS_BY_ELSIE_SHOPLC","commercial_required_tokens":["handbag brand","Shoplc owns the brand"],"expected_similarity":"UNRESOLVED"}
 ]
 
