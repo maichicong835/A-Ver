@@ -1,0 +1,33 @@
+{
+  "schema": "AVER_SHADOW_RESULT_ROW_FIXTURE",
+  "fixture_only_not_runtime_authority": true,
+  "source": {
+    "workflow_repository": "maichicong835/Amazon-Daily7Source",
+    "workflow_run_id": "34722878035",
+    "artifact_id": "10306408819",
+    "artifact_digest": "sha256:7251ad40baf0fad95f348419cd84d24b2cc1fd23d176e1c4d2690ccf640aa036",
+    "aver_pin_sha": "689e06afcce007979025e68a095f9646d1d37591"
+  },
+  "canaries": [
+    {
+      "candidate_key": "nursing-school-hard-but-damn",
+      "wording": "I KNOW THEY SAID NURSING SCHOOL WAS HARD, BUT DAMN",
+      "rows": [
+        {"mark_text":"NURSING SCHOOL IN A BOX","owner":"ItsaCallingEducation, LLC","serial":"88404614","status":"Live/Registered","class_codes":["041"],"goods_excerpt":"Consulting services about education; education services"},
+        {"mark_text":"FIND NURSING SCHOOLS","owner":"ORBIS EDUCATION SERVICES, LLC","serial":"86503335","status":"Live/Registered","class_codes":["042"],"goods_excerpt":"Educational services; website technology and information"},
+        {"mark_text":"NURSING SCHOOL JEWELS","owner":"Nursing School Jewels LLC","serial":"90319838","status":"Live/Registered","class_codes":["016"],"goods_excerpt":"Notebooks; flash cards; notebook covers; notebook dividers; notebook paper; stationery"},
+        {"mark_text":"LITTLE NURSING SCHOOL","owner":"LMS FRANCHISE SYSTEMS, LLC","serial":"86197868","status":"Live/Registered","class_codes":["041"],"goods_excerpt":"Entertainment and educational services; seminars and classes"}
+      ]
+    },
+    {
+      "candidate_key": "powered-by-yarn-and-chaos",
+      "wording": "POWERED BY YARN AND CHAOS",
+      "rows": [
+        {"mark_text":"CHAOS BY ELSIE","owner":"Shop LC Global Inc","serial":"90072046","status":"Live/Registered","class_codes":["018"],"goods_excerpt":"Handbags"},
+        {"mark_text":"POWERED BY P","owner":"PRAGMATIC SEMICONDUCTOR LIMITED","serial":"79424150","status":"Live/Registered","class_codes":["007","009"],"goods_excerpt":"Semiconductors; integrated circuits; electronic components; printed circuit boards"},
+        {"mark_text":"POWERED BY : P","owner":"RingIt, Inc.","serial":"98505468","status":"Live/Registered","class_codes":["009","035"],"goods_excerpt":"Software as a service and merchant software services"},
+        {"mark_text":"POWERED BY X","owner":"BODY BY X INC.","serial":"97461411","status":"Live/Registered","class_codes":["041"],"goods_excerpt":"Arranging and conducting fitness classes; coaching"}
+      ]
+    }
+  ]
+}
