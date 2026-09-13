@@ -14,100 +14,9 @@ class TrademarkiaResolver:
 
     SEARCH_URL = "https://www.trademarkia.com/trademark/search"
     KNOWN_RECORD_URL = "https://www.trademarkia.com/just-do-it-50086105"
-    RECORD_HREF_RE = re.compile(r"-(\d{8})(?:[/?#]|$)")
 
     def __init__(self, browser):
         self.browser = browser
-
-    def _extract_structured_result_rows(self, page, limit=12):
-        """Bind actual Trademarkia result cards using record-link serial suffixes.
-
-        Search-navigation links are deliberately excluded. A row is accepted only
-        when a visible anchor href ends in an 8-digit serial and the smallest
-        nearby ancestor exposes status plus class/description context.
-        """
-        rows = []
-        seen = set()
-        try:
-            anchors = page.locator("a[href]")
-            for i in range(min(anchors.count(), 500)):
-                if len(rows) >= limit:
-                    break
-                el = anchors.nth(i)
-                try:
-                    if not el.is_visible():
-                        continue
-                except Exception:
-                    continue
-                href = el.get_attribute("href") or ""
-                m = self.RECORD_HREF_RE.search(href)
-                if not m:
-                    continue
-                serial = m.group(1)
-                if serial in seen:
-                    continue
-                mark_text = safe_text(el, 320)
-                if not mark_text:
-                    continue
-                try:
-                    snapshot = el.evaluate(
-                        """el => {
-                          let n = el;
-                          let chosen = null;
-                          for (let depth = 0; depth < 8 && n; depth++, n = n.parentElement) {
-                            const t = (n.innerText || '').replace(/\s+/g, ' ').trim();
-                            const hasStatus = /(Live\/(Registered|Pending)|Dead\/(Cancelled|Abandoned)|Registered|Pending)/i.test(t);
-                            const hasClass = /Class\s+\d{3}/i.test(t);
-                            if (t.length >= 40 && t.length <= 2400 && hasStatus && hasClass) {
-                              chosen = n;
-                              break;
-                            }
-                          }
-                          const root = chosen || el.parentElement || el;
-                          return {
-                            href: el.href || el.getAttribute('href') || '',
-                            markText: (el.innerText || '').replace(/\s+/g, ' ').trim(),
-                            containerText: (root.innerText || '').replace(/\s+/g, ' ').trim(),
-                            childTexts: Array.from(root.children || []).slice(0, 12).map(x => (x.innerText || '').replace(/\s+/g, ' ').trim()).filter(Boolean)
-                          };
-                        }"""
-                    )
-                except Exception:
-                    continue
-                container = norm(snapshot.get("containerText") or "")
-                if serial not in container:
-                    continue
-                status_match = re.search(
-                    r"\b(Live/(?:Registered|Pending)|Dead/(?:Cancelled|Abandoned)|Registered|Pending)\b(?:\s+on\s+\d{1,2}\s+[A-Za-z]{3}\s+\d{4})?",
-                    container,
-                    re.I,
-                )
-                classes = []
-                for value in re.findall(r"\bClass\s+(\d{3})\b", container, re.I):
-                    if value not in classes:
-                        classes.append(value)
-                if not status_match or not classes:
-                    continue
-                prefix = container.split(serial, 1)[0].strip()
-                owner_text = prefix
-                if prefix.lower().startswith(mark_text.lower()):
-                    owner_text = prefix[len(mark_text):].strip()
-                row = {
-                    "mark_text": mark_text,
-                    "identifier": serial,
-                    "record_url": snapshot.get("href") or href,
-                    "owner_text": owner_text[:320],
-                    "status": status_match.group(0),
-                    "classes": classes,
-                    "class_or_goods_services_context": container[:1600],
-                    "container_sha256": sha(container),
-                    "child_texts": (snapshot.get("childTexts") or [])[:12],
-                }
-                rows.append(row)
-                seen.add(serial)
-        except Exception:
-            pass
-        return rows
 
     def _search_probe(self, page, query, expected_identifier=None):
         body = ""
@@ -137,7 +46,6 @@ class TrademarkiaResolver:
                     links.append({"text": text, "href": href})
         except Exception:
             pass
-        structured_rows = self._extract_structured_result_rows(page)
         result = {
             "terminal": None,
             "reported_total": total,
@@ -146,8 +54,6 @@ class TrademarkiaResolver:
             "query_visible": query_visible,
             "query_bound_in_url": query_in_url,
             "result_link_samples": links[:8],
-            "structured_result_rows": structured_rows,
-            "structured_result_row_count": len(structured_rows),
             "body_excerpt": body[:2200],
         }
         if control:
