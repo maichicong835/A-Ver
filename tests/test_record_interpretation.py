@@ -16,7 +16,7 @@ for item in fixture['canaries']:
     bound = bind_record_anchor(body, item['mark_text'], item['serial'], item['expected_class'])
     assert bound['bound'] is True, item['candidate_key']
     assert bound['identifier'] == item['serial']
-    assert item['expected_class'] in bound['classes']
+    assert bound['classes'] == [item['expected_class']], (item['candidate_key'], bound['classes'])
     assert bound['status'].lower().startswith('live/registered')
 
 nursing = fixture['canaries'][0]

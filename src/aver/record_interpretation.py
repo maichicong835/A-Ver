@@ -14,7 +14,8 @@ def bind_record_anchor(body_text, mark_text, serial, expected_class=None, before
     if pos < 0:
         return {"bound": False, "failure_signature": "SERIAL_NOT_FOUND"}
 
-    left = body[max(0, pos - before):pos]
+    left_start = max(0, pos - before)
+    left = body[left_start:pos]
     mark_pos = left.lower().rfind(mark.lower()) if mark else -1
     if mark_pos < 0:
         return {"bound": False, "failure_signature": "MARK_NOT_BOUND_TO_SERIAL"}
@@ -26,14 +27,19 @@ def bind_record_anchor(body_text, mark_text, serial, expected_class=None, before
     if len(between) > max_mark_serial_gap:
         return {"bound": False, "failure_signature": "MARK_TOO_FAR_FROM_SERIAL", "identifier": serial, "mark_text": mark, "gap": len(between)}
 
-    tail = body[pos:pos + after]
+    after_serial = body[pos + len(serial):pos + len(serial) + after]
+    next_serial = re.search(r"\b\d{8}\b", after_serial)
+    record_tail = after_serial[:next_serial.start()] if next_serial else after_serial
+
     status_match = re.search(
         r"\b(Live/(?:Registered|Pending)|Dead/(?:Cancelled|Abandoned)|Registered|Pending)\b(?:\s+on\s+\d{1,2}\s+[A-Za-z]{3}\s+\d{4})?",
-        tail,
+        record_tail,
         re.I,
     )
+    class_matches = list(re.finditer(r"\bClass\s+(\d{3})\b", record_tail, re.I))
     classes = []
-    for value in re.findall(r"\bClass\s+(\d{3})\b", tail, re.I):
+    for match in class_matches:
+        value = match.group(1)
         if value not in classes:
             classes.append(value)
 
@@ -44,8 +50,9 @@ def bind_record_anchor(body_text, mark_text, serial, expected_class=None, before
     if expected_class and expected_class not in classes:
         return {"bound": False, "failure_signature": "EXPECTED_CLASS_NOT_BOUND", "identifier": serial, "mark_text": mark, "classes": classes}
 
-    context_start = max(0, pos - min(240, before))
-    context = body[context_start:pos + after]
+    mark_abs = left_start + mark_pos
+    record_end = pos + len(serial) + class_matches[-1].end()
+    context = body[mark_abs:record_end]
     return {
         "bound": True,
         "mark_text": mark,
@@ -54,6 +61,7 @@ def bind_record_anchor(body_text, mark_text, serial, expected_class=None, before
         "classes": classes,
         "expected_class": expected_class,
         "mark_to_serial_gap": len(between),
+        "next_serial_boundary_observed": next_serial is not None,
         "class_or_goods_services_context": context,
     }
 
