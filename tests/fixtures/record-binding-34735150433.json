@@ -1,0 +1,34 @@
+{
+  "schema": "AVER_RECORD_BINDING_FIXTURE",
+  "fixture_only_not_runtime_authority": true,
+  "source": {
+    "workflow_run_id": "34735150433",
+    "artifact_id": "10310488107",
+    "artifact_digest": "sha256:abfcf78af1d555e4d31350c6d5a08cc3e43726d197fae60a8e3c5ff00222dda0",
+    "head_sha": "c67878705f6f0e62b5fee8753acfffa9ae6ab056"
+  },
+  "records": [
+    {
+      "candidate_key": "nursing-school-hard-but-damn",
+      "candidate_wording": "I KNOW THEY SAID NURSING SCHOOL WAS HARD, BUT DAMN",
+      "serial": "90319838",
+      "mark_text": "NURSING SCHOOL JEWELS",
+      "record_binding_state": "RECORD_BINDING_PASS",
+      "status_tokens": ["live", "registered"],
+      "class_codes": ["016"],
+      "goods_markers": ["stickers", "sticker", "stationery", "notebooks", "printed", "paper goods"],
+      "record_body_sha256": "2f0d68d02cc74a1f26011d8590ca6962de89da6049635a8f466a770db273161c"
+    },
+    {
+      "candidate_key": "powered-by-yarn-and-chaos",
+      "candidate_wording": "POWERED BY YARN AND CHAOS",
+      "serial": "90072046",
+      "mark_text": "CHAOS BY ELSIE",
+      "record_binding_state": "RECORD_BINDING_PASS",
+      "status_tokens": ["live", "registered"],
+      "class_codes": ["018"],
+      "goods_markers": ["handbags", "clothing"],
+      "record_body_sha256": "06d973b1f44fb463a5dbfdfeba51d44715779fdd43b297f9813c4c892714a866"
+    }
+  ]
+}
