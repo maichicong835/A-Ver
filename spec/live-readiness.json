@@ -1,0 +1,87 @@
+{
+  "schema": "AVER_DAILY7_LIVE_READINESS_POLICY",
+  "schema_version": "1.0",
+  "purpose": "Independent fail-closed governor for deciding whether an exact A-Ver engine commit is ready to be presented to Daily7 for explicit live authorization.",
+  "terminal_states": ["BLOCKED", "READY_FOR_EXPLICIT_LIVE_AUTHORIZATION"],
+  "forbidden_shortcuts": [
+    "WORKFLOW_SUCCESS_EQUALS_LIVE_READY",
+    "PRODUCTION_APPROVAL_EQUALS_DAILY7_LIVE",
+    "RESULTSET_SHADOW_PASS_EQUALS_DEEP_SHADOW_PASS",
+    "RAW_NEGATIVE_SOURCE_COUNT_EQUALS_SCOPE_QUALIFIED_CONVERGENCE",
+    "CAPABILITY_HOLD_EQUALS_CANDIDATE_RISK",
+    "CONVERSATION_APPROXIMATION_EQUALS_MACHINE_EVIDENCE"
+  ],
+  "gates": [
+    {
+      "id": "G1_AUTHORITY_AND_ENGINE_IDENTITY",
+      "requires": [
+        "canonical A-Ver repository/branch proven",
+        "PRODUCTION_SCOPED engine mode",
+        "external side effects disabled",
+        "receipt binds exact engine commit"
+      ]
+    },
+    {
+      "id": "G2_DECISION_CONTRACT_INTEGRITY",
+      "requires": [
+        "contract matrix passes on exact candidate commit",
+        "TM_PASS requires scope-qualified negative convergence",
+        "Class016 cannot count TMHunt IC025 as Class016 negative convergence",
+        "positive conflict asymmetry and fail-closed HOLD semantics remain intact"
+      ]
+    },
+    {
+      "id": "G3_DEEP_TM_INTERPRETATION",
+      "requires": [
+        "material records dynamically prioritized and bound",
+        "similarity and component-strength evidence cannot false-KILL",
+        "goods relatedness resolved where material",
+        "required query dimensions have explicit RESOLVED or HOLD semantics"
+      ]
+    },
+    {
+      "id": "G4_SCOPE_COMPLETENESS_AND_DECISION",
+      "requires": [
+        "no TM_PASS from incomplete query scope",
+        "no TM_PASS from resolver scope leakage",
+        "each canary reaches a deterministic TM state for the correct reason",
+        "capability failures remain separate from candidate-risk decisions"
+      ]
+    },
+    {
+      "id": "G5_DAILY7_DEEP_SHADOW",
+      "requires": [
+        "Daily7 calls exact A-Ver candidate commit",
+        "versioned request/receipt validation passes",
+        "deep interpretation is exercised end-to-end on existing hold canaries",
+        "no caller/Drive/Used/Reserve mutation",
+        "no false PASS or false KILL"
+      ]
+    },
+    {
+      "id": "G6_LIVE_BOUNDARY_REHEARSAL",
+      "requires": [
+        "same exact A-Ver pin and same Daily7 integration path as intended live use",
+        "mutation remains disabled during rehearsal",
+        "caller demonstrates PASS/KILL/HOLD handling without bypass",
+        "failures stop at the correct gate and preserve unaffected state"
+      ]
+    },
+    {
+      "id": "G7_EXPLICIT_LIVE_AUTHORIZATION",
+      "requires": [
+        "G1-G6 all machine-proven PASS",
+        "explicit user authorization after reviewing readiness receipt",
+        "Daily7 authority records exact approved A-Ver pin",
+        "A-Ver itself does not mutate Daily7 state"
+      ],
+      "owned_by": "DAILY7_CALLER_GOVERNANCE_NOT_AVER_SELF_AUTHORIZATION"
+    }
+  ],
+  "authorization_law": {
+    "aver_may_emit_daily7_live_authorized": false,
+    "aver_may_emit_ready_for_explicit_live_authorization": true,
+    "daily7_live_requires_g1_through_g6_machine_pass_and_separate_g7_approval": true,
+    "any_unproven_gate_blocks_live": true
+  }
+}
