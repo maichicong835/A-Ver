@@ -70,6 +70,22 @@
     "semantic_pin_manifest_must_match_current_governance_head": true,
     "evidence_harness_retired_after_immutable_artifact": true
   },
-  "live_boundary_rehearsal_closure": null,
-  "g7_explicit_live_authorization": {"state":"NOT_REQUESTED_AFTER_G1_G6_READY","owned_by":"DAILY7_CALLER_GOVERNANCE"}
+  "live_boundary_rehearsal_closure": {
+    "state": "PASS_CLOSED",
+    "workflow_repository": "maichicong835/Amazon-Daily7Source",
+    "workflow_run_id": "34759089496",
+    "daily7_head_sha": "3bf8f833e4616eea9e65152bafb438b95df0e21e",
+    "daily7_repo_guard_run_id": "34759089575",
+    "daily7_repo_guard_conclusion": "success",
+    "aver_pin_sha": "fba76d8e90d9a6e3c01721228362ba70529d94c6",
+    "artifact_id": "10318167414",
+    "artifact_digest": "sha256:8d8bdf9cb971046851d27b7f011cf1fbf5ca108df23c5052d49f517c22064385",
+    "same_intended_live_router": "scripts/aver_live_boundary.py",
+    "mutation_enabled": false,
+    "pass_kill_hold_handling_proven": true,
+    "fail_closed_boundary_proven": true,
+    "live_without_explicit_authorization_blocked": true,
+    "g7_authorized": false
+  },
+  "g7_explicit_live_authorization": {"state":"AWAITING_EXPLICIT_USER_AUTHORIZATION_AFTER_G1_G6_READY","owned_by":"DAILY7_CALLER_GOVERNANCE"}
 }
