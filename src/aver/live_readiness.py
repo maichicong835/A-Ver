@@ -55,6 +55,7 @@ def evaluate(current, engine, policy, state, *, candidate_sha, authority_contrac
     gates.append(_pass("G3_DEEP_TM_INTERPRETATION",deep) if not deep_missing else _block("G3_DEEP_TM_INTERPRETATION",[f"MISSING_OR_UNPROVEN:{k}" for k in deep_missing],deep))
 
     scope=state.get("decision_scope_closure") or {}
+    g4b=scope.get("g4b_subgates") or {}
     scope_required={
         "required_query_scope_semantics_complete":True,
         "class016_clean_pass_path_machine_proven":True,
@@ -62,8 +63,17 @@ def evaluate(current, engine, policy, state, *, candidate_sha, authority_contrac
         "capability_failure_separated_from_candidate_risk":True,
         "existing_canaries_deterministic_for_correct_reason":True
     }
+    g4b_required={
+        "official_uspto_multiword_exact_semantics_machine_proven":True,
+        "second_independent_multiword_negative_source_machine_proven":True,
+        "multiword_scope_qualified_negative_convergence_machine_proven":True,
+        "production_reachable_clean_pass_machine_proven":True
+    }
     scope_missing=[k for k,v in scope_required.items() if scope.get(k) is not v]
-    gates.append(_pass("G4_SCOPE_COMPLETENESS_AND_DECISION",scope) if not scope_missing else _block("G4_SCOPE_COMPLETENESS_AND_DECISION",[f"MISSING_OR_UNPROVEN:{k}" for k in scope_missing],scope))
+    g4b_missing=[k for k,v in g4b_required.items() if g4b.get(k) is not v]
+    g4_blockers=[f"MISSING_OR_UNPROVEN:{k}" for k in scope_missing]+[f"MISSING_OR_UNPROVEN:G4B:{k}" for k in g4b_missing]
+    g4_evidence={**scope,"governor_explicit_g4b_subgate_check":True}
+    gates.append(_pass("G4_SCOPE_COMPLETENESS_AND_DECISION",g4_evidence) if not g4_blockers else _block("G4_SCOPE_COMPLETENESS_AND_DECISION",g4_blockers,g4_evidence))
 
     shadow=state.get("daily7_deep_shadow_closure") or {}
     shadow_ok=(

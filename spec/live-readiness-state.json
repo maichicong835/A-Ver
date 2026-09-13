@@ -38,12 +38,53 @@
         "known_positive_multiword_result_count": 63,
         "opaque_multiword_exact_zero": true
       },
-      "second_independent_multiword_negative_source_machine_proven": false,
-      "multiword_scope_qualified_negative_convergence_machine_proven": false,
-      "production_reachable_clean_pass_machine_proven": false
+      "second_independent_multiword_negative_source_machine_proven": true,
+      "second_source_evidence": {
+        "source": "TRADEMARKIA_QUOTED_MULTIWORD_FIXED_PRODUCTION_PHRASE",
+        "exact_semantic_scope": "FIXED_PRODUCTION_PHRASE_ONLY_NO_ARBITRARY_PHRASE_GENERALIZATION",
+        "exact_commit_sha": "727455012cc42f191ec3851215cfe93b75233fdb",
+        "run_1": {
+          "workflow_run_id": "34752875960",
+          "artifact_id": "10316527489",
+          "artifact_digest": "sha256:a527c79aa62b1df41f073304ad2a32d529273b63b2aaf0cef70d1b9a721068f6"
+        },
+        "run_2": {
+          "workflow_run_id": "34752928838",
+          "artifact_id": "10315862850",
+          "artifact_digest": "sha256:8e7e8231a18a598c39cbb78ec8bd23455f0611e5f7cf8578f3766d7d789b2d48"
+        },
+        "both_same_exact_sha": true,
+        "both_known_positive_and_fixed_phrase_zero_pass": true
+      },
+      "multiword_scope_qualified_negative_convergence_machine_proven": true,
+      "multiword_convergence_evidence": {
+        "sources": ["USPTO_OFFICIAL_DIRECT_FIELDTAG", "TRADEMARKIA_QUOTED_MULTIWORD_FIXED_PRODUCTION_PHRASE"],
+        "tmhunt_ic025_counted_for_class016": false,
+        "fixed_phrase": "Mildly Lost, Weirdly Optimistic",
+        "production_canary_run_id": "34752804112"
+      },
+      "production_reachable_clean_pass_machine_proven": true,
+      "production_clean_pass_evidence": {
+        "workflow_run_id": "34752804112",
+        "commit_sha": "e92beeec5ea3d41fdce7f19eb6fb782464541525",
+        "artifact_id": "10316761745",
+        "artifact_digest": "sha256:d06c7326b606206371313f9aff5a65cf68e771075f864fda340c6ba60dc3eca2",
+        "phase_state": "G4B_PRODUCTION_SHAPED_TM_PASS_PROVEN",
+        "decision": "TM_PASS",
+        "unresolved_dimensions": [],
+        "post_pass_to_current_semantic_implementation_changed": false,
+        "proof_scope": "ONE_FIXED_CLEAN_CLASS016_PRODUCTION_SHAPED_CANARY",
+        "does_not_prove_arbitrary_daily7_phrase_pass": true,
+        "g6_live_path_pass_branch_still_required": true
+      }
     },
-    "class016_clean_pass_path_machine_proven": false,
-    "class016_clean_pass_path_evidence": null,
+    "class016_clean_pass_path_machine_proven": true,
+    "class016_clean_pass_path_evidence": {
+      "workflow_run_id": "34752804112",
+      "artifact_id": "10316761745",
+      "decision": "TM_PASS",
+      "unresolved_dimensions": []
+    },
     "scope_qualified_negative_convergence_enforced": true,
     "scope_qualified_convergence_evidence": {
       "workflow_run_id": "34749114948",
@@ -58,11 +99,7 @@
       "nursing": "TM_HOLD_FOR_MATERIAL_GOODS_WITH_UNRESOLVED_SIMILARITY_AND_INCOMPLETE_SCOPE",
       "yarn": "TM_HOLD_FOR_MATERIAL_GOODS_WITH_SINGLE_TOKEN_STRENGTH_UNRESOLVED_AND_INCOMPLETE_SCOPE"
     },
-    "remaining_blocker_order": [
-      "G4B_SECOND_INDEPENDENT_MULTIWORD_NEGATIVE_SOURCE",
-      "G4B_MULTIWORD_SCOPE_QUALIFIED_CONVERGENCE",
-      "G4B_PRODUCTION_REACHABLE_CLEAN_PASS"
-    ]
+    "remaining_blocker_order": []
   },
   "daily7_deep_shadow_closure": null,
   "live_boundary_rehearsal_closure": null,

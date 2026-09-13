@@ -39,7 +39,8 @@
     "workflow_success_does_not_imply_daily7_live_readiness": true,
     "aver_may_not_self_authorize_daily7_live": true,
     "any_unproven_live_readiness_gate_blocks_live": true,
-    "safe_live_requires_scope_semantics_and_operational_clean_pass_path": true
+    "safe_live_requires_scope_semantics_and_operational_clean_pass_path": true,
+    "g4_reachability_does_not_substitute_for_g6_live_path_utility": true
   },
   "acceptance_snapshot": {
     "A0_TRANSPORT": "PASS_CLOSED",
@@ -51,7 +52,7 @@
     "PROMOTION_REVIEW": "PASS_CLOSED_EXPLICIT_USER_APPROVAL_2026_09_13",
     "DAILY7_SHADOW_INTEGRATION": "PASS_CLOSED_RESULTSET_LAYER_RUN_34722878035",
     "SHADOW_DEEP_TM_INTERPRETATION": "PASS_CLOSED_DEEP_DECISION_CANARY_34749315746",
-    "LIVE_READINESS_G4_SCOPE_COMPLETENESS_AND_DECISION": "PENDING"
+    "LIVE_READINESS_G4_SCOPE_COMPLETENESS_AND_DECISION": "PASS_CLOSED_G4B_PRODUCTION_SHAPED_TM_PASS_34752804112"
   },
   "promotion_closure": {
     "production_commit_sha": "689e06afcce007979025e68a095f9646d1d37591",
@@ -84,6 +85,20 @@
     "required_query_scope_complete": false,
     "next_gate": "G4_SCOPE_COMPLETENESS_AND_DECISION"
   },
+  "g4_closure": {
+    "scope_semantics_workflow_run_id": "34750387046",
+    "official_uspto_workflow_run_id": "34750591436",
+    "trademarkia_second_source_exact_sha": "727455012cc42f191ec3851215cfe93b75233fdb",
+    "trademarkia_repeatability_run_ids": ["34752875960", "34752928838"],
+    "production_clean_pass_workflow_run_id": "34752804112",
+    "production_clean_pass_artifact_id": "10316761745",
+    "production_clean_pass_artifact_digest": "sha256:d06c7326b606206371313f9aff5a65cf68e771075f864fda340c6ba60dc3eca2",
+    "decision": "TM_PASS",
+    "unresolved_dimensions": [],
+    "proof_scope": "ONE_FIXED_CLEAN_CLASS016_PRODUCTION_SHAPED_CANARY",
+    "does_not_prove_arbitrary_daily7_phrase_pass": true,
+    "g6_live_path_pass_branch_still_required": true
+  },
   "interface_contract": {
     "request_schema": "spec/request.schema.json",
     "receipt_schema": "spec/receipt.schema.json",
@@ -94,11 +109,10 @@
     "negative_pass_min_scope_qualified_distinct_evidence_sources": 2
   },
   "current_reopen_scope": {
-    "only_layer": "LIVE_READINESS_G4_SCOPE_COMPLETENESS_AND_DECISION",
+    "only_layer": "G5_DAILY7_DEEP_SHADOW",
     "new_candidate_or_market_discovery_forbidden": true,
-    "only_existing_hold_canaries_authorized": true,
     "daily7_live_gate_authorized": false,
-    "next_machine_gate": "G4_SCOPE_SEMANTICS_THEN_OPERATIONAL_PASS_PATH"
+    "next_machine_gate": "G5_DAILY7_DEEP_SHADOW_ON_EXACT_AVER_PIN"
   },
   "scope_completeness_law": {
     "required_tm_query_plan_must_remain_complete": true,
@@ -124,6 +138,6 @@
     "workflow_success_is_not_readiness": true,
     "aver_self_authorization_for_daily7_live_forbidden": true,
     "g7_owned_by_daily7_caller_governance": true,
-    "current_machine_first_blocking_gate": "G4_SCOPE_COMPLETENESS_AND_DECISION"
+    "current_machine_first_blocking_gate": "G5_DAILY7_DEEP_SHADOW"
   }
 }
