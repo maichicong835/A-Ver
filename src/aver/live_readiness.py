@@ -61,8 +61,24 @@ def evaluate(current, engine, policy, state, *, candidate_sha, authority_contrac
     gates.append(_pass("G5_DAILY7_DEEP_SHADOW",shadow_evidence) if shadow_ok else _block("G5_DAILY7_DEEP_SHADOW",["DEEP_SHADOW_NOT_MACHINE_PROVEN_OR_SEMANTIC_PIN_DRIFTED"],shadow_evidence))
 
     rehearsal=state.get("live_boundary_rehearsal_closure") or {}
-    rehearsal_ok=(rehearsal.get("state")=="PASS_CLOSED" and rehearsal.get("aver_pin_sha")==candidate_sha and rehearsal.get("mutation_enabled") is False and rehearsal.get("pass_kill_hold_handling_proven") is True and rehearsal.get("fail_closed_boundary_proven") is True)
-    gates.append(_pass("G6_LIVE_BOUNDARY_REHEARSAL",rehearsal) if rehearsal_ok else _block("G6_LIVE_BOUNDARY_REHEARSAL",["LIVE_BOUNDARY_REHEARSAL_NOT_MACHINE_PROVEN_ON_EXACT_CANDIDATE_PIN"],rehearsal))
+    expected_execution_pin=shadow.get("aver_pin_sha")
+    rehearsal_ok=(
+        rehearsal.get("state")=="PASS_CLOSED"
+        and isinstance(expected_execution_pin,str) and len(expected_execution_pin)==40
+        and rehearsal.get("aver_pin_sha")==expected_execution_pin
+        and isinstance(rehearsal.get("daily7_head_sha"),str) and len(rehearsal.get("daily7_head_sha"))==40
+        and rehearsal.get("daily7_repo_guard_conclusion")=="success"
+        and rehearsal.get("mutation_enabled") is False
+        and rehearsal.get("pass_kill_hold_handling_proven") is True
+        and rehearsal.get("fail_closed_boundary_proven") is True
+        and rehearsal.get("live_without_explicit_authorization_blocked") is True
+        and rehearsal.get("same_intended_live_router")=="scripts/aver_live_boundary.py"
+        and rehearsal.get("g7_authorized") is False
+        and isinstance(rehearsal.get("artifact_id"),(str,int))
+        and isinstance(rehearsal.get("artifact_digest"),str) and rehearsal.get("artifact_digest").startswith("sha256:")
+    )
+    rehearsal_evidence={**rehearsal,"expected_execution_pin_from_g5":expected_execution_pin,"governance_head_sha":candidate_sha,"execution_pin_is_governance_head":expected_execution_pin==candidate_sha}
+    gates.append(_pass("G6_LIVE_BOUNDARY_REHEARSAL",rehearsal_evidence) if rehearsal_ok else _block("G6_LIVE_BOUNDARY_REHEARSAL",["LIVE_BOUNDARY_REHEARSAL_NOT_MACHINE_PROVEN_ON_G5_EXECUTION_PIN_AND_CANONICAL_DAILY7_HEAD"],rehearsal_evidence))
 
     blocking=[g for g in gates if g["state"]!="PASS"]
     terminal="READY_FOR_EXPLICIT_LIVE_AUTHORIZATION" if not blocking else "BLOCKED"
