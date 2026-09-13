@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/aver/deep_interpretation_canary.py'
       - 'src/aver/record_interpretation.py'
+      - 'src/aver/resolvers/trademarkia.py'
       - '.github/workflows/deep-interpretation-canary.yml'
   workflow_dispatch:
 
@@ -83,10 +84,11 @@ jobs:
           python3 - <<'PY'
           import json
           r=json.load(open('artifacts/deep-interpretation/receipt.json'))
-          assert r['phase_state']=='DEEP_RECORD_DISCOVERY_PASS'
+          assert r['phase_state']=='DIRECT_RECORD_DETAIL_PASS'
           assert r['shadow_only'] is True
           assert r['candidate_breadth_expanded'] is False
           assert r['tm_decision_authorized'] is False
           assert r['daily7_live_gate_authorized'] is False
-          print('AVER_DEEP_RECORD_DISCOVERY_PASS')
+          assert all(x['direct_record_pass'] is True for x in r['canaries'])
+          print('AVER_DIRECT_RECORD_DETAIL_PASS')
           PY
