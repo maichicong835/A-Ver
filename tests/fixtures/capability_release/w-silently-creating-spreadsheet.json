@@ -1,0 +1,23 @@
+{
+  "schema": "AVER_TM_REQUEST",
+  "schema_version": "1.0",
+  "request_id": "d7.20260914.silently-creating-spreadsheet.shadow",
+  "wording": "I'M SILENTLY CREATING A SPREADSHEET FOR THAT",
+  "intended_goods_context": {
+    "primary_class": "016",
+    "coordinated_classes": ["025"],
+    "description": "Printed vinyl stickers and decals bearing humorous spreadsheet and office-culture wording for laptops, water bottles, notebooks and similar personal display surfaces; apparel adjacency reviewed only for related-goods analysis.",
+    "channels": ["US online marketplaces", "direct-to-consumer sticker shops"],
+    "purchasers": ["accountants", "data analysts", "office workers", "coworker gift buyers"]
+  },
+  "requested_scope": {
+    "country": "US",
+    "federal_registry": true,
+    "related_goods_review": true,
+    "query_dimensions": ["EXACT", "NORMALIZED_EXACT", "CORE_DOMINANT_TOKEN", "EXPANDED_PARTIAL", "PHONETIC_OR_SPELLING_WHEN_MATERIAL", "RELATED_GOODS_REVIEW"]
+  },
+  "caller": {
+    "system": "A_VER_SHADOW_CAPABILITY_RELEASE",
+    "reference": "Daily7 run 2026-09-14-1003 existing HOLD w-silently-creating-spreadsheet"
+  }
+}
