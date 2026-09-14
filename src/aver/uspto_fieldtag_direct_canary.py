@@ -64,6 +64,18 @@ def choose_public_search_input(page):
     return ranked[0][2], visible_inputs(page)
 
 
+def page_diagnostic(page):
+    try:
+        title=page.title()
+    except Exception:
+        title=""
+    return {
+        "page_url": page.url,
+        "page_title": title,
+        "body_excerpt": body_text(page)[:4200],
+    }
+
+
 def probe(page,query):
     body=body_text(page)
     low=body.lower()
@@ -100,6 +112,7 @@ def run_case(browser,case):
         inp,inputs=choose_public_search_input(page)
         rec["visible_inputs"]=inputs
         if inp is None:
+            rec.update(page_diagnostic(page))
             rec["failure_signature"]="USPTO_PUBLIC_SEARCH_INPUT_NOT_BOUND"
             return rec
         rec["chosen_input"]={
@@ -113,6 +126,7 @@ def run_case(browser,case):
         page.wait_for_timeout(250)
         rec["pre_submit_value_2"]=inp.input_value(timeout=1500)
         if rec["pre_submit_value_1"]!=case["query"] or rec["pre_submit_value_2"]!=case["query"]:
+            rec.update(page_diagnostic(page))
             rec["failure_signature"]="USPTO_DIRECT_FIELD_TAG_QUERY_BINDING_UNSTABLE"
             return rec
         inp.press("Enter")
@@ -136,7 +150,7 @@ def run_case(browser,case):
     except Exception as exc:
         rec["state"]="HOLD_CAPABILITY"
         rec["failure_signature"]=f"{type(exc).__name__}:{str(exc)[:240]}"
-        rec["body_excerpt"]=body_text(page)[:2400]
+        rec.update(page_diagnostic(page))
     finally:
         page.close()
     return rec
