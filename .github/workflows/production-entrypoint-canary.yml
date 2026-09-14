@@ -6,12 +6,14 @@ on:
       - 'src/aver/production_entrypoint.py'
       - 'src/aver/production.py'
       - 'src/aver/query_plan.py'
+      - 'src/aver/positive_recall.py'
       - 'src/aver/decision.py'
       - 'src/aver/resolvers/**'
       - 'src/aver/uspto_fieldtag_direct_canary.py'
       - 'spec/request.schema.json'
       - 'spec/receipt.schema.json'
       - 'tests/test_long_phrase_query_surface.py'
+      - 'tests/test_positive_recall_triage.py'
       - 'tests/shadow_probe_uspto_problem_query.py'
       - 'tests/shadow_probe_tsdr_w_record.py'
       - 'tests/fixtures/capability_release/**'
@@ -30,6 +32,11 @@ jobs:
           fetch-depth: 1
       - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
       - run: python3 -m playwright install --with-deps chromium
+      - name: Run deterministic semantic contracts
+        if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
+        run: |
+          PYTHONPATH=src python3 tests/test_long_phrase_query_surface.py
+          PYTHONPATH=src python3 tests/test_positive_recall_triage.py
       - name: Build fixed non-Daily7 production requests
         run: |
           mkdir -p artifacts/production-entrypoint
@@ -37,7 +44,9 @@ jobs:
           import json
           dims=['EXACT','NORMALIZED_EXACT','CORE_DOMINANT_TOKEN','EXPANDED_PARTIAL','PHONETIC_OR_SPELLING_WHEN_MATERIAL','RELATED_GOODS_REVIEW']
           def req(i,w): return {'schema':'AVER_TM_REQUEST','schema_version':'1.0','request_id':i,'wording':w,'intended_goods_context':{'primary_class':'016','description':'decorative adhesive stickers','channels':['online marketplace'],'purchasers':['US consumers']},'requested_scope':{'country':'US','federal_registry':True,'related_goods_review':True,'query_dimensions':list(dims)},'caller':{'system':'G6B_CANARY','reference':'fixed-non-daily7'}}
-          json.dump(req('g6b.pass','Quietly Off Course'),open('artifacts/production-entrypoint/pass-request.json','w'),indent=2)
+          # Opaque two-token zero-control exercises the full live resolver path with one bounded core,
+          # reducing incidental provider load without weakening PASS requirements.
+          json.dump(req('g6b.pass','QZXJVMRKPLNX VQTKRMNZXJQW'),open('artifacts/production-entrypoint/pass-request.json','w'),indent=2)
           hold=req('g6b.hold.scope-incomplete','Quietly Off Course Today Somehow')
           hold['requested_scope']['query_dimensions'].remove('RELATED_GOODS_REVIEW')
           json.dump(hold,open('artifacts/production-entrypoint/hold-request.json','w'),indent=2)
@@ -65,9 +74,6 @@ jobs:
           assert a['legal_clearance_asserted'] is False and b['legal_clearance_asserted'] is False
           print('AVER_PRODUCTION_ENTRYPOINT_UTILITY_AND_DETERMINISTIC_FAIL_CLOSED_PASS')
           PY
-      - name: Reproduce bounded long-phrase query surface
-        if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
-        run: PYTHONPATH=src python3 tests/test_long_phrase_query_surface.py
       - uses: actions/upload-artifact@v4
         with:
           name: aver-production-entrypoint-${{ github.run_id }}-${{ github.sha }}
@@ -116,8 +122,16 @@ jobs:
           jsonschema.Draft202012Validator(schema).validate(r)
           assert r['engine_commit_sha']==os.environ['GITHUB_SHA'], r
           assert r['legal_clearance_asserted'] is False, r
+          assert r['decision']=='TM_PASS', r
+          assert r['unresolved_dimensions']==[], r
+          assert r['scope_coverage']['scope_qualified_negative_evidence_distinct_sources']>=2, r
           assert 'SECOND_SOURCE_GRAMMAR_UNSUPPORTED' not in r['decision_reason_codes'], r
           assert 'SECOND_SOURCE_CORE_GRAMMAR_UNSUPPORTED' not in r['decision_reason_codes'], r
+          if os.environ['CANDIDATE']=='w-silently-creating-spreadsheet':
+            assert 'NONMATERIAL_DEAD_UNRELATED_EXPANDED_PARTIAL_RECALL_BOUND' in r['decision_reason_codes'], r
+            records=[x for x in r['material_records'] if x.get('identifier')=='77348348']
+            assert len(records)==1, r
+            assert records[0]['status']=='DEAD_INACTIVE_NONMATERIAL_EXPANDED_PARTIAL_RECALL', r
           print('SHADOW_EXISTING_HOLD_FRESH_RUNNER',os.environ['CANDIDATE'],r['decision'],r['decision_reason_codes'],r['unresolved_dimensions'],r['scope_coverage'])
           PY
       - uses: actions/upload-artifact@v4
