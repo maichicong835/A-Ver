@@ -13,6 +13,7 @@ def classify_tsdr_current_status(body):
 
     Historical words such as REGISTERED elsewhere on the page are ignored. A
     dead/inactive result requires an explicit current-status phrase from TSDR.
+    Contradictory current-status markers fail closed as UNRESOLVED.
     """
     text=re.sub(r"\s+"," ",body or "").strip()
     low=text.lower()
@@ -26,18 +27,26 @@ def classify_tsdr_current_status(body):
         "status: canceled",
         "status: expired",
     )
-    if any(x in low for x in dead_markers):
-        return {
-            "state":"DEAD_INACTIVE",
-            "machine_bound":True,
-            "reason":"EXPLICIT_TSDR_CURRENT_STATUS_DEAD_OR_INACTIVE",
-        }
     active_markers=(
         "tm5 common status descriptor: live/",
         "this trademark application is currently active",
         "this trademark registration is currently active",
     )
-    if any(x in low for x in active_markers):
+    dead_seen=any(x in low for x in dead_markers)
+    active_seen=any(x in low for x in active_markers)
+    if dead_seen and active_seen:
+        return {
+            "state":"UNRESOLVED",
+            "machine_bound":False,
+            "reason":"CONTRADICTORY_TSDR_CURRENT_STATUS_MARKERS",
+        }
+    if dead_seen:
+        return {
+            "state":"DEAD_INACTIVE",
+            "machine_bound":True,
+            "reason":"EXPLICIT_TSDR_CURRENT_STATUS_DEAD_OR_INACTIVE",
+        }
+    if active_seen:
         return {
             "state":"LIVE_ACTIVE",
             "machine_bound":True,
