@@ -11,6 +11,8 @@ on:
       - 'src/aver/uspto_fieldtag_direct_canary.py'
       - 'spec/request.schema.json'
       - 'spec/receipt.schema.json'
+      - 'tests/test_long_phrase_query_surface.py'
+      - 'tests/fixtures/capability_release/**'
       - '.github/workflows/production-entrypoint-canary.yml'
   workflow_dispatch:
 permissions:
@@ -18,7 +20,7 @@ permissions:
 jobs:
   canary:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,9 +60,47 @@ jobs:
           assert a['legal_clearance_asserted'] is False and b['legal_clearance_asserted'] is False
           print('AVER_PRODUCTION_ENTRYPOINT_WRAPPER_UTILITY_AND_FAIL_CLOSED_PASS')
           PY
+      - name: Reproduce bounded long-phrase query surface
+        if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
+        run: PYTHONPATH=src python3 tests/test_long_phrase_query_surface.py
+      - name: Execute two existing HOLDs through shadow resolver path
+        if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
+        env:
+          AVER_ENGINE_COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/capability-release
+          PYTHONPATH=src python3 src/aver/production_entrypoint.py \
+            --request tests/fixtures/capability_release/h-spreadsheets-life-make-sense.json \
+            --output artifacts/capability-release/h-spreadsheets-life-make-sense.receipt.json
+          PYTHONPATH=src python3 src/aver/production_entrypoint.py \
+            --request tests/fixtures/capability_release/w-silently-creating-spreadsheet.json \
+            --output artifacts/capability-release/w-silently-creating-spreadsheet.receipt.json
+      - name: Assert shadow release did not bypass evidence gates
+        if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
+        run: |
+          python3 - <<'PY'
+          import json, jsonschema, os
+          schema=json.load(open('spec/receipt.schema.json'))
+          paths=[
+            'artifacts/capability-release/h-spreadsheets-life-make-sense.receipt.json',
+            'artifacts/capability-release/w-silently-creating-spreadsheet.receipt.json',
+          ]
+          for p in paths:
+            r=json.load(open(p))
+            jsonschema.Draft202012Validator(schema).validate(r)
+            assert r['engine_commit_sha']==os.environ['GITHUB_SHA'], r
+            assert r['legal_clearance_asserted'] is False, r
+            assert 'SECOND_SOURCE_GRAMMAR_UNSUPPORTED' not in r['decision_reason_codes'], r
+            assert 'SECOND_SOURCE_CORE_GRAMMAR_UNSUPPORTED' not in r['decision_reason_codes'], r
+            print(p, r['decision'], r['decision_reason_codes'], r['unresolved_dimensions'], r['scope_coverage'])
+          print('AVER_LONG_PHRASE_SHADOW_EXECUTION_COMPLETED_WITH_EVIDENCE_GATES_INTACT')
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: aver-production-entrypoint-${{ github.run_id }}-${{ github.sha }}
-          path: artifacts/production-entrypoint/
+          path: |
+            artifacts/production-entrypoint/
+            artifacts/capability-release/
           if-no-files-found: error
           retention-days: 30
