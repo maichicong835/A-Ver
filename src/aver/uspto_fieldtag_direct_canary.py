@@ -79,7 +79,6 @@ def page_diagnostic(page):
 def result_count_from_body(body):
     """Parse USPTO native result-count surfaces, including auto-opened detail views."""
     patterns=[
-        # USPTO may auto-open the sole result instead of leaving the list view.
         r"\bResult\s+\d+\s+of\s+([\d,]+)\s+for\b",
         r"([\d,]+)\s+results?\s+for",
         r"([\d,]+)\s+results?\b",
@@ -90,6 +89,40 @@ def result_count_from_body(body):
         if m:
             return int(m.group(1).replace(",",""))
     return None
+
+
+def _between(body,start,end,max_len):
+    m=re.search(start+r"\s+(.*?)\s+"+end,body,re.I)
+    return (m.group(1).strip()[:max_len] if m else None)
+
+
+def single_record_detail_from_body(body,count):
+    """Bind the native USPTO auto-opened sole-result detail conservatively.
+
+    Returns only fields visible on the official detail page. Absence of a field
+    stays None; callers must fail closed rather than infer it.
+    """
+    if count != 1 or "Search result details for serial number" not in body:
+        return None
+    serial_match=re.search(r"Search result details for serial number\s+([0-9]{6,12})",body,re.I)
+    serial=serial_match.group(1) if serial_match else None
+    mark=_between(body,r"Trademark\s+Wordmark",r"Serial\s+number",300)
+    registration=_between(body,r"Registration\s+number",r"Filing\s+date",120)
+    status=_between(body,r"Status",r"Status\s+date",120)
+    class_match=re.search(r"\bClass\s+([0-9]{3})\b",body,re.I)
+    class_code=class_match.group(1) if class_match else None
+    goods=_between(body,r"Goods\s+and\s+services(?:\s+Expand\s+all\s+goods\s+and\s+services)?",r"Current\s+owner",1200)
+    case_status=_between(body,r"Case\s+status",r"Publication\s+date",500)
+    return {
+        "serial_number":serial,
+        "mark_text":mark,
+        "registration_number":registration,
+        "status":status,
+        "class_codes":[class_code] if class_code else [],
+        "goods_services_excerpt":goods,
+        "case_status":case_status,
+        "official_detail_bound":bool(serial and mark and status),
+    }
 
 
 def probe(page,query):
@@ -106,6 +139,7 @@ def probe(page,query):
         "control_blocked":control,
         "query_visible":query.lower() in low,
         "final_url":page.url,
+        "single_record_detail":single_record_detail_from_body(body,count),
         "body_excerpt":body[:4200],
     }
 
