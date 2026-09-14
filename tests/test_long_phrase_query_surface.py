@@ -8,9 +8,13 @@ PHRASES=[
 ]
 
 for phrase in PHRASES:
-    assert not grammar_ok(phrase)
+    assert not grammar_ok(phrase), "full phrase should not be forced into bounded core grammar"
     cores=build_query_plan(phrase,[])["CORE_DOMINANT_TOKEN"]["queries"]
     assert cores
     assert all(grammar_ok(core) for core in cores), (phrase,cores)
+    for core in cores:
+        assert all(len(tok)>1 or tok.isdigit() for tok in core.split()), (phrase,core)
 
-print("AVER_LONG_PHRASE_CURRENT_GATE_REPRODUCED")
+silent_cores=build_query_plan("I'M SILENTLY CREATING A SPREADSHEET FOR THAT",[])["CORE_DOMINANT_TOKEN"]["queries"]
+assert all(" M " not in f" {core} " for core in silent_cores), silent_cores
+print("AVER_LONG_PHRASE_BOUNDED_CORE_CONTRACT_PASS")
