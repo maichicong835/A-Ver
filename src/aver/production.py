@@ -46,7 +46,7 @@ def evaluate(req,rschema,oschema):
  wording=req["wording"].strip(); plan=build_query_plan(wording,[]); cores=plan["CORE_DOMINANT_TOKEN"]["queries"]; ph=plan["PHONETIC_OR_SPELLING_WHEN_MATERIAL"].get("queries") or []
  if not cores or not ph:
   out=hold(req,sha,["QUERY_PLAN_INCOMPLETE"],["CORE_DOMINANT_TOKEN","PHONETIC_OR_SPELLING_WHEN_MATERIAL"]); jsonschema.Draft202012Validator(oschema).validate(out); return out
- rows=[]; dims={d:True for d in REQUIRED_DIMENSIONS}; positive=False; unresolved_transport=False; tm_qualified=grammar_ok(wording) and all(grammar_ok(c) for c in cores)
+ rows=[]; dims={d:True for d in REQUIRED_DIMENSIONS}; positive=False; unresolved_transport=False; tm_qualified=all(grammar_ok(c) for c in cores)
  exe=os.getenv("AVER_BROWSER_EXECUTABLE") or None
  with sync_playwright() as p:
   launch={"headless":True}
