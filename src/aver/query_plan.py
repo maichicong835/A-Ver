@@ -38,6 +38,7 @@ def _longest_contiguous_shared(a, b):
 
 
 def derive_core_queries(candidate_wording, priority_queue, limit=2):
+    """Derive bounded cores from bound material records when available."""
     c=_tokens(candidate_wording)
     candidates=[]
     seen=set()
@@ -64,11 +65,13 @@ def derive_core_queries(candidate_wording, priority_queue, limit=2):
 def derive_fallback_core_queries(candidate_wording, limit=2):
     """Deterministic clean-path cores when no material record provides overlap.
 
-    Single-letter alphabetic fragments created by punctuation/contractions are
-    excluded from fallback core construction. This prevents e.g. I'M -> I/M
-    from creating a semantically spurious dominant core while preserving the
-    original wording for exact/normalized exact review.
+    We use contiguous 2-3 token n-grams, prefer more non-stopword characters,
+    then more tokens, then earlier position. This is planning only, not a TM
+    conclusion. It prevents a clean zero-result phrase from becoming structurally
+    impossible to evaluate.
     """
+    # Drop punctuation-created single-letter alphabetic fragments (e.g. I'M -> I/M)
+    # from fallback core construction only; exact/normalized wording stays unchanged.
     toks=[t.upper() for t in _tokens(candidate_wording) if len(t)>1 or t.isdigit()]
     rows=[]
     seen=set()
@@ -112,6 +115,12 @@ def derive_fallback_core_queries(candidate_wording, limit=2):
 
 
 def _phonetic_token_pattern(token):
+    """Return a bounded high-recall spelling/pronunciation regex fragment.
+
+    This is intentionally conservative and not legal clearance. Vowels are
+    broadened, common consonant confusions are grouped, and optional terminal e
+    is allowed. Unsupported tokens still remain literal rather than disappearing.
+    """
     t=re.sub(r"[^a-z]","",token.lower())
     if not t:
         return None
@@ -133,6 +142,8 @@ def _phonetic_token_pattern(token):
 
 
 def build_phonetic_regex_query(candidate_wording, cores):
+    # Use strong tokens from the already-selected bounded cores; fall back to
+    # the wording if needed. Keep at most four unique tokens to bound breadth.
     selected=[]
     for core in cores:
         for token in _tokens(core.get("query")):
