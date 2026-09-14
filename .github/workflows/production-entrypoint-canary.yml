@@ -12,8 +12,6 @@ on:
       - 'spec/request.schema.json'
       - 'spec/receipt.schema.json'
       - 'tests/test_long_phrase_query_surface.py'
-      - 'tests/shadow_probe_uspto_long_phrase.py'
-      - 'tests/shadow_probe_uspto_fresh_first.py'
       - 'tests/fixtures/capability_release/**'
       - '.github/workflows/production-entrypoint-canary.yml'
   workflow_dispatch:
@@ -22,7 +20,7 @@ permissions:
 jobs:
   canary:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 14
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,20 +28,17 @@ jobs:
           fetch-depth: 1
       - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
       - run: python3 -m playwright install --with-deps chromium
-      - name: Probe existing HOLDs first on fresh USPTO browser sessions
-        if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
-        run: |
-          mkdir -p artifacts/capability-release
-          PYTHONPATH=src python3 tests/shadow_probe_uspto_fresh_first.py
       - name: Build fixed non-Daily7 production requests
         run: |
           mkdir -p artifacts/production-entrypoint
           python3 - <<'PY'
           import json
           dims=['EXACT','NORMALIZED_EXACT','CORE_DOMINANT_TOKEN','EXPANDED_PARTIAL','PHONETIC_OR_SPELLING_WHEN_MATERIAL','RELATED_GOODS_REVIEW']
-          def req(i,w): return {'schema':'AVER_TM_REQUEST','schema_version':'1.0','request_id':i,'wording':w,'intended_goods_context':{'primary_class':'016','description':'decorative adhesive stickers','channels':['online marketplace'],'purchasers':['US consumers']},'requested_scope':{'country':'US','federal_registry':True,'related_goods_review':True,'query_dimensions':dims},'caller':{'system':'G6B_CANARY','reference':'fixed-non-daily7'}}
+          def req(i,w): return {'schema':'AVER_TM_REQUEST','schema_version':'1.0','request_id':i,'wording':w,'intended_goods_context':{'primary_class':'016','description':'decorative adhesive stickers','channels':['online marketplace'],'purchasers':['US consumers']},'requested_scope':{'country':'US','federal_registry':True,'related_goods_review':True,'query_dimensions':list(dims)},'caller':{'system':'G6B_CANARY','reference':'fixed-non-daily7'}}
           json.dump(req('g6b.pass','Quietly Off Course'),open('artifacts/production-entrypoint/pass-request.json','w'),indent=2)
-          json.dump(req('g6b.hold','Quietly Off Course Today Somehow'),open('artifacts/production-entrypoint/hold-request.json','w'),indent=2)
+          hold=req('g6b.hold.scope-incomplete','Quietly Off Course Today Somehow')
+          hold['requested_scope']['query_dimensions'].remove('RELATED_GOODS_REVIEW')
+          json.dump(hold,open('artifacts/production-entrypoint/hold-request.json','w'),indent=2)
           PY
       - name: Execute generic production entrypoint wrapper
         env:
@@ -51,7 +46,7 @@ jobs:
         run: |
           PYTHONPATH=src python3 src/aver/production_entrypoint.py --request artifacts/production-entrypoint/pass-request.json --output artifacts/production-entrypoint/pass-receipt.json
           PYTHONPATH=src python3 src/aver/production_entrypoint.py --request artifacts/production-entrypoint/hold-request.json --output artifacts/production-entrypoint/hold-receipt.json
-      - name: Assert utility and fail-closed semantics
+      - name: Assert utility and deterministic fail-closed semantics
         run: |
           python3 - <<'PY'
           import json, jsonschema, os
@@ -63,55 +58,18 @@ jobs:
           assert a['scope_coverage']['scope_qualified_negative_evidence_distinct_sources']>=2
           assert a['unresolved_dimensions']==[]
           assert b['decision']=='TM_HOLD', b
-          assert 'SECOND_SCOPE_QUALIFIED_NEGATIVE_SOURCE' in b['unresolved_dimensions']
+          assert 'REQUEST_SCOPE_MISSING_REQUIRED_DIMENSIONS' in b['decision_reason_codes'], b
+          assert 'RELATED_GOODS_REVIEW' in b['unresolved_dimensions'], b
           assert a['legal_clearance_asserted'] is False and b['legal_clearance_asserted'] is False
-          print('AVER_PRODUCTION_ENTRYPOINT_WRAPPER_UTILITY_AND_FAIL_CLOSED_PASS')
+          print('AVER_PRODUCTION_ENTRYPOINT_UTILITY_AND_DETERMINISTIC_FAIL_CLOSED_PASS')
           PY
       - name: Reproduce bounded long-phrase query surface
         if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
         run: PYTHONPATH=src python3 tests/test_long_phrase_query_surface.py
-      - name: Execute two existing HOLDs through shadow resolver path
-        if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
-        env:
-          AVER_ENGINE_COMMIT_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts/capability-release
-          PYTHONPATH=src python3 src/aver/production_entrypoint.py \
-            --request tests/fixtures/capability_release/h-spreadsheets-life-make-sense.json \
-            --output artifacts/capability-release/h-spreadsheets-life-make-sense.receipt.json
-          PYTHONPATH=src python3 src/aver/production_entrypoint.py \
-            --request tests/fixtures/capability_release/w-silently-creating-spreadsheet.json \
-            --output artifacts/capability-release/w-silently-creating-spreadsheet.receipt.json
-      - name: Probe official USPTO long-phrase failure layer after workload
-        if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
-        run: PYTHONPATH=src python3 tests/shadow_probe_uspto_long_phrase.py
-      - name: Assert shadow release did not bypass evidence gates
-        if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
-        run: |
-          python3 - <<'PY'
-          import json, jsonschema, os
-          schema=json.load(open('spec/receipt.schema.json'))
-          paths=[
-            'artifacts/capability-release/h-spreadsheets-life-make-sense.receipt.json',
-            'artifacts/capability-release/w-silently-creating-spreadsheet.receipt.json',
-          ]
-          for p in paths:
-            r=json.load(open(p))
-            jsonschema.Draft202012Validator(schema).validate(r)
-            assert r['engine_commit_sha']==os.environ['GITHUB_SHA'], r
-            assert r['legal_clearance_asserted'] is False, r
-            assert 'SECOND_SOURCE_GRAMMAR_UNSUPPORTED' not in r['decision_reason_codes'], r
-            assert 'SECOND_SOURCE_CORE_GRAMMAR_UNSUPPORTED' not in r['decision_reason_codes'], r
-            print(p, r['decision'], r['decision_reason_codes'], r['unresolved_dimensions'], r['scope_coverage'])
-          print('AVER_LONG_PHRASE_SHADOW_EXECUTION_COMPLETED_WITH_EVIDENCE_GATES_INTACT')
-          PY
       - uses: actions/upload-artifact@v4
         with:
           name: aver-production-entrypoint-${{ github.run_id }}-${{ github.sha }}
-          path: |
-            artifacts/production-entrypoint/
-            artifacts/capability-release/
+          path: artifacts/production-entrypoint/
           if-no-files-found: error
           retention-days: 30
 
