@@ -34,6 +34,7 @@ def summarize(rec):
         "control_blocked":t.get("control_blocked"),
         "query_visible":t.get("query_visible"),
         "final_url":t.get("final_url"),
+        "single_record_detail":t.get("single_record_detail"),
         "body_excerpt":t.get("body_excerpt") or rec.get("body_excerpt"),
         "visible_inputs":rec.get("visible_inputs"),
     }
@@ -44,7 +45,7 @@ def main():
         "schema":"AVER_SHADOW_USPTO_PROBLEM_QUERY_PROBE",
         "engine_commit_sha":os.getenv("GITHUB_SHA") or os.getenv("AVER_ENGINE_COMMIT_SHA"),
         "candidate":"I'M SILENTLY CREATING A SPREADSHEET FOR THAT",
-        "purpose":"isolate whether the second expanded-partial query itself is operationally pathological on a fresh runner",
+        "purpose":"isolate and bind the official USPTO record behind the W secondary expanded-partial positive result",
         "tm_decision_authorized":False,
         "cases":[],
     }
@@ -57,7 +58,8 @@ def main():
     path.mkdir(parents=True,exist_ok=True)
     (path/"receipt.json").write_text(json.dumps(out,indent=2)+"\n",encoding="utf-8")
     for c in out["cases"]:
-        print("USPTO_PROBLEM_QUERY",c["name"],c["outcome"],c["state"],c["failure_signature"],c["count"],c["final_url"])
+        d=c.get("single_record_detail") or {}
+        print("USPTO_PROBLEM_QUERY",c["name"],c["outcome"],c["state"],c["failure_signature"],c["count"],c["final_url"],d.get("serial_number"),d.get("status"),d.get("class_codes"))
 
 if __name__=="__main__":
     main()
