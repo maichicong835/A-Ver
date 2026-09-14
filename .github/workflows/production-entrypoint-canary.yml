@@ -12,6 +12,7 @@ on:
       - 'spec/request.schema.json'
       - 'spec/receipt.schema.json'
       - 'tests/test_long_phrase_query_surface.py'
+      - 'tests/shadow_probe_uspto_problem_query.py'
       - 'tests/fixtures/capability_release/**'
       - '.github/workflows/production-entrypoint-canary.yml'
   workflow_dispatch:
@@ -122,5 +123,27 @@ jobs:
         with:
           name: aver-shadow-existing-hold-${{ matrix.candidate }}-${{ github.run_id }}-${{ github.sha }}
           path: artifacts/shadow-fresh-runner/
+          if-no-files-found: error
+          retention-days: 30
+
+  shadow-w-expanded-partial-probe:
+    if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Isolate W secondary expanded-partial query on fresh runner
+        run: |
+          mkdir -p artifacts/problem-query
+          PYTHONPATH=src python3 tests/shadow_probe_uspto_problem_query.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aver-shadow-w-expanded-partial-probe-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/problem-query/
           if-no-files-found: error
           retention-days: 30
