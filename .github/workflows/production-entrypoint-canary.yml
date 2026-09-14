@@ -13,6 +13,7 @@ on:
       - 'spec/receipt.schema.json'
       - 'tests/test_long_phrase_query_surface.py'
       - 'tests/shadow_probe_uspto_problem_query.py'
+      - 'tests/shadow_probe_tsdr_w_record.py'
       - 'tests/fixtures/capability_release/**'
       - '.github/workflows/production-entrypoint-canary.yml'
   workflow_dispatch:
@@ -145,5 +146,27 @@ jobs:
         with:
           name: aver-shadow-w-expanded-partial-probe-${{ github.run_id }}-${{ github.sha }}
           path: artifacts/problem-query/
+          if-no-files-found: error
+          retention-days: 30
+
+  shadow-w-tsdr-record-probe:
+    if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Bind W positive record through official TSDR by known serial
+        run: |
+          mkdir -p artifacts/tsdr-w-record
+          PYTHONPATH=src python3 tests/shadow_probe_tsdr_w_record.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aver-shadow-w-tsdr-record-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/tsdr-w-record/
           if-no-files-found: error
           retention-days: 30
