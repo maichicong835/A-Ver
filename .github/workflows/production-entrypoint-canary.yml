@@ -1,7 +1,7 @@
 name: A-Ver Production Entrypoint Canary
 on:
   push:
-    branches: [main]
+    branches: [main, capability-release-long-phrase-shadow-20260914]
     paths:
       - 'src/aver/production_entrypoint.py'
       - 'src/aver/production.py'
