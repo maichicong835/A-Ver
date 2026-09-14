@@ -12,6 +12,7 @@ on:
       - 'spec/request.schema.json'
       - 'spec/receipt.schema.json'
       - 'tests/test_long_phrase_query_surface.py'
+      - 'tests/shadow_probe_uspto_long_phrase.py'
       - 'tests/fixtures/capability_release/**'
       - '.github/workflows/production-entrypoint-canary.yml'
   workflow_dispatch:
@@ -20,7 +21,7 @@ permissions:
 jobs:
   canary:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,6 +77,9 @@ jobs:
           PYTHONPATH=src python3 src/aver/production_entrypoint.py \
             --request tests/fixtures/capability_release/w-silently-creating-spreadsheet.json \
             --output artifacts/capability-release/w-silently-creating-spreadsheet.receipt.json
+      - name: Probe official USPTO long-phrase failure layer
+        if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
+        run: PYTHONPATH=src python3 tests/shadow_probe_uspto_long_phrase.py
       - name: Assert shadow release did not bypass evidence gates
         if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
         run: |
