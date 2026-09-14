@@ -76,11 +76,11 @@ def page_diagnostic(page):
     }
 
 
-def probe(page,query):
-    body=body_text(page)
-    low=body.lower()
-    count=None
+def result_count_from_body(body):
+    """Parse USPTO native result-count surfaces, including auto-opened detail views."""
     patterns=[
+        # USPTO may auto-open the sole result instead of leaving the list view.
+        r"\bResult\s+\d+\s+of\s+([\d,]+)\s+for\b",
         r"([\d,]+)\s+results?\s+for",
         r"([\d,]+)\s+results?\b",
         r"showing\s+[\d,]+(?:\s*[-–]\s*[\d,]+)?\s+of\s+([\d,]+)",
@@ -88,7 +88,14 @@ def probe(page,query):
     for pat in patterns:
         m=re.search(pat,body,re.I)
         if m:
-            count=int(m.group(1).replace(",","")); break
+            return int(m.group(1).replace(",",""))
+    return None
+
+
+def probe(page,query):
+    body=body_text(page)
+    low=body.lower()
+    count=result_count_from_body(body)
     control=any(x in low for x in ("captcha","verify you are human","are you a robot","access denied"))
     native_zero=(count==0) or any(x in low for x in ("no results found","0 results","no trademarks found"))
     positive=(count is not None and count>0)
