@@ -65,10 +65,11 @@ def derive_core_queries(candidate_wording, priority_queue, limit=2):
 def derive_fallback_core_queries(candidate_wording, limit=2):
     """Deterministic clean-path cores when no material record provides overlap.
 
-    We use contiguous 2-3 token n-grams, prefer more non-stopword characters,
-    then more tokens, then earlier position. This is planning only, not a TM
-    conclusion. It prevents a clean zero-result phrase from becoming structurally
-    impossible to evaluate.
+    We use contiguous 2-3 token n-grams, trim weak boundary stopwords, prefer
+    more non-stopword characters, then more strong tokens, then earlier position.
+    This is planning only, not a TM conclusion. Boundary trimming prevents a
+    weak connector word (for example trailing FOR) from broadening an expanded
+    partial query without adding meaningful commercial-impression signal.
     """
     # Drop punctuation-created single-letter alphabetic fragments (e.g. I'M -> I/M)
     # from fallback core construction only; exact/normalized wording stays unchanged.
@@ -79,7 +80,13 @@ def derive_fallback_core_queries(candidate_wording, limit=2):
         if len(toks)<n:
             continue
         for i in range(len(toks)-n+1):
-            gram=toks[i:i+n]
+            gram=list(toks[i:i+n])
+            while len(gram)>1 and gram[0] in STOPWORDS:
+                gram=gram[1:]
+            while len(gram)>1 and gram[-1] in STOPWORDS:
+                gram=gram[:-1]
+            if len(gram)<2:
+                continue
             q=" ".join(gram)
             if q in seen:
                 continue
@@ -90,7 +97,7 @@ def derive_fallback_core_queries(candidate_wording, limit=2):
                 continue
             rows.append({
                 "query":q,
-                "token_count":n,
+                "token_count":len(gram),
                 "strong_token_count":strong_tokens,
                 "strong_character_count":strong_chars,
                 "source":"DETERMINISTIC_CLEAN_PATH_NGRAM",
