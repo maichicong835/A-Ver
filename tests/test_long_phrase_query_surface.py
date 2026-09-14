@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from aver.production import grammar_ok
 from aver.query_plan import STOPWORDS, build_query_plan
+from aver.uspto_fieldtag_direct_canary import result_count_from_body
 
 PHRASES=[
     "MAYBE WITH ENOUGH SPREADSHEETS LIFE WILL MAKE SENSE",
@@ -24,4 +25,10 @@ assert all(" M " not in f" {core} " for core in silent_cores), silent_cores
 assert "SILENTLY CREATING SPREADSHEET" in silent_cores, silent_cores
 assert "CREATING SPREADSHEET" in silent_cores, silent_cores
 assert all(not core.endswith(" FOR") for core in silent_cores), silent_cores
+
+# USPTO may auto-open a sole positive result. That page must never be mistaken
+# for transport/semantic failure merely because the list-view count is absent.
+detail="Result 1 of 1 for CM:(/.*creating.*/ AND /.*spreadsheet.*/) Search result details"
+assert result_count_from_body(detail)==1, detail
+assert result_count_from_body("No results found") is None
 print("AVER_LONG_PHRASE_BOUNDED_CORE_CONTRACT_PASS")
