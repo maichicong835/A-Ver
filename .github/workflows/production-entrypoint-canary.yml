@@ -114,3 +114,55 @@ jobs:
             artifacts/capability-release/
           if-no-files-found: error
           retention-days: 30
+
+  shadow-existing-hold-fresh-runner:
+    if: github.ref_name == 'capability-release-long-phrase-shadow-20260914'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - candidate: h-spreadsheets-life-make-sense
+            request: tests/fixtures/capability_release/h-spreadsheets-life-make-sense.json
+          - candidate: w-silently-creating-spreadsheet
+            request: tests/fixtures/capability_release/w-silently-creating-spreadsheet.json
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Execute exactly one existing HOLD on a fresh runner
+        env:
+          AVER_ENGINE_COMMIT_SHA: ${{ github.sha }}
+          CANDIDATE: ${{ matrix.candidate }}
+          REQUEST: ${{ matrix.request }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/shadow-fresh-runner
+          PYTHONPATH=src python3 src/aver/production_entrypoint.py \
+            --request "$REQUEST" \
+            --output "artifacts/shadow-fresh-runner/${CANDIDATE}.receipt.json"
+      - name: Validate exact shadow receipt without weakening decision policy
+        env:
+          CANDIDATE: ${{ matrix.candidate }}
+        run: |
+          python3 - <<'PY'
+          import json, jsonschema, os
+          path=f"artifacts/shadow-fresh-runner/{os.environ['CANDIDATE']}.receipt.json"
+          r=json.load(open(path)); schema=json.load(open('spec/receipt.schema.json'))
+          jsonschema.Draft202012Validator(schema).validate(r)
+          assert r['engine_commit_sha']==os.environ['GITHUB_SHA'], r
+          assert r['legal_clearance_asserted'] is False, r
+          assert 'SECOND_SOURCE_GRAMMAR_UNSUPPORTED' not in r['decision_reason_codes'], r
+          assert 'SECOND_SOURCE_CORE_GRAMMAR_UNSUPPORTED' not in r['decision_reason_codes'], r
+          print('SHADOW_EXISTING_HOLD_FRESH_RUNNER',os.environ['CANDIDATE'],r['decision'],r['decision_reason_codes'],r['unresolved_dimensions'],r['scope_coverage'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aver-shadow-existing-hold-${{ matrix.candidate }}-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/shadow-fresh-runner/
+          if-no-files-found: error
+          retention-days: 30
