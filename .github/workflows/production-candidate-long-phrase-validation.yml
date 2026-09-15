@@ -16,6 +16,7 @@ jobs:
           ref: d0b9e9825b8220437bf3c3b095b987d31d124957
           persist-credentials: false
           fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
       - name: Run minimal deterministic contracts
         run: PYTHONPATH=src python3 tests/test_long_phrase_release_minimal.py
 
