@@ -24,7 +24,7 @@ def main():
         wording=req['wording'].strip()
         plan=build_query_plan(wording,[])
         cores=list(plan['CORE_DOMINANT_TOKEN'].get('queries') or [])
-        if not grammar_ok(wording) or not cores or not all(grammar_ok(c) for c in cores):
+        if not cores or not all(grammar_ok(c) for c in cores):
             out=hold(req,head(),['SECOND_SOURCE_GRAMMAR_UNSUPPORTED'],['SECOND_SCOPE_QUALIFIED_NEGATIVE_SOURCE'])
         else:
             out=evaluate(req,rs,oschema)
