@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from aver.positive_recall import classify_expanded_partial_recall
-from aver.query_plan import derive_fallback_core_queries
+from aver.query_plan import STOPWORDS, derive_fallback_core_queries
 
 
 def test_contraction_safe_cores():
@@ -9,6 +9,7 @@ def test_contraction_safe_cores():
     assert cores
     assert all(" M " not in f" {x} " and not x.startswith("M ") for x in cores), cores
     assert all(2 <= len(x.split()) <= 3 for x in cores), cores
+    assert all(x.split()[0] not in STOPWORDS and x.split()[-1] not in STOPWORDS for x in cores), cores
 
 
 def test_long_phrase_has_bounded_cores():
@@ -16,6 +17,7 @@ def test_long_phrase_has_bounded_cores():
     cores=[x["query"] for x in rows]
     assert len(cores)==2, cores
     assert all(2 <= len(x.split()) <= 3 for x in cores), cores
+    assert all(x.split()[0] not in STOPWORDS and x.split()[-1] not in STOPWORDS for x in cores), cores
 
 
 def test_dead_unrelated_partial_is_narrowly_nonmaterial():
