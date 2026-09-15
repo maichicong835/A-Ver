@@ -1,0 +1,63 @@
+name: A-Ver Long Phrase Production Candidate Validation
+on:
+  push:
+    branches: [production-candidate-long-phrase-minimal-20260915]
+    paths:
+      - '.github/workflows/production-candidate-long-phrase-validation.yml'
+permissions:
+  contents: read
+jobs:
+  validate-exact-candidate-pin:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cbbc878be6f1c2a4c138bef4e6c41e18fdb5f15a
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Run minimal deterministic contracts
+        run: PYTHONPATH=src python3 tests/test_long_phrase_release_minimal.py
+      - name: Build bounded real-HOLD requests
+        run: |
+          mkdir -p artifacts/production-candidate
+          python3 - <<'PY'
+          import json
+          dims=['EXACT','NORMALIZED_EXACT','CORE_DOMINANT_TOKEN','EXPANDED_PARTIAL','PHONETIC_OR_SPELLING_WHEN_MATERIAL','RELATED_GOODS_REVIEW']
+          def req(i,w):
+            return {'schema':'AVER_TM_REQUEST','schema_version':'1.0','request_id':i,'wording':w,'intended_goods_context':{'primary_class':'016','description':'decorative adhesive stickers','channels':['online marketplace'],'purchasers':['US consumers']},'requested_scope':{'country':'US','federal_registry':True,'related_goods_review':True,'query_dimensions':dims},'caller':{'system':'PRODUCTION_CANDIDATE_VALIDATION','reference':'2026-09-14-1003-live-verification-fresh'}}
+          json.dump(req('h-spreadsheets-life-make-sense','MAYBE WITH ENOUGH SPREADSHEETS LIFE WILL MAKE SENSE'),open('artifacts/production-candidate/h.json','w'),indent=2)
+          json.dump(req('w-silently-creating-spreadsheet',"I'M SILENTLY CREATING A SPREADSHEET FOR THAT"),open('artifacts/production-candidate/w.json','w'),indent=2)
+          PY
+      - name: Execute exact production candidate pin on two existing HOLDs
+        env:
+          AVER_ENGINE_COMMIT_SHA: cbbc878be6f1c2a4c138bef4e6c41e18fdb5f15a
+        run: |
+          PYTHONPATH=src python3 src/aver/production_entrypoint.py --request artifacts/production-candidate/h.json --output artifacts/production-candidate/h.receipt.json
+          PYTHONPATH=src python3 src/aver/production_entrypoint.py --request artifacts/production-candidate/w.json --output artifacts/production-candidate/w.receipt.json
+      - name: Assert no safety-threshold weakening
+        run: |
+          python3 - <<'PY'
+          import json, jsonschema
+          schema=json.load(open('spec/receipt.schema.json'))
+          h=json.load(open('artifacts/production-candidate/h.receipt.json'))
+          w=json.load(open('artifacts/production-candidate/w.receipt.json'))
+          for r in (h,w):
+            jsonschema.Draft202012Validator(schema).validate(r)
+            assert r['engine_commit_sha']=='cbbc878be6f1c2a4c138bef4e6c41e18fdb5f15a', r
+            assert r['decision']=='TM_PASS', r
+            assert r['unresolved_dimensions']==[], r
+            assert r['scope_coverage']['scope_qualified_negative_evidence_distinct_sources']>=2, r
+            assert r['legal_clearance_asserted'] is False, r
+            assert 'SECOND_SOURCE_GRAMMAR_UNSUPPORTED' not in r['decision_reason_codes'], r
+          assert 'NONMATERIAL_DEAD_UNRELATED_EXPANDED_PARTIAL_RECALL_BOUND' in w['decision_reason_codes'], w
+          print('EXACT_PRODUCTION_CANDIDATE_PIN_VALIDATION_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aver-long-phrase-production-candidate-${{ github.run_id }}-cbbc878be6f1c2a4c138bef4e6c41e18fdb5f15a
+          path: artifacts/production-candidate/
+          if-no-files-found: error
+          retention-days: 30
