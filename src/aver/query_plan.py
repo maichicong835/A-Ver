@@ -70,7 +70,7 @@ def derive_fallback_core_queries(candidate_wording, limit=2):
     conclusion. It prevents a clean zero-result phrase from becoming structurally
     impossible to evaluate.
     """
-    toks=[t.upper() for t in _tokens(candidate_wording)]
+    toks=[t.upper() for t in _tokens(candidate_wording) if len(t)>1 or t.isdigit()]
     rows=[]
     seen=set()
     for n in (3,2):
