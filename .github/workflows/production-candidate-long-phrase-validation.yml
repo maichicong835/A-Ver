@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: cbbc878be6f1c2a4c138bef4e6c41e18fdb5f15a
+          ref: 02abc6a0c7d6e4dc5f68cf1f60699f5d3ebb823e
           persist-credentials: false
           fetch-depth: 1
       - name: Run minimal deterministic contracts
@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: cbbc878be6f1c2a4c138bef4e6c41e18fdb5f15a
+          ref: 02abc6a0c7d6e4dc5f68cf1f60699f5d3ebb823e
           persist-credentials: false
           fetch-depth: 1
       - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
@@ -54,7 +54,7 @@ jobs:
           PY
       - name: Execute exact production candidate pin on one existing HOLD
         env:
-          AVER_ENGINE_COMMIT_SHA: cbbc878be6f1c2a4c138bef4e6c41e18fdb5f15a
+          AVER_ENGINE_COMMIT_SHA: 02abc6a0c7d6e4dc5f68cf1f60699f5d3ebb823e
         run: PYTHONPATH=src python3 src/aver/production_entrypoint.py --request artifacts/production-candidate/request.json --output artifacts/production-candidate/receipt.json
       - name: Assert no safety-threshold weakening
         env:
@@ -65,7 +65,7 @@ jobs:
           schema=json.load(open('spec/receipt.schema.json'))
           r=json.load(open('artifacts/production-candidate/receipt.json'))
           jsonschema.Draft202012Validator(schema).validate(r)
-          assert r['engine_commit_sha']=='cbbc878be6f1c2a4c138bef4e6c41e18fdb5f15a', r
+          assert r['engine_commit_sha']=='02abc6a0c7d6e4dc5f68cf1f60699f5d3ebb823e', r
           assert r['decision']=='TM_PASS', r
           assert r['unresolved_dimensions']==[], r
           assert r['scope_coverage']['scope_qualified_negative_evidence_distinct_sources']>=2, r
@@ -77,7 +77,7 @@ jobs:
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: aver-long-phrase-${{ matrix.candidate }}-${{ github.run_id }}-cbbc878be6f1c2a4c138bef4e6c41e18fdb5f15a
+          name: aver-long-phrase-${{ matrix.candidate }}-${{ github.run_id }}-02abc6a0c7d6e4dc5f68cf1f60699f5d3ebb823e
           path: artifacts/production-candidate/
           if-no-files-found: error
           retention-days: 30
