@@ -1,0 +1,117 @@
+name: A-Ver HOLD Calibration Class016 Shadow
+on:
+  push:
+    branches: [hold-calibration-class016-shadow-20260918]
+    paths:
+      - 'src/aver/production.py'
+      - 'tests/test_hold_calibration_class016.py'
+      - '.github/workflows/hold-calibration-class016-shadow.yml'
+permissions:
+  contents: read
+
+jobs:
+  deterministic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: PYTHONPATH=src python3 tests/test_hold_calibration_class016.py
+
+  real-existing-holds:
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [anxiety, ama]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Build exact prior Daily7 request
+        run: |
+          mkdir -p artifacts/hold-calibration
+          if [ "${{ matrix.case }}" = "anxiety" ]; then
+            cat > artifacts/hold-calibration/request.json <<'JSON'
+          {
+            "schema":"AVER_TM_REQUEST",
+            "schema_version":"1.0",
+            "request_id":"daily7-2026-09-15-2149-anxiety-is-my-cardio",
+            "wording":"ANXIETY IS MY CARDIO",
+            "intended_goods_context":{
+              "primary_class":"016",
+              "description":"Decorative vinyl stickers and decals for laptops, notebooks, phones, tablets, mirrors, water bottles, tumblers, planners, and journals.",
+              "channels":["Amazon US","Etsy US","online sticker marketplaces"],
+              "purchasers":["US consumers buying humorous decorative stickers and decals"]
+            },
+            "requested_scope":{
+              "country":"US",
+              "federal_registry":true,
+              "related_goods_review":true,
+              "query_dimensions":["EXACT","NORMALIZED_EXACT","CORE_DOMINANT_TOKEN","EXPANDED_PARTIAL","PHONETIC_OR_SPELLING_WHEN_MATERIAL","RELATED_GOODS_REVIEW"]
+            },
+            "caller":{"system":"Amazon-Daily7Source","reference":"shadow replay of immutable 2026-09-15-2149 anxiety request"}
+          }
+          JSON
+          else
+            cat > artifacts/hold-calibration/request.json <<'JSON'
+          {
+            "schema":"AVER_TM_REQUEST",
+            "schema_version":"1.0",
+            "request_id":"daily7.20260915.2149.you-cant-leave-ama.corrected",
+            "wording":"FOR THE LAST TIME, YOU CAN'T LEAVE AMA YOU WORK HERE",
+            "intended_goods_context":{
+              "primary_class":"016",
+              "coordinated_classes":["025"],
+              "description":"Printed vinyl stickers and decals carrying healthcare workplace humor for personal decoration of laptops, water bottles, notebooks and similar surfaces.",
+              "channels":["Amazon US","Etsy US","online sticker marketplaces"],
+              "purchasers":["nurses","nursing students","healthcare workers","healthcare gift buyers"]
+            },
+            "requested_scope":{
+              "country":"US",
+              "federal_registry":true,
+              "related_goods_review":true,
+              "query_dimensions":["EXACT","NORMALIZED_EXACT","CORE_DOMINANT_TOKEN","EXPANDED_PARTIAL","PHONETIC_OR_SPELLING_WHEN_MATERIAL","RELATED_GOODS_REVIEW"]
+            },
+            "caller":{"system":"Amazon-Daily7Source","reference":"shadow replay of immutable corrected AMA request"}
+          }
+          JSON
+          fi
+      - name: Execute shadow production entrypoint
+        env:
+          AVER_ENGINE_COMMIT_SHA: ${{ github.sha }}
+        run: |
+          PYTHONPATH=src python3 src/aver/production_entrypoint.py             --request artifacts/hold-calibration/request.json             --output artifacts/hold-calibration/receipt.json
+      - name: Assert anti-false-positive HOLD semantics
+        run: |
+          python3 - <<'PY'
+          import json
+          r=json.load(open('artifacts/hold-calibration/receipt.json'))
+          ev=r.get('resolver_evidence') or []
+          active16=[e for e in ev if e.get('resolver')=='USPTO_OFFICIAL_LIVE_IC016_FILTER' and e.get('evidence_polarity')=='POSITIVE']
+          if r['decision']=='TM_HOLD' and 'MATERIAL_POSITIVE_RECORD_BINDING_INCOMPLETE' in r.get('decision_reason_codes',[]):
+              assert active16, 'material-positive HOLD is forbidden without a positive LIVE IC:016 official scope'
+          if r['decision']=='TM_PASS':
+              assert not active16, 'TM_PASS forbidden when a LIVE IC:016 positive scope exists'
+              assert r['scope_coverage']['scope_qualified_negative_evidence_distinct_sources'] >= 2
+              assert r['unresolved_dimensions']==[]
+              assert r['legal_clearance_asserted'] is False
+          print(json.dumps({
+              'decision':r['decision'],
+              'reasons':r.get('decision_reason_codes'),
+              'unresolved':r.get('unresolved_dimensions'),
+              'active_class016_positive_scopes':len(active16)
+          },indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hold-calibration-${{ matrix.case }}-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/hold-calibration/
+          if-no-files-found: error
+          retention-days: 30
