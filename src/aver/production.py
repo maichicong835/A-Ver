@@ -4,7 +4,12 @@ from pathlib import Path
 import jsonschema
 from playwright.sync_api import sync_playwright
 from aver.decision import evaluate_tm_state
-from aver.positive_recall import classify_expanded_partial_recall
+from aver.positive_recall import (
+    NONMATERIAL_DEAD_UNRELATED_EXPANDED_PARTIAL_RECALL,
+    UNBOUND_POSITIVE_RESULTSET,
+    classify_expanded_partial_recall,
+    positive_review_bucket,
+)
 from aver.query_plan import REQUIRED_DIMENSIONS, build_query_plan, normalize_wording
 from aver.resolvers import TrademarkiaResolver
 from aver.tsdr_targeted_canary import run_case as tsdr_case
@@ -12,7 +17,7 @@ from aver.uspto_fieldtag_direct_canary import run_case as usp_case
 
 ENGINE_VERSION="0.1.0"
 GRAMMAR=re.compile(r"^[A-Za-z0-9]+(?:[ -][A-Za-z0-9]+){1,2}[,.!?]?$",re.ASCII)
-NONMATERIAL_PARTIAL="NONMATERIAL_DEAD_UNRELATED_EXPANDED_PARTIAL_RECALL"
+NONMATERIAL_PARTIAL=NONMATERIAL_DEAD_UNRELATED_EXPANDED_PARTIAL_RECALL
 
 def jhash(v): return hashlib.sha256(json.dumps(v,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
 def head():
@@ -37,7 +42,8 @@ def tm(resolver,s):
 
 def review_official_positive(browser,req,dimension,record,shared_component):
  detail=record.get("single_record_detail") or {}; serial=detail.get("serial_number"); mark=(detail.get("mark_text") or "").strip()
- if not serial or not mark: return {"classification":"MATERIALITY_UNRESOLVED","record_binding_complete":False,"reason":"USPTO_POSITIVE_RESULT_RECORD_DETAIL_NOT_BOUND","legal_clearance_asserted":False}
+ if not serial or not mark:
+  return {"classification":UNBOUND_POSITIVE_RESULTSET,"record_binding_complete":False,"reason":"USPTO_POSITIVE_RESULTSET_RECORD_DETAIL_NOT_BOUND","candidate_risk_inference":False,"legal_clearance_asserted":False}
  tsdr=tsdr_case(browser,{"candidate_key":req.get("request_id","candidate"),"serial":serial,"mark":mark,"shared_component":shared_component or mark})
  review=classify_expanded_partial_recall(req,detail,tsdr.get("body_excerpt") or "",dimension)
  review["record_binding_complete"]=bool(review.get("record_binding_complete") and tsdr.get("state")=="PASS" and tsdr.get("serial_seen") is True and tsdr.get("mark_seen") is True)
@@ -85,31 +91,41 @@ def evaluate(req,rschema,oschema):
   for c in cores:
    t=tm(tr,c); add("TRADEMARKIA_QUOTED_LITERAL","CORE_DOMINANT_TOKEN",t); tm_qualified &= t["polarity"]=="NEGATIVE" and t["bound"]
   browser.close()
- material_positive=[]; all_positive_bound=True; material_records=[]; nonmaterial_partial_count=0
+ material_positive=[]; unbound_positive=[]; material_records=[]; material_record_ids=set(); nonmaterial_partial_count=0
  for resolver,dim,r in positive_entries:
-  review=r.get("positive_review") or {}; bound=bool(review.get("record_binding_complete")); all_positive_bound &= bound
-  if review.get("classification")==NONMATERIAL_PARTIAL and bound: nonmaterial_partial_count += 1
-  else: material_positive.append((resolver,dim,r))
+  review=r.get("positive_review") or {}; bucket=positive_review_bucket(review)
+  if bucket=="NONMATERIAL_BOUND":
+   nonmaterial_partial_count += 1
+  elif bucket=="UNBOUND_RESULTSET":
+   unbound_positive.append((resolver,dim,r))
+  else:
+   material_positive.append((resolver,dim,r))
   detail=r.get("single_record_detail") or {}
   if detail.get("serial_number") and detail.get("mark_text"):
    status=(review.get("tsdr_status") or {}).get("state") or "POSITIVE_RECALL_STATUS_UNRESOLVED"
    if review.get("classification")==NONMATERIAL_PARTIAL: status="DEAD_INACTIVE_NONMATERIAL_EXPANDED_PARTIAL_RECALL"
-   classes=",".join(detail.get("class_codes") or []) or "UNRESOLVED"; goods=(detail.get("goods_services_excerpt") or "UNRESOLVED").strip()
-   material_records.append({"mark_text":detail["mark_text"][:300],"status":status[:120],"identifier":str(detail["serial_number"])[:120],"class_or_goods_services_context":f"classes={classes}; goods={goods}"[:1200]})
+   classes=",".join(detail.get("class_codes") or []) or "UNRESOLVED"; goods=(detail.get("goods_services_excerpt") or "UNRESOLVED").strip(); identifier=str(detail["serial_number"])
+   if identifier not in material_record_ids:
+    material_record_ids.add(identifier)
+    material_records.append({"mark_text":detail["mark_text"][:300],"status":status[:120],"identifier":identifier[:120],"class_or_goods_services_context":f"classes={classes}; goods={goods}"[:1200]})
  material_positive_present=bool(material_positive)
- dims["RELATED_GOODS_REVIEW"]=all(dims[d] for d in REQUIRED_DIMENSIONS if d!="RELATED_GOODS_REVIEW") and not material_positive_present
+ all_material_positive_bound=all(bool((r.get("positive_review") or {}).get("record_binding_complete")) for _,_,r in material_positive) if material_positive else True
+ dims["RELATED_GOODS_REVIEW"]=all(dims[d] for d in REQUIRED_DIMENSIONS if d!="RELATED_GOODS_REVIEW") and not material_positive_present and not unbound_positive
  unresolved=[d for d,v in dims.items() if not v]
  if material_positive_present: unresolved += ["MATERIAL_RECORD_BINDING_AND_RELATEDNESS_REVIEW"]
- if not tm_qualified and not material_positive_present: unresolved += ["SECOND_SCOPE_QUALIFIED_NEGATIVE_SOURCE"]
- unresolved=list(dict.fromkeys(unresolved)); complete=all(dims.values()) and not material_positive_present
+ if unbound_positive: unresolved += ["POSITIVE_RESULTSET_RECORD_BINDING_REQUIRED"]
+ if not tm_qualified and not material_positive_present and not unbound_positive: unresolved += ["SECOND_SCOPE_QUALIFIED_NEGATIVE_SOURCE"]
+ unresolved=list(dict.fromkeys(unresolved)); complete=all(dims.values()) and not material_positive_present and not unbound_positive
  qsources=2 if complete and tm_qualified else 1 if complete else 0
- decision=evaluate_tm_state({"material_positive_record_present":material_positive_present,"record_binding_complete":all_positive_bound if material_positive_present else True,"similarity_assessment":"CLEAR" if complete else "UNRESOLVED","goods_relatedness_assessment":"CLEAR" if complete else "UNRESOLVED","required_query_dimensions_complete":complete,"resolver_scope_complete":complete,"unresolved_dimensions":unresolved,"negative_evidence_distinct_sources":2,"scope_qualified_negative_evidence_distinct_sources":qsources,"transport_blocked":unresolved_transport,"control_blocked":False,"source_discordance":False})
+ decision=evaluate_tm_state({"material_positive_record_present":material_positive_present,"record_binding_complete":all_material_positive_bound,"similarity_assessment":"CLEAR" if complete else "UNRESOLVED","goods_relatedness_assessment":"CLEAR" if complete else "UNRESOLVED","required_query_dimensions_complete":complete,"resolver_scope_complete":complete,"unresolved_dimensions":unresolved,"negative_evidence_distinct_sources":2,"scope_qualified_negative_evidence_distinct_sources":qsources,"transport_blocked":unresolved_transport,"control_blocked":False,"source_discordance":False})
  reason_codes=list(decision["decision_reason_codes"])
+ if unbound_positive: reason_codes.append("POSITIVE_RESULTSET_RECORD_BINDING_REQUIRED")
  if nonmaterial_partial_count: reason_codes.append("NONMATERIAL_DEAD_UNRELATED_EXPANDED_PARTIAL_RECALL_BOUND")
  reason_codes=list(dict.fromkeys(reason_codes)); ev=[]; hashes=[]
  for resolver,dim,r in rows:
   h=jhash({"resolver":resolver,"dimension":dim,"record":r}); hashes.append(h); state=r.get("state") or r.get("terminal") or "OBSERVED"; review=r.get("positive_review") or {}
   if review.get("classification")==NONMATERIAL_PARTIAL: state="BOUND_NONMATERIAL_DEAD_UNRELATED_PARTIAL_RECALL"
+  elif review.get("classification")==UNBOUND_POSITIVE_RESULTSET: state="UNBOUND_POSITIVE_RESULTSET"
   ev.append({"resolver":resolver,"scope":f"{dim}:{r['query']}"[:240],"state":state[:120],"evidence_polarity":r["polarity"],"evidence_hash":h})
  out={"schema":"AVER_TM_RECEIPT","schema_version":"1.0","engine_version":ENGINE_VERSION,"engine_commit_sha":sha,"request_id":req["request_id"],"request_sha256":jhash(req),"decision":decision["decision"],"confidence_label":decision["confidence_label"],"legal_clearance_asserted":False,"decision_reason_codes":reason_codes,"query_plan":[{"dimension":d,"state":"RESOLVED" if dims[d] else "UNRESOLVED","resolver":"USPTO_OFFICIAL_DIRECT_FIELDTAG" if d!="RELATED_GOODS_REVIEW" else "A_VER_BOUND_RESULTSET_REVIEW"} for d in REQUIRED_DIMENSIONS],"resolver_evidence":ev,"material_records":material_records,"unresolved_dimensions":unresolved,"scope_coverage":{"required_query_dimensions_complete":complete,"resolver_scope_complete":complete,"negative_evidence_distinct_sources":2,"scope_qualified_negative_evidence_distinct_sources":qsources},"similarity_analysis":"CLEAR" if complete else "UNRESOLVED","goods_relatedness":"CLEAR" if complete else "UNRESOLVED","evidence_hashes":list(dict.fromkeys(hashes))}
  jsonschema.Draft202012Validator(oschema).validate(out); return out
