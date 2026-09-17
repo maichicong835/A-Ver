@@ -115,3 +115,45 @@ jobs:
           path: artifacts/hold-calibration/
           if-no-files-found: error
           retention-days: 30
+
+  anxiety-materiality-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Probe only the decision-sensitive LIVE IC016 scopes
+        env:
+          PYTHONPATH: src
+        run: |
+          mkdir -p artifacts/anxiety-materiality
+          python3 - <<'PY'
+          import json
+          from playwright.sync_api import sync_playwright
+          from aver.uspto_fieldtag_direct_canary import run_case
+          cases=[
+            {"name":"EXACT_CORE_MY_CARDIO_LIVE_016","query":"CM:\"MY CARDIO\" AND LD:true AND IC:016","expected":"ZERO"},
+            {"name":"EXPANDED_MY_CARDIO_LIVE_016","query":"CM:(/.*my.*/ AND /.*cardio.*/) AND LD:true AND IC:016","expected":"POSITIVE"},
+            {"name":"DISTINCTIVE_ANXIETY_CARDIO_LIVE_016","query":"CM:(/.*anxiety.*/ AND /.*cardio.*/) AND LD:true AND IC:016","expected":"ZERO"}
+          ]
+          out=[]
+          with sync_playwright() as p:
+              b=p.chromium.launch(headless=True)
+              for case in cases:
+                  out.append(run_case(b,case))
+              b.close()
+          json.dump(out,open('artifacts/anxiety-materiality/probe.json','w'),indent=2)
+          for r in out:
+              t=r.get('terminal') or {}
+              print(r['name'],r['state'],r.get('failure_signature'),'count=',t.get('count'),'detail=',t.get('single_record_detail'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anxiety-materiality-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/anxiety-materiality/
+          if-no-files-found: error
+          retention-days: 30
