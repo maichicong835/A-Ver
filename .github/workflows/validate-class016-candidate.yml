@@ -1,0 +1,122 @@
+name: Validate Class016 Production Candidate
+on:
+  push:
+    branches: [validate-class016-candidate-20260918]
+    paths:
+      - '.github/workflows/validate-class016-candidate.yml'
+permissions:
+  contents: read
+
+env:
+  CANDIDATE_SHA: 123df35981d93c90753383fe8c01c9fc3b21dc24
+
+jobs:
+  deterministic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CANDIDATE_SHA }}
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: PYTHONPATH=src python3 tests/test_hold_calibration_class016.py
+      - run: PYTHONPATH=src python3 tests/test_long_phrase_release_minimal.py
+      - run: PYTHONPATH=src python3 tests/test_scope_semantics.py
+
+  real-cases:
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [anxiety, ama]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CANDIDATE_SHA }}
+          persist-credentials: false
+          fetch-depth: 1
+      - run: test "$(git rev-parse HEAD)" = "${{ env.CANDIDATE_SHA }}"
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Build exact immutable Daily7 request
+        run: |
+          mkdir -p artifacts/class016-candidate
+          if [ "${{ matrix.case }}" = "anxiety" ]; then
+            cat > artifacts/class016-candidate/request.json <<'JSON'
+          {
+            "schema":"AVER_TM_REQUEST","schema_version":"1.0",
+            "request_id":"daily7-2026-09-15-2149-anxiety-is-my-cardio",
+            "wording":"ANXIETY IS MY CARDIO",
+            "intended_goods_context":{
+              "primary_class":"016",
+              "description":"Decorative vinyl stickers and decals for laptops, notebooks, phones, tablets, mirrors, water bottles, tumblers, planners, and journals.",
+              "channels":["Amazon US","Etsy US","online sticker marketplaces"],
+              "purchasers":["US consumers buying humorous decorative stickers and decals"]
+            },
+            "requested_scope":{
+              "country":"US","federal_registry":true,"related_goods_review":true,
+              "query_dimensions":["EXACT","NORMALIZED_EXACT","CORE_DOMINANT_TOKEN","EXPANDED_PARTIAL","PHONETIC_OR_SPELLING_WHEN_MATERIAL","RELATED_GOODS_REVIEW"]
+            },
+            "caller":{"system":"Amazon-Daily7Source","reference":"exact immutable Anxiety request replay for production-candidate validation"}
+          }
+          JSON
+          else
+            cat > artifacts/class016-candidate/request.json <<'JSON'
+          {
+            "schema":"AVER_TM_REQUEST","schema_version":"1.0",
+            "request_id":"daily7.20260915.2149.you-cant-leave-ama.corrected",
+            "wording":"FOR THE LAST TIME, YOU CAN'T LEAVE AMA YOU WORK HERE",
+            "intended_goods_context":{
+              "primary_class":"016","coordinated_classes":["025"],
+              "description":"Printed vinyl stickers and decals carrying healthcare workplace humor for personal decoration of laptops, water bottles, notebooks and similar surfaces.",
+              "channels":["Amazon US","Etsy US","online sticker marketplaces"],
+              "purchasers":["nurses","nursing students","healthcare workers","healthcare gift buyers"]
+            },
+            "requested_scope":{
+              "country":"US","federal_registry":true,"related_goods_review":true,
+              "query_dimensions":["EXACT","NORMALIZED_EXACT","CORE_DOMINANT_TOKEN","EXPANDED_PARTIAL","PHONETIC_OR_SPELLING_WHEN_MATERIAL","RELATED_GOODS_REVIEW"]
+            },
+            "caller":{"system":"Amazon-Daily7Source","reference":"exact immutable corrected AMA request replay for production-candidate validation"}
+          }
+          JSON
+          fi
+      - name: Execute exact candidate production entrypoint
+        env:
+          AVER_ENGINE_COMMIT_SHA: ${{ env.CANDIDATE_SHA }}
+        run: |
+          PYTHONPATH=src python3 src/aver/production_entrypoint.py             --request artifacts/class016-candidate/request.json             --output artifacts/class016-candidate/receipt.json
+      - name: Assert calibrated safety semantics
+        run: |
+          python3 - <<'PY'
+          import json, os
+          r=json.load(open('artifacts/class016-candidate/receipt.json'))
+          assert r['engine_commit_sha']==os.environ['CANDIDATE_SHA'], r['engine_commit_sha']
+          if os.environ['CASE']=='anxiety':
+              assert r['decision']=='TM_PASS', r
+              assert r['unresolved_dimensions']==[], r
+              assert r['scope_coverage']['scope_qualified_negative_evidence_distinct_sources']>=2, r
+              assert 'NO_ACTIVE_CLASS_016_IN_POSITIVE_SCOPE' in r['decision_reason_codes'], r
+              assert 'NO_DISTINCTIVE_LIVE_CLASS_016_IN_EXPANDED_SCOPE' in r['decision_reason_codes'], r
+              assert r['legal_clearance_asserted'] is False
+          else:
+              assert r['decision']=='TM_HOLD', r
+              assert any(m.get('status')=='LIVE_ACTIVE' and 'IC 016:' in m.get('class_or_goods_services_context','') for m in r.get('material_records',[])), r
+              assert r['legal_clearance_asserted'] is False
+          print(json.dumps({
+              'case':os.environ['CASE'],
+              'decision':r['decision'],
+              'reasons':r['decision_reason_codes'],
+              'unresolved':r['unresolved_dimensions'],
+              'material_records':r.get('material_records',[])
+          },indent=2))
+          PY
+        env:
+          CASE: ${{ matrix.case }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: class016-candidate-${{ matrix.case }}-${{ github.run_id }}-${{ env.CANDIDATE_SHA }}
+          path: artifacts/class016-candidate/
+          if-no-files-found: error
+          retention-days: 30
