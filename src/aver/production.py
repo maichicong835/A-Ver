@@ -17,6 +17,19 @@ NO_ACTIVE_CLASS016="NONMATERIAL_NO_ACTIVE_CLASS_016"
 ACTIVE_CLASS016="ACTIVE_CLASS_016_POSITIVE_SCOPE"
 
 def live_class016_query(q): return f"{q} AND LD:true AND IC:016"
+COMMON_LOW_SIGNAL={"this","that","with","from","your","have","will","just","into","work","here","last","time"}
+def distinctive_tokens(value):
+ toks=re.findall(r"[a-z0-9]+",(value or "").lower())
+ ranked=[(i,t) for i,t in enumerate(toks) if len(t)>=4 and t not in COMMON_LOW_SIGNAL]
+ ranked=sorted(ranked,key=lambda x:(-len(x[1]),x[0]))
+ out=[]
+ for _,t in ranked:
+  if t not in out: out.append(t)
+ return out
+def distinctive_live_class016_query(value):
+ toks=distinctive_tokens(value)[:2]
+ if len(toks)<2: return None
+ return "CM:("+ " AND ".join(f"/.*{re.escape(t)}.*/" for t in toks) + ") AND LD:true AND IC:016"
 
 def jhash(v): return hashlib.sha256(json.dumps(v,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
 def head():
@@ -89,6 +102,16 @@ def evaluate(req,rschema,oschema):
     add("USPTO_OFFICIAL_LIVE_IC016_FILTER",dim,r16,track_positive=False)
     r["positive_review"]={"classification":"ACTIVE_CLASS_016_FILTER_UNRESOLVED","record_binding_complete":False,"reason":"OFFICIAL_LIVE_IC016_FILTER_UNRESOLVED","federal_scope_only":True,"common_law_clearance_asserted":False,"legal_clearance_asserted":False}
     return False
+   if dim=="EXPANDED_PARTIAL":
+    dq=distinctive_live_class016_query(wording)
+    if dq:
+     rd=usp(browser,dq)
+     add("USPTO_OFFICIAL_DISTINCTIVE_LIVE_IC016_FILTER",dim,rd,track_positive=False)
+     if rd["polarity"]=="NEGATIVE":
+      r["positive_review"]={"classification":"NONMATERIAL_EXPANDED_PARTIAL_NO_DISTINCTIVE_LIVE_CLASS_016","record_binding_complete":True,"reason":"DISTINCTIVE_CANDIDATE_LIVE_IC016_FILTER_ZERO","federal_scope_only":True,"common_law_clearance_asserted":False,"legal_clearance_asserted":False}
+      return True
+     if rd["polarity"]=="UNRESOLVED":
+      return False
    review=review_official_positive(browser,req,dim,r16,shared)
    review["classification"]=ACTIVE_CLASS016
    review["active_class_016_query"]=r16["query"]
@@ -128,11 +151,14 @@ def evaluate(req,rschema,oschema):
  if nonmaterial_partial_count: reason_codes.append("NONMATERIAL_DEAD_UNRELATED_EXPANDED_PARTIAL_RECALL_BOUND")
  no_active_class016_count=sum(1 for _resolver,_dim,_r in rows if ((_r.get("positive_review") or {}).get("classification")==NO_ACTIVE_CLASS016))
  if no_active_class016_count: reason_codes.append("NO_ACTIVE_CLASS_016_IN_POSITIVE_SCOPE")
+ nonmaterial_distinctive_count=sum(1 for _resolver,_dim,_r in rows if ((_r.get("positive_review") or {}).get("classification")=="NONMATERIAL_EXPANDED_PARTIAL_NO_DISTINCTIVE_LIVE_CLASS_016"))
+ if nonmaterial_distinctive_count: reason_codes.append("NO_DISTINCTIVE_LIVE_CLASS_016_IN_EXPANDED_SCOPE")
  reason_codes=list(dict.fromkeys(reason_codes)); ev=[]; hashes=[]
  for resolver,dim,r in rows:
   h=jhash({"resolver":resolver,"dimension":dim,"record":r}); hashes.append(h); state=r.get("state") or r.get("terminal") or "OBSERVED"; review=r.get("positive_review") or {}
   if review.get("classification")==NONMATERIAL_PARTIAL: state="BOUND_NONMATERIAL_DEAD_UNRELATED_PARTIAL_RECALL"
   if review.get("classification")==NO_ACTIVE_CLASS016: state="FILTERED_NO_LIVE_CLASS_016"
+  if review.get("classification")=="NONMATERIAL_EXPANDED_PARTIAL_NO_DISTINCTIVE_LIVE_CLASS_016": state="FILTERED_NO_DISTINCTIVE_LIVE_CLASS_016"
   if review.get("classification")==ACTIVE_CLASS016: state="ACTIVE_CLASS_016_POSITIVE_SCOPE"
   ev.append({"resolver":resolver,"scope":f"{dim}:{r['query']}"[:240],"state":state[:120],"evidence_polarity":r["polarity"],"evidence_hash":h})
  out={"schema":"AVER_TM_RECEIPT","schema_version":"1.0","engine_version":ENGINE_VERSION,"engine_commit_sha":sha,"request_id":req["request_id"],"request_sha256":jhash(req),"decision":decision["decision"],"confidence_label":decision["confidence_label"],"legal_clearance_asserted":False,"decision_reason_codes":reason_codes,"query_plan":[{"dimension":d,"state":"RESOLVED" if dims[d] else "UNRESOLVED","resolver":"USPTO_OFFICIAL_DIRECT_FIELDTAG" if d!="RELATED_GOODS_REVIEW" else "A_VER_BOUND_RESULTSET_REVIEW"} for d in REQUIRED_DIMENSIONS],"resolver_evidence":ev,"material_records":material_records,"unresolved_dimensions":unresolved,"scope_coverage":{"required_query_dimensions_complete":complete,"resolver_scope_complete":complete,"negative_evidence_distinct_sources":2,"scope_qualified_negative_evidence_distinct_sources":qsources},"similarity_analysis":"CLEAR" if complete else "UNRESOLVED","goods_relatedness":"CLEAR" if complete else "UNRESOLVED","evidence_hashes":list(dict.fromkeys(hashes))}
