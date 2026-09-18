@@ -50,7 +50,9 @@ def _direct_sticker_goods_overlap(req,detail):
 def live_class016_query(q): return f"{q} AND LD:true AND IC:016"
 def _core_crowding_query(core): return oq(core)+" AND LD:true"
 def _core_context_query(core,token): return oq(core)+f" AND CM:{token.upper()} AND LD:true AND IC:016"
-COMMON_LOW_SIGNAL={"this","that","with","from","your","have","will","just","into","work","here","last","time","can"}\nCOMPONENT_GUARD_MAX_TOKEN_LENGTH=4\ndef distinctive_tokens(value):
+COMMON_LOW_SIGNAL={"this","that","with","from","your","have","will","just","into","work","here","last","time","can"}
+COMPONENT_GUARD_MAX_TOKEN_LENGTH=4
+def distinctive_tokens(value):
  toks=re.findall(r"[a-z0-9]+",(value or "").lower())
  ranked=[(i,t) for i,t in enumerate(toks) if len(t)>=4 and t not in COMMON_LOW_SIGNAL]
  ranked=sorted(ranked,key=lambda x:(-len(x[1]),x[0]))
