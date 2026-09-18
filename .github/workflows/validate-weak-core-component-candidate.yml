@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  CANDIDATE_SHA: 0caeed3fc88a7d71c68654476a382a142905f494
+  CANDIDATE_SHA: a3b82d767da018385aaa59a4b89caa2f79f9eae6
 
 jobs:
   deterministic:
