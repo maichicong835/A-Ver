@@ -5,7 +5,7 @@ on:
     paths:
       - 'src/aver/production.py'
       - 'tests/test_component_guard.py'
-      - '.github/workflows/weak-core-component-guard-shadow.yml'
+      - '.github/workflows/validate-weak-core-component-candidate.yml'
 permissions:
   contents: read
 
