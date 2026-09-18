@@ -50,8 +50,7 @@ def _direct_sticker_goods_overlap(req,detail):
 def live_class016_query(q): return f"{q} AND LD:true AND IC:016"
 def _core_crowding_query(core): return oq(core)+" AND LD:true"
 def _core_context_query(core,token): return oq(core)+f" AND CM:{token.upper()} AND LD:true AND IC:016"
-COMMON_LOW_SIGNAL={"this","that","with","from","your","have","will","just","into","work","here","last","time"}
-def distinctive_tokens(value):
+COMMON_LOW_SIGNAL={"this","that","with","from","your","have","will","just","into","work","here","last","time","can"}\nCOMPONENT_GUARD_MAX_TOKEN_LENGTH=4\ndef distinctive_tokens(value):
  toks=re.findall(r"[a-z0-9]+",(value or "").lower())
  ranked=[(i,t) for i,t in enumerate(toks) if len(t)>=4 and t not in COMMON_LOW_SIGNAL]
  ranked=sorted(ranked,key=lambda x:(-len(x[1]),x[0]))
@@ -63,6 +62,23 @@ def distinctive_live_class016_query(value):
  toks=distinctive_tokens(value)[:2]
  if len(toks)<2: return None
  return "CM:("+ " AND ".join(f"/.*{re.escape(t)}.*/" for t in toks) + ") AND LD:true AND IC:016"
+
+def _independent_component_candidates(wording,nonmaterial_cores,limit=3):
+ core_tokens=set()
+ for core in nonmaterial_cores:
+  core_tokens.update(_content_tokens(core))
+ out=[]
+ for i,t in enumerate(_content_tokens(wording)):
+  if t in core_tokens or t in COMMON_LOW_SIGNAL or len(t)>COMPONENT_GUARD_MAX_TOKEN_LENGTH:
+   continue
+  if t not in [x[2] for x in out]:
+   out.append((len(t),i,t))
+ out.sort(key=lambda x:(x[0],x[1],x[2]))
+ return [t for _,_,t in out[:limit]]
+
+def _body_has_exact_live_wordmark(record,token):
+ body=(record or {}).get("body_excerpt") or ""
+ return bool(re.search(r"\\bWordmark\\s+wordmark\\s+"+re.escape(token)+r"\\s+Status\\s+LIVE",body,re.I))
 
 def jhash(v): return hashlib.sha256(json.dumps(v,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
 def head():
@@ -82,7 +98,7 @@ def usp(browser,q):
  if r.get("state")=="PASS" and t.get("native_zero") is True: pol="NEGATIVE"
  elif t.get("positive") is True: pol="POSITIVE"
  else: pol="UNRESOLVED"
- return {"query":q,"state":r.get("state"),"failure":r.get("failure_signature"),"count":t.get("count"),"polarity":pol,"single_record_detail":t.get("single_record_detail"),"final_url":t.get("final_url")}
+ return {"query":q,"state":r.get("state"),"failure":r.get("failure_signature"),"count":t.get("count"),"polarity":pol,"single_record_detail":t.get("single_record_detail"),"final_url":t.get("final_url"),"body_excerpt":t.get("body_excerpt")}
 
 def tm(resolver,s):
  q='"'+s.replace('"','').strip()+'"'; r=resolver.search(q,"OPAQUE_ZERO"); t=r.get("terminal_result") or {}; term=t.get("terminal")
@@ -207,6 +223,18 @@ def evaluate(req,rschema,oschema):
    dims["CORE_DOMINANT_TOKEN"] &= resolve_official("CORE_DOMINANT_TOKEN",oq(c),c)
    dims["EXPANDED_PARTIAL"] &= resolve_official("EXPANDED_PARTIAL",pq(c),c)
   for q in ph: dims["PHONETIC_OR_SPELLING_WHEN_MATERIAL"] &= resolve_official("PHONETIC_OR_SPELLING_WHEN_MATERIAL",q,"PHONETIC_OR_SPELLING")
+  component_hold_tokens=[]
+  if nonmaterial_cores:
+   for tok in _independent_component_candidates(wording,nonmaterial_cores,limit=3):
+    cr=usp(browser,f"CM:{tok.upper()} AND LD:true AND IC:016")
+    if cr["polarity"]=="POSITIVE" and _body_has_exact_live_wordmark(cr,tok):
+     cr["positive_review"]={"classification":"ACTIVE_CLASS_016_COMPONENT_WORDMARK","record_binding_complete":False,"reason":"EXACT_COMPONENT_WORDMARK_LIVE_IN_CLASS_016_REQUIRES_BOUNDED_REVIEW","federal_scope_only":True,"common_law_clearance_asserted":False,"legal_clearance_asserted":False}
+     component_hold_tokens.append(tok.upper())
+     dims["CORE_DOMINANT_TOKEN"]=False
+    elif cr["polarity"]=="UNRESOLVED":
+     component_hold_tokens.append(tok.upper())
+     dims["CORE_DOMINANT_TOKEN"]=False
+    add("USPTO_OFFICIAL_COMPONENT_CLASS016","CORE_DOMINANT_TOKEN",cr,track_positive=False)
   t=tm(tr,wording); add("TRADEMARKIA_QUOTED_LITERAL","EXACT",t); tm_qualified &= t["polarity"]=="NEGATIVE" and t["bound"]
   for c in cores:
    t=tm(tr,c); key=normalize_wording(c)
@@ -233,6 +261,7 @@ def evaluate(req,rschema,oschema):
  dims["RELATED_GOODS_REVIEW"]=all(dims[d] for d in REQUIRED_DIMENSIONS if d!="RELATED_GOODS_REVIEW") and not material_positive_present
  unresolved=[d for d,v in dims.items() if not v]
  if material_positive_present: unresolved += ["MATERIAL_RECORD_BINDING_AND_RELATEDNESS_REVIEW"]
+ if component_hold_tokens: unresolved += ["ACTIVE_CLASS016_COMPONENT_WORDMARK_REVIEW"]
  if not tm_qualified and not material_positive_present: unresolved += ["SECOND_SCOPE_QUALIFIED_NEGATIVE_SOURCE"]
  unresolved=list(dict.fromkeys(unresolved)); complete=all(dims.values()) and not material_positive_present
  qsources=2 if complete and tm_qualified else 1 if complete else 0
@@ -245,6 +274,7 @@ def evaluate(req,rschema,oschema):
  if nonmaterial_distinctive_count: reason_codes.append("NO_DISTINCTIVE_LIVE_CLASS_016_IN_EXPANDED_SCOPE")
  weak_core_count=sum(1 for _resolver,_dim,_r in rows if ((_r.get("positive_review") or {}).get("classification")==NONMATERIAL_WEAK_CORE))
  if weak_core_count: reason_codes.append("NONMATERIAL_CROWDED_LOW_CONTEXT_CORE_CLASS_016_BOUND")
+ if component_hold_tokens: reason_codes.append("ACTIVE_CLASS_016_COMPONENT_WORDMARK_REQUIRES_BOUNDED_REVIEW")
  reason_codes=list(dict.fromkeys(reason_codes)); ev=[]; hashes=[]
  for resolver,dim,r in rows:
   h=jhash({"resolver":resolver,"dimension":dim,"record":r}); hashes.append(h); state=r.get("state") or r.get("terminal") or "OBSERVED"; review=r.get("positive_review") or {}
@@ -253,6 +283,7 @@ def evaluate(req,rschema,oschema):
   if review.get("classification")=="NONMATERIAL_EXPANDED_PARTIAL_NO_DISTINCTIVE_LIVE_CLASS_016": state="FILTERED_NO_DISTINCTIVE_LIVE_CLASS_016"
   if review.get("classification")==NONMATERIAL_WEAK_CORE: state="BOUND_NONMATERIAL_CROWDED_LOW_CONTEXT_CORE_CLASS_016"
   if review.get("classification")=="CORROBORATED_NONMATERIAL_WEAK_CORE": state="CORROBORATED_NONMATERIAL_WEAK_CORE"
+  if review.get("classification")=="ACTIVE_CLASS_016_COMPONENT_WORDMARK": state="ACTIVE_CLASS_016_COMPONENT_WORDMARK"
   if review.get("classification")==ACTIVE_CLASS016: state="ACTIVE_CLASS_016_POSITIVE_SCOPE"
   ev.append({"resolver":resolver,"scope":f"{dim}:{r['query']}"[:240],"state":state[:120],"evidence_polarity":r["polarity"],"evidence_hash":h})
  out={"schema":"AVER_TM_RECEIPT","schema_version":"1.0","engine_version":ENGINE_VERSION,"engine_commit_sha":sha,"request_id":req["request_id"],"request_sha256":jhash(req),"decision":decision["decision"],"confidence_label":decision["confidence_label"],"legal_clearance_asserted":False,"decision_reason_codes":reason_codes,"query_plan":[{"dimension":d,"state":"RESOLVED" if dims[d] else "UNRESOLVED","resolver":"USPTO_OFFICIAL_DIRECT_FIELDTAG" if d!="RELATED_GOODS_REVIEW" else "A_VER_BOUND_RESULTSET_REVIEW"} for d in REQUIRED_DIMENSIONS],"resolver_evidence":ev,"material_records":material_records,"unresolved_dimensions":unresolved,"scope_coverage":{"required_query_dimensions_complete":complete,"resolver_scope_complete":complete,"negative_evidence_distinct_sources":2,"scope_qualified_negative_evidence_distinct_sources":qsources},"similarity_analysis":"CLEAR" if complete else "UNRESOLVED","goods_relatedness":"CLEAR" if complete else "UNRESOLVED","evidence_hashes":list(dict.fromkeys(hashes))}
