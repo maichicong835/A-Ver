@@ -15,8 +15,41 @@ GRAMMAR=re.compile(r"^[A-Za-z0-9]+(?:[ -][A-Za-z0-9]+){1,2}[,.!?]?$",re.ASCII)
 NONMATERIAL_PARTIAL="NONMATERIAL_DEAD_UNRELATED_EXPANDED_PARTIAL_RECALL"
 NO_ACTIVE_CLASS016="NONMATERIAL_NO_ACTIVE_CLASS_016"
 ACTIVE_CLASS016="ACTIVE_CLASS_016_POSITIVE_SCOPE"
+NONMATERIAL_WEAK_CORE="NONMATERIAL_CROWDED_LOW_CONTEXT_CORE_CLASS_016"
+CORE_STOPWORDS={"a","an","and","are","as","at","be","by","for","from","i","in","is","it","of","on","or","the","to","we","with","you","your"}
+STICKER_RELATED_GOODS_ANCHORS={"sticker","stickers","decal","decals","label","labels","adhesive","bumper"}
+
+def _content_tokens(value):
+ return [t for t in re.findall(r"[a-z0-9]+",(value or "").lower()) if len(t)>1 and t not in CORE_STOPWORDS]
+
+def _weak_core_context_tokens(wording,core,limit=2):
+ core_set=set(_content_tokens(core)); out=[]; seen=set()
+ for i,t in enumerate(_content_tokens(wording)):
+  if t in core_set or t in seen: continue
+  seen.add(t); out.append((len(t),i,t))
+ out.sort(key=lambda x:(-x[0],x[1],x[2]))
+ return [t for _,_,t in out[:limit]]
+
+def _weak_core_shape(wording,core,record_mark):
+ cand=_content_tokens(wording); rec=_content_tokens(record_mark); shared=set(cand)&set(rec); core_set=set(_content_tokens(core))
+ return {
+  "candidate_content_tokens":cand,
+  "record_content_tokens":rec,
+  "core_content_tokens":sorted(core_set),
+  "shared_outside_core":sorted(shared-core_set),
+  "candidate_overlap_ratio":round(len(shared)/max(1,len(set(cand))),4),
+  "record_overlap_ratio":round(len(shared)/max(1,len(set(rec))),4),
+ }
+
+def _direct_sticker_goods_overlap(req,detail):
+ intended=set(_content_tokens(((req.get("intended_goods_context") or {}).get("description") or "")))
+ record=set(_content_tokens((detail or {}).get("goods_services_excerpt") or ""))
+ return bool({"sticker","stickers","decal","decals"} & intended) and bool(STICKER_RELATED_GOODS_ANCHORS & record)
+
 
 def live_class016_query(q): return f"{q} AND LD:true AND IC:016"
+def _core_crowding_query(core): return oq(core)+" AND LD:true"
+def _core_context_query(core,token): return oq(core)+f" AND CM:{token.upper()} AND LD:true AND IC:016"
 COMMON_LOW_SIGNAL={"this","that","with","from","your","have","will","just","into","work","here","last","time"}
 def distinctive_tokens(value):
  toks=re.findall(r"[a-z0-9]+",(value or "").lower())
@@ -37,7 +70,11 @@ def head():
  if re.fullmatch(r"[0-9a-f]{40}",v): return v
  return subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
 def oq(s): return 'CM:"'+s.replace('"','').strip()+'"'
-def pq(s): return "CM:("+" AND ".join(f"/.*{re.escape(x)}.*/" for x in re.findall(r"[a-z0-9]+",s.lower()))+")"
+def pq(s):
+ toks=re.findall(r"[a-z0-9]+",s.lower()); long=[x for x in toks if len(x)>3]; short=[x for x in toks if len(x)<=3]; parts=[]
+ if long: parts.append("CM:("+ " AND ".join(f"/.*{re.escape(x)}.*/" for x in long)+")")
+ parts.extend(f"CM:{x.upper()}" for x in short)
+ return " AND ".join(parts)
 def grammar_ok(s): return bool(GRAMMAR.fullmatch(s.strip()))
 
 def usp(browser,q):
@@ -75,7 +112,7 @@ def evaluate(req,rschema,oschema):
  wording=req["wording"].strip(); plan=build_query_plan(wording,[]); cores=plan["CORE_DOMINANT_TOKEN"]["queries"]; ph=plan["PHONETIC_OR_SPELLING_WHEN_MATERIAL"].get("queries") or []
  if not cores or not ph:
   out=hold(req,sha,["QUERY_PLAN_INCOMPLETE"],["CORE_DOMINANT_TOKEN","PHONETIC_OR_SPELLING_WHEN_MATERIAL"]); jsonschema.Draft202012Validator(oschema).validate(out); return out
- rows=[]; dims={d:True for d in REQUIRED_DIMENSIONS}; positive_entries=[]; unresolved_transport=False; tm_qualified=all(grammar_ok(c) for c in cores)
+ rows=[]; dims={d:True for d in REQUIRED_DIMENSIONS}; positive_entries=[]; nonmaterial_cores=set(); unresolved_transport=False; tm_qualified=all(grammar_ok(c) for c in cores)
  exe=os.getenv("AVER_BROWSER_EXECUTABLE") or None
  with sync_playwright() as p:
   launch={"headless":True}
@@ -87,12 +124,19 @@ def evaluate(req,rschema,oschema):
    if track_positive and rec["polarity"]=="POSITIVE": positive_entries.append((resolver,dim,rec))
   def resolve_official(dim,q,shared):
    r=usp(browser,q)
+   if r["polarity"]=="NEGATIVE":
+    add("USPTO_OFFICIAL_DIRECT_FIELDTAG",dim,r,track_positive=False)
+    return True
+   if r["polarity"]=="UNRESOLVED":
+    add("USPTO_OFFICIAL_DIRECT_FIELDTAG",dim,r,track_positive=False)
+    return False
+   # Whole-wording positives cannot be dismissed solely because the record is outside IC 016.
+   if dim in ("EXACT","NORMALIZED_EXACT"):
+    review=review_official_positive(browser,req,dim,r,shared)
+    r["positive_review"]=review
+    add("USPTO_OFFICIAL_DIRECT_FIELDTAG",dim,r,track_positive=True)
+    return False
    add("USPTO_OFFICIAL_DIRECT_FIELDTAG",dim,r,track_positive=False)
-   if r["polarity"]=="NEGATIVE": return True
-   if r["polarity"]=="UNRESOLVED": return False
-   # Operational Class-016 materiality rule:
-   # a broad USPTO positive can block stickers only when the same scope has a LIVE IC:016 hit.
-   # The narrower official filter must itself resolve; unresolved filter evidence fails closed.
    r16=usp(browser,live_class016_query(q))
    if r16["polarity"]=="NEGATIVE":
     add("USPTO_OFFICIAL_LIVE_IC016_FILTER",dim,r16,track_positive=False)
@@ -113,6 +157,45 @@ def evaluate(req,rschema,oschema):
      if rd["polarity"]=="UNRESOLVED":
       return False
    review=review_official_positive(browser,req,dim,r16,shared)
+   if dim=="CORE_DOMINANT_TOKEN" and review.get("record_binding_complete") and ((review.get("tsdr_status") or {}).get("state")=="LIVE_ACTIVE"):
+    detail=r16.get("single_record_detail") or {}
+    shape=_weak_core_shape(wording,shared,detail.get("mark_text") or "")
+    crowd=usp(browser,_core_crowding_query(shared))
+    add("USPTO_OFFICIAL_CORE_CROWDING",dim,crowd,track_positive=False)
+    ctx_tokens=_weak_core_context_tokens(wording,shared,limit=2); ctx=[]
+    for tok in ctx_tokens:
+     cr=usp(browser,_core_context_query(shared,tok))
+     add("USPTO_OFFICIAL_CORE_CONTEXT",dim,cr,track_positive=False)
+     ctx.append((tok,cr))
+    weak_core_ok=bool(
+      dims["EXACT"] and dims["NORMALIZED_EXACT"]
+      and len(shape["core_content_tokens"])<=3
+      and len(set(shape["candidate_content_tokens"]))>=5
+      and len(set(shape["record_content_tokens"]))>=4
+      and not shape["shared_outside_core"]
+      and shape["candidate_overlap_ratio"]<=0.40
+      and shape["record_overlap_ratio"]<=0.50
+      and crowd["polarity"]=="POSITIVE" and int(crowd.get("count") or 0)>=3
+      and len(ctx)>=2 and all(x[1]["polarity"]=="NEGATIVE" for x in ctx)
+      and not _direct_sticker_goods_overlap(req,detail)
+    )
+    if weak_core_ok:
+     review.update({
+      "classification":NONMATERIAL_WEAK_CORE,
+      "reason":"CROWDED_LOW_CONTEXT_CORE_WITHOUT_CANDIDATE_REINFORCEMENT_OR_DIRECT_STICKER_GOODS",
+      "core_crowding_live_count":int(crowd.get("count") or 0),
+      "context_reinforcement_tokens":[x[0] for x in ctx],
+      "context_reinforcement_all_live_ic016_zero":True,
+      "whole_mark_shape":shape,
+      "direct_sticker_goods_overlap":False,
+      "federal_scope_only":True,
+      "common_law_clearance_asserted":False,
+      "legal_clearance_asserted":False,
+     })
+     r16["positive_review"]=review
+     add("USPTO_OFFICIAL_LIVE_IC016_FILTER",dim,r16,track_positive=False)
+     nonmaterial_cores.add(normalize_wording(shared))
+     return True
    review["classification"]=ACTIVE_CLASS016
    review["active_class_016_query"]=r16["query"]
    r16["positive_review"]=review
@@ -126,7 +209,14 @@ def evaluate(req,rschema,oschema):
   for q in ph: dims["PHONETIC_OR_SPELLING_WHEN_MATERIAL"] &= resolve_official("PHONETIC_OR_SPELLING_WHEN_MATERIAL",q,"PHONETIC_OR_SPELLING")
   t=tm(tr,wording); add("TRADEMARKIA_QUOTED_LITERAL","EXACT",t); tm_qualified &= t["polarity"]=="NEGATIVE" and t["bound"]
   for c in cores:
-   t=tm(tr,c); add("TRADEMARKIA_QUOTED_LITERAL","CORE_DOMINANT_TOKEN",t); tm_qualified &= t["polarity"]=="NEGATIVE" and t["bound"]
+   t=tm(tr,c); key=normalize_wording(c)
+   if t["polarity"]=="POSITIVE" and key in nonmaterial_cores and t["bound"]:
+    t["positive_review"]={"classification":"CORROBORATED_NONMATERIAL_WEAK_CORE","official_materiality_authority":"USPTO","legal_clearance_asserted":False}
+    add("TRADEMARKIA_QUOTED_LITERAL","CORE_DOMINANT_TOKEN",t,track_positive=False)
+    tm_qualified &= True
+   else:
+    add("TRADEMARKIA_QUOTED_LITERAL","CORE_DOMINANT_TOKEN",t)
+    tm_qualified &= t["polarity"]=="NEGATIVE" and t["bound"]
   browser.close()
  material_positive=[]; all_positive_bound=True; material_records=[]; nonmaterial_partial_count=0
  for resolver,dim,r in positive_entries:
@@ -153,12 +243,16 @@ def evaluate(req,rschema,oschema):
  if no_active_class016_count: reason_codes.append("NO_ACTIVE_CLASS_016_IN_POSITIVE_SCOPE")
  nonmaterial_distinctive_count=sum(1 for _resolver,_dim,_r in rows if ((_r.get("positive_review") or {}).get("classification")=="NONMATERIAL_EXPANDED_PARTIAL_NO_DISTINCTIVE_LIVE_CLASS_016"))
  if nonmaterial_distinctive_count: reason_codes.append("NO_DISTINCTIVE_LIVE_CLASS_016_IN_EXPANDED_SCOPE")
+ weak_core_count=sum(1 for _resolver,_dim,_r in rows if ((_r.get("positive_review") or {}).get("classification")==NONMATERIAL_WEAK_CORE))
+ if weak_core_count: reason_codes.append("NONMATERIAL_CROWDED_LOW_CONTEXT_CORE_CLASS_016_BOUND")
  reason_codes=list(dict.fromkeys(reason_codes)); ev=[]; hashes=[]
  for resolver,dim,r in rows:
   h=jhash({"resolver":resolver,"dimension":dim,"record":r}); hashes.append(h); state=r.get("state") or r.get("terminal") or "OBSERVED"; review=r.get("positive_review") or {}
   if review.get("classification")==NONMATERIAL_PARTIAL: state="BOUND_NONMATERIAL_DEAD_UNRELATED_PARTIAL_RECALL"
   if review.get("classification")==NO_ACTIVE_CLASS016: state="FILTERED_NO_LIVE_CLASS_016"
   if review.get("classification")=="NONMATERIAL_EXPANDED_PARTIAL_NO_DISTINCTIVE_LIVE_CLASS_016": state="FILTERED_NO_DISTINCTIVE_LIVE_CLASS_016"
+  if review.get("classification")==NONMATERIAL_WEAK_CORE: state="BOUND_NONMATERIAL_CROWDED_LOW_CONTEXT_CORE_CLASS_016"
+  if review.get("classification")=="CORROBORATED_NONMATERIAL_WEAK_CORE": state="CORROBORATED_NONMATERIAL_WEAK_CORE"
   if review.get("classification")==ACTIVE_CLASS016: state="ACTIVE_CLASS_016_POSITIVE_SCOPE"
   ev.append({"resolver":resolver,"scope":f"{dim}:{r['query']}"[:240],"state":state[:120],"evidence_polarity":r["polarity"],"evidence_hash":h})
  out={"schema":"AVER_TM_RECEIPT","schema_version":"1.0","engine_version":ENGINE_VERSION,"engine_commit_sha":sha,"request_id":req["request_id"],"request_sha256":jhash(req),"decision":decision["decision"],"confidence_label":decision["confidence_label"],"legal_clearance_asserted":False,"decision_reason_codes":reason_codes,"query_plan":[{"dimension":d,"state":"RESOLVED" if dims[d] else "UNRESOLVED","resolver":"USPTO_OFFICIAL_DIRECT_FIELDTAG" if d!="RELATED_GOODS_REVIEW" else "A_VER_BOUND_RESULTSET_REVIEW"} for d in REQUIRED_DIMENSIONS],"resolver_evidence":ev,"material_records":material_records,"unresolved_dimensions":unresolved,"scope_coverage":{"required_query_dimensions_complete":complete,"resolver_scope_complete":complete,"negative_evidence_distinct_sources":2,"scope_qualified_negative_evidence_distinct_sources":qsources},"similarity_analysis":"CLEAR" if complete else "UNRESOLVED","goods_relatedness":"CLEAR" if complete else "UNRESOLVED","evidence_hashes":list(dict.fromkeys(hashes))}
