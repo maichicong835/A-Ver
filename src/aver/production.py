@@ -80,7 +80,7 @@ def _independent_component_candidates(wording,nonmaterial_cores,limit=3):
 
 def _body_has_exact_live_wordmark(record,token):
  body=(record or {}).get("body_excerpt") or ""
- return bool(re.search(r"\\bWordmark\\s+wordmark\\s+"+re.escape(token)+r"\\s+Status\\s+LIVE",body,re.I))
+ return bool(re.search(r"\bWordmark\s+wordmark\s+"+re.escape(token)+r"\s+Status\s+LIVE",body,re.I))
 
 def jhash(v): return hashlib.sha256(json.dumps(v,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode()).hexdigest()
 def head():
