@@ -40,7 +40,9 @@ jobs:
             {"name":"AMA_QUOTED_LIVE_016","query":"CM:\"AMA\" AND LD:true AND IC:016","expected":"POSITIVE"},
             {"name":"LAST_TIME_PLUS_AMA_LITERAL_LIVE_016","query":"CM:\"LAST TIME\" AND CM:AMA AND LD:true AND IC:016","expected":"ZERO"},
             {"name":"LAST_TIME_PLUS_LEAVE_LITERAL_LIVE_016","query":"CM:\"LAST TIME\" AND CM:LEAVE AND LD:true AND IC:016","expected":"ZERO"},
-            {"name":"LEAVE_PLUS_AMA_LITERAL_LIVE_016","query":"CM:LEAVE AND CM:AMA AND LD:true AND IC:016","expected":"ZERO"}
+            {"name":"LEAVE_PLUS_AMA_LITERAL_LIVE_016","query":"CM:LEAVE AND CM:AMA AND LD:true AND IC:016","expected":"ZERO"},
+            {"name":"LEAVE_REGEX_PLUS_AMA_LITERAL_LIVE_016","query":"CM:/.*leave.*/ AND CM:AMA AND LD:true AND IC:016","expected":"ZERO"},
+            {"name":"CAN_LITERAL_LEAVE_REGEX_AMA_LITERAL_LIVE_016","query":"CM:CAN AND CM:/.*leave.*/ AND CM:AMA AND LD:true AND IC:016","expected":"ZERO"}
           ]
           out=[]
           with sync_playwright() as p:
