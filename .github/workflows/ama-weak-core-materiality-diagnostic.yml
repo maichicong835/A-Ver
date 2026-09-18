@@ -1,0 +1,57 @@
+name: AMA Weak Core Materiality Diagnostic
+on:
+  push:
+    branches: [ama-weak-core-materiality-shadow-20260918]
+    paths:
+      - '.github/workflows/ama-weak-core-materiality-diagnostic.yml'
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Probe official scopes that distinguish weak shared core from candidate-specific overlap
+        env:
+          PYTHONPATH: src
+        run: |
+          mkdir -p artifacts/ama-weak-core
+          python3 - <<'PY'
+          import json
+          from playwright.sync_api import sync_playwright
+          from aver.uspto_fieldtag_direct_canary import run_case
+          cases=[
+            {"name":"FULL_EXACT_LIVE_016","query":"CM:\"FOR THE LAST TIME, YOU CAN'T LEAVE AMA YOU WORK HERE\" AND LD:true AND IC:016","expected":"ZERO"},
+            {"name":"LAST_TIME_ALL_LIVE","query":"CM:\"LAST TIME\" AND LD:true","expected":"POSITIVE"},
+            {"name":"LAST_TIME_LIVE_016","query":"CM:\"LAST TIME\" AND LD:true AND IC:016","expected":"POSITIVE"},
+            {"name":"FOR_THE_LAST_TIME_LIVE_016","query":"CM:\"FOR THE LAST TIME\" AND LD:true AND IC:016","expected":"POSITIVE"},
+            {"name":"CAN_LEAVE_AMA_LIVE_016","query":"CM:\"CAN LEAVE AMA\" AND LD:true AND IC:016","expected":"ZERO"},
+            {"name":"LEAVE_AMA_EXPANDED_LIVE_016","query":"CM:(/.*leave.*/ AND /.*ama.*/) AND LD:true AND IC:016","expected":"ZERO"},
+            {"name":"AMA_WORK_EXPANDED_LIVE_016","query":"CM:(/.*ama.*/ AND /.*work.*/) AND LD:true AND IC:016","expected":"ZERO"},
+            {"name":"LAST_TIME_AMA_EXPANDED_LIVE_016","query":"CM:(/.*last.*/ AND /.*time.*/ AND /.*ama.*/) AND LD:true AND IC:016","expected":"ZERO"}
+          ]
+          out=[]
+          with sync_playwright() as p:
+              b=p.chromium.launch(headless=True)
+              for case in cases:
+                  out.append(run_case(b,case))
+              b.close()
+          with open('artifacts/ama-weak-core/probe.json','w') as f:
+              json.dump(out,f,indent=2)
+          for r in out:
+              t=r.get('terminal') or {}
+              print(r['name'],r['state'],r.get('failure_signature'),'count=',t.get('count'),'detail=',t.get('single_record_detail'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ama-weak-core-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/ama-weak-core/
+          if-no-files-found: error
+          retention-days: 30
