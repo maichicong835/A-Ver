@@ -1,0 +1,138 @@
+name: Weak Core Component Guard Shadow
+on:
+  push:
+    branches: [weak-core-component-guard-shadow-20260918]
+    paths:
+      - 'src/aver/production.py'
+      - 'tests/test_component_guard.py'
+      - '.github/workflows/weak-core-component-guard-shadow.yml'
+permissions:
+  contents: read
+
+jobs:
+  deterministic:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: PYTHONPATH=src python3 tests/test_component_guard.py
+      - run: PYTHONPATH=src python3 tests/test_weak_core_materiality.py
+      - run: PYTHONPATH=src python3 tests/test_hold_calibration_class016.py
+      - run: PYTHONPATH=src python3 tests/test_long_phrase_release_minimal.py
+      - run: PYTHONPATH=src python3 tests/test_scope_semantics.py
+
+  real-cases:
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [ama, anxiety, exact_conflict]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - run: python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0 jsonschema==4.25.1
+      - run: python3 -m playwright install --with-deps chromium
+      - name: Build bounded request
+        run: |
+          mkdir -p artifacts/component-guard
+          if [ "${{ matrix.case }}" = "ama" ]; then
+            cat > artifacts/component-guard/request.json <<'JSON'
+          {
+            "schema":"AVER_TM_REQUEST","schema_version":"1.0",
+            "request_id":"daily7.20260915.2149.you-cant-leave-ama.corrected",
+            "wording":"FOR THE LAST TIME, YOU CAN'T LEAVE AMA YOU WORK HERE",
+            "intended_goods_context":{
+              "primary_class":"016","coordinated_classes":["025"],
+              "description":"Printed vinyl stickers and decals carrying healthcare workplace humor for personal decoration of laptops, water bottles, notebooks and similar surfaces.",
+              "channels":["Amazon US","Etsy US","online sticker marketplaces"],
+              "purchasers":["nurses","nursing students","healthcare workers","healthcare gift buyers"]
+            },
+            "requested_scope":{
+              "country":"US","federal_registry":true,"related_goods_review":true,
+              "query_dimensions":["EXACT","NORMALIZED_EXACT","CORE_DOMINANT_TOKEN","EXPANDED_PARTIAL","PHONETIC_OR_SPELLING_WHEN_MATERIAL","RELATED_GOODS_REVIEW"]
+            },
+            "caller":{"system":"Amazon-Daily7Source","reference":"component-guard exact AMA replay"}
+          }
+          JSON
+          elif [ "${{ matrix.case }}" = "anxiety" ]; then
+            cat > artifacts/component-guard/request.json <<'JSON'
+          {
+            "schema":"AVER_TM_REQUEST","schema_version":"1.0",
+            "request_id":"daily7-2026-09-15-2149-anxiety-is-my-cardio",
+            "wording":"ANXIETY IS MY CARDIO",
+            "intended_goods_context":{
+              "primary_class":"016",
+              "description":"Decorative vinyl stickers and decals for laptops, notebooks, phones, tablets, mirrors, water bottles, tumblers, planners, and journals.",
+              "channels":["Amazon US","Etsy US","online sticker marketplaces"],
+              "purchasers":["US consumers buying humorous decorative stickers and decals"]
+            },
+            "requested_scope":{
+              "country":"US","federal_registry":true,"related_goods_review":true,
+              "query_dimensions":["EXACT","NORMALIZED_EXACT","CORE_DOMINANT_TOKEN","EXPANDED_PARTIAL","PHONETIC_OR_SPELLING_WHEN_MATERIAL","RELATED_GOODS_REVIEW"]
+            },
+            "caller":{"system":"Amazon-Daily7Source","reference":"component-guard exact Anxiety replay"}
+          }
+          JSON
+          else
+            cat > artifacts/component-guard/request.json <<'JSON'
+          {
+            "schema":"AVER_TM_REQUEST","schema_version":"1.0",
+            "request_id":"weak-core.exact-conflict.canary",
+            "wording":"HOW TO LOSE WEIGHT FOR THE LAST TIME",
+            "intended_goods_context":{
+              "primary_class":"016",
+              "description":"Printed vinyl stickers and decals for laptops, notebooks and water bottles.",
+              "channels":["Amazon US","Etsy US"],
+              "purchasers":["US sticker buyers"]
+            },
+            "requested_scope":{
+              "country":"US","federal_registry":true,"related_goods_review":true,
+              "query_dimensions":["EXACT","NORMALIZED_EXACT","CORE_DOMINANT_TOKEN","EXPANDED_PARTIAL","PHONETIC_OR_SPELLING_WHEN_MATERIAL","RELATED_GOODS_REVIEW"]
+            },
+            "caller":{"system":"A-Ver","reference":"exact-conflict anti-laundering canary"}
+          }
+          JSON
+          fi
+      - name: Execute shadow production entrypoint
+        env:
+          AVER_ENGINE_COMMIT_SHA: ${{ github.sha }}
+        run: |
+          PYTHONPATH=src python3 src/aver/production_entrypoint.py             --request artifacts/component-guard/request.json             --output artifacts/component-guard/receipt.json
+      - name: Assert bounded semantics
+        env:
+          CASE: ${{ matrix.case }}
+        run: |
+          python3 - <<'PY'
+          import json,os
+          r=json.load(open('artifacts/component-guard/receipt.json'))
+          case=os.environ['CASE']
+          if case=='ama':
+              assert r['decision']=='TM_HOLD', r
+              assert 'NONMATERIAL_CROWDED_LOW_CONTEXT_CORE_CLASS_016_BOUND' in r['decision_reason_codes'], r
+              assert 'ACTIVE_CLASS_016_COMPONENT_WORDMARK_REQUIRES_BOUNDED_REVIEW' in r['decision_reason_codes'], r
+              assert 'ACTIVE_CLASS016_COMPONENT_WORDMARK_REVIEW' in r['unresolved_dimensions'], r
+              states=[x['state'] for x in r.get('resolver_evidence',[])]
+              assert 'BOUND_NONMATERIAL_CROWDED_LOW_CONTEXT_CORE_CLASS_016' in states, states
+              assert 'ACTIVE_CLASS_016_COMPONENT_WORDMARK' in states, states
+          elif case=='anxiety':
+              assert r['decision']=='TM_PASS', r
+              assert r['unresolved_dimensions']==[], r
+              assert r['scope_coverage']['scope_qualified_negative_evidence_distinct_sources']>=2
+          else:
+              assert r['decision']!='TM_PASS', r
+              assert any(x.get('scope','').startswith('EXACT:') and x.get('evidence_polarity')=='POSITIVE' for x in r.get('resolver_evidence',[])), r
+          assert r['legal_clearance_asserted'] is False
+          print(json.dumps({'case':case,'decision':r['decision'],'reasons':r.get('decision_reason_codes'),'unresolved':r.get('unresolved_dimensions')},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: component-guard-${{ matrix.case }}-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/component-guard/
+          if-no-files-found: error
+          retention-days: 30
