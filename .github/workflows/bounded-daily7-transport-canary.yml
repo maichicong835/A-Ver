@@ -46,17 +46,11 @@ jobs:
           from aver.uspto_fieldtag_direct_canary import run_case
 
           candidates={
-            "oh-this-calls-for-a-spreadsheet":[
-              'CM:"OH THIS CALLS FOR A SPREADSHEET"',
-              'CM:"CALLS FOR A SPREADSHEET"',
-              'CM:(/.*spreadsheet.*/ AND /.*calls.*/)',
-              'CM:(/.*spreadsheet.*/ AND /.*this.*/)'
-            ],
-            "psoas-i-was-saying":[
-              'CM:"PSOAS I WAS SAYING"',
-              'CM:"PSOAS"',
-              'CM:(/.*psoas.*/ AND /.*saying.*/)',
-              'CM:(/.*psoas.*/)'
+            "this-book-ruined-my-life-five-stars":[
+              'CM:"THIS BOOK RUINED MY LIFE 5 STARS"',
+              'CM:"THIS BOOK RUINED MY LIFE"',
+              'CM:(/.*book.*/ AND /.*ruined.*/ AND /.*life.*/)',
+              'CM:(/.*five.*/ AND /.*stars.*/ AND /.*book.*/)'
             ]
           }
           out={
@@ -68,7 +62,7 @@ jobs:
             "daily7_live_gate_authorized":False,
             "production_base_pin":"a3b82d767da018385aaa59a4b89caa2f79f9eae6",
             "reopened_layer_only":"TM_QUERY_EXECUTION_RESULTSET_TRANSPORT",
-            "selected_existing_holds":["oh-this-calls-for-a-spreadsheet","psoas-i-was-saying"],
+            "selected_existing_holds":["this-book-ruined-my-life-five-stars"],
             "same_resolver_shared_implementation":True,
             "cases":[],
             "release_proven":False
