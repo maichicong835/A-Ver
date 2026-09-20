@@ -46,17 +46,17 @@ jobs:
           from aver.uspto_fieldtag_direct_canary import run_case
 
           candidates={
-            "i-yell-at-spreadsheets":[
-              'CM:"I YELL AT SPREADSHEETS"',
-              'CM:"YELL AT SPREADSHEETS"',
-              'CM:(/.*yell.*/ AND /.*spreadsheet.*/)',
-              'CM:(/.*spreadsheets.*/ AND /.*yell.*/)'
+            "dont-over-dink-it":[
+              'CM:"DONT OVER DINK IT"',
+              'CM:"OVER DINK IT"',
+              'CM:(/.*dink.*/ AND /.*over.*/)',
+              'CM:(/.*dont.*/ AND /.*dink.*/)'
             ],
-            "librarians-original-search-engine":[
-              'CM:"LIBRARIANS THE ORIGINAL SEARCH ENGINE"',
-              'CM:"ORIGINAL SEARCH ENGINE"',
-              'CM:(/.*librarian.*/ AND /.*search.*/ AND /.*engine.*/)',
-              'CM:(/.*original.*/ AND /.*search.*/ AND /.*engine.*/)'
+            "engi-nearing-my-limit":[
+              'CM:"ENGI-NEARING MY LIMIT"',
+              'CM:"NEARING MY LIMIT"',
+              'CM:(/.*engi.*/ AND /.*limit.*/)',
+              'CM:(/.*nearing.*/ AND /.*limit.*/)'
             ]
           }
           out={
@@ -68,7 +68,7 @@ jobs:
             "daily7_live_gate_authorized":False,
             "production_base_pin":"a3b82d767da018385aaa59a4b89caa2f79f9eae6",
             "reopened_layer_only":"TM_QUERY_EXECUTION_RESULTSET_TRANSPORT",
-            "selected_existing_holds":["i-yell-at-spreadsheets","librarians-original-search-engine"],
+            "selected_existing_holds":["dont-over-dink-it","engi-nearing-my-limit"],
             "same_resolver_shared_implementation":True,
             "cases":[],
             "release_proven":False
