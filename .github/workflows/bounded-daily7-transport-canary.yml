@@ -46,17 +46,17 @@ jobs:
           from aver.uspto_fieldtag_direct_canary import run_case
 
           candidates={
-            "dont-over-dink-it":[
-              'CM:"DONT OVER DINK IT"',
-              'CM:"OVER DINK IT"',
-              'CM:(/.*dink.*/ AND /.*over.*/)',
-              'CM:(/.*dont.*/ AND /.*dink.*/)'
+            "oh-this-calls-for-a-spreadsheet":[
+              'CM:"OH THIS CALLS FOR A SPREADSHEET"',
+              'CM:"CALLS FOR A SPREADSHEET"',
+              'CM:(/.*spreadsheet.*/ AND /.*calls.*/)',
+              'CM:(/.*spreadsheet.*/ AND /.*this.*/)'
             ],
-            "engi-nearing-my-limit":[
-              'CM:"ENGI-NEARING MY LIMIT"',
-              'CM:"NEARING MY LIMIT"',
-              'CM:(/.*engi.*/ AND /.*limit.*/)',
-              'CM:(/.*nearing.*/ AND /.*limit.*/)'
+            "psoas-i-was-saying":[
+              'CM:"PSOAS I WAS SAYING"',
+              'CM:"PSOAS"',
+              'CM:(/.*psoas.*/ AND /.*saying.*/)',
+              'CM:(/.*psoas.*/)'
             ]
           }
           out={
@@ -68,7 +68,7 @@ jobs:
             "daily7_live_gate_authorized":False,
             "production_base_pin":"a3b82d767da018385aaa59a4b89caa2f79f9eae6",
             "reopened_layer_only":"TM_QUERY_EXECUTION_RESULTSET_TRANSPORT",
-            "selected_existing_holds":["dont-over-dink-it","engi-nearing-my-limit"],
+            "selected_existing_holds":["oh-this-calls-for-a-spreadsheet","psoas-i-was-saying"],
             "same_resolver_shared_implementation":True,
             "cases":[],
             "release_proven":False
