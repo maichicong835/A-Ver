@@ -1,5 +1,7 @@
 # A-Ver Architecture
 
+> **Current-state note (2026-09-22):** `CURRENT.json` and `spec/engine.json` are the runtime authority. Sections below that describe first-shadow, deep-shadow, G4/G5/G6 or pre-G7 gates are preserved as historical closure chronology, not as currently open production gates. A-Ver is `PRODUCTION_APPROVED_SCOPED`; caller live authorization remains caller-owned and external side effects remain forbidden.
+
 ## 1. System boundary
 
 A-Ver has one responsibility: **resolve trademark evidence and produce a reconstructable trademark verification receipt**.
