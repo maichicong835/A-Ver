@@ -4,6 +4,17 @@ on:
   push:
     branches: [main]
     paths:
+      - 'README.md'
+      - 'CURRENT.json'
+      - 'spec/**'
+      - 'docs/**'
+      - 'tests/**'
+      - 'src/aver/record_interpretation.py'
+      - '.github/workflows/authority-guard.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'README.md'
       - 'CURRENT.json'
       - 'spec/**'
       - 'docs/**'
