@@ -4,7 +4,7 @@ A-Ver is an independent trademark evidence-resolution engine. It is intentionall
 
 ## Current state
 
-`ACCEPTANCE_ONLY` — A-Ver is proving resolver capabilities on GitHub-hosted runners. Acceptance evidence cannot produce a production trademark PASS/KILL/HOLD for an external engine until the explicit promotion gate is completed.
+`PRODUCTION_APPROVED_SCOPED` — A-Ver may emit scoped production `TM_PASS` / `TM_HOLD` / `TM_KILL` receipts through its versioned interface. `CURRENT.json` and `spec/engine.json` are the machine authority; production callers must bind an exact approved A-Ver commit rather than track mutable `main`. A-Ver does not authorize a caller's live gate or external side effects: Daily7 owns its own G7 live authorization and validates the exact-pin receipt before changing caller state.
 
 ## Authority
 
