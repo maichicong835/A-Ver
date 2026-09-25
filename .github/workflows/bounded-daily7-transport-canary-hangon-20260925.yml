@@ -1,0 +1,104 @@
+name: Bounded Daily7 Transport Resolver Canary Hang-On 2026-09-25
+
+on:
+  push:
+    branches: [bounded-daily7-transport-canary-hangon-20260925]
+    paths:
+      - '.github/workflows/bounded-daily7-transport-canary-hangon-20260925.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Verify exact production base
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 'a3b82d767da018385aaa59a4b89caa2f79f9eae6' HEAD
+          echo BOUNDED_CANARY_BASE_PIN_PASS
+
+      - name: Install resolver runtime
+        run: |
+          python3 -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+          python3 -m playwright install --with-deps chromium
+
+      - name: Probe only failed transport/resultset layer on existing Hang-On hold
+        shell: bash
+        env:
+          PYTHONPATH: src
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/bounded-transport-canary
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+          from aver.uspto_fieldtag_direct_canary import run_case
+
+          candidate="hang-on-over-engineer-this"
+          queries=[
+            'CM:"HANG ON LET ME OVER ENGINEER THIS"',
+            'CM:"LET ME OVER ENGINEER THIS"',
+            'CM:(/.*over.*/ AND /.*engineer.*/ AND /.*this.*/)'
+          ]
+          out={
+            "schema":"AVER_BOUNDED_DAILY7_TRANSPORT_RESOLVER_CANARY",
+            "schema_version":"1.0",
+            "shadow_only":True,
+            "candidate_breadth_expanded":False,
+            "tm_decision_authorized":False,
+            "daily7_live_gate_authorized":False,
+            "production_base_pin":"a3b82d767da018385aaa59a4b89caa2f79f9eae6",
+            "reopened_layer_only":"TM_QUERY_EXECUTION_RESULTSET_TRANSPORT",
+            "selected_existing_holds":[candidate],
+            "same_resolver_shared_implementation":True,
+            "cases":[],
+            "release_proven":False
+          }
+          with sync_playwright() as p:
+            browser=p.chromium.launch(headless=True)
+            for i,q in enumerate(queries,1):
+              raw=run_case(browser,{"name":f"{candidate}-{i}","query":q,"expected":"ZERO"})
+              t=raw.get("terminal") or {}
+              resolved=bool(not t.get("control_blocked") and (t.get("positive") or t.get("native_zero")))
+              out["cases"].append({
+                "candidate_key":candidate,
+                "query":q,
+                "raw_state":raw.get("state"),
+                "failure_signature":raw.get("failure_signature"),
+                "result_count":t.get("count"),
+                "positive":bool(t.get("positive")),
+                "native_zero":bool(t.get("native_zero")),
+                "control_blocked":bool(t.get("control_blocked")),
+                "transport_resultset_resolved":resolved,
+                "final_url":t.get("final_url")
+              })
+            browser.close()
+          vals=[x["transport_resultset_resolved"] for x in out["cases"]]
+          out["candidate_release"]={candidate:all(vals)}
+          out["release_proven"]=all(vals)
+          out["result"]="TRANSPORT_BLOCKER_RELEASE_PROVEN" if out["release_proven"] else "TRANSPORT_BLOCKER_CANARY_UNRESOLVED"
+          Path("artifacts/bounded-transport-canary/receipt.json").write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps({"result":out["result"],"candidate_release":out["candidate_release"]},sort_keys=True))
+          if not out["release_proven"]:
+            raise SystemExit("BOUNDED_TRANSPORT_CANARY_UNRESOLVED")
+          PY
+
+      - name: Upload immutable bounded canary evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bounded-daily7-transport-canary-hangon-20260925-${{ github.run_id }}-${{ github.sha }}
+          path: artifacts/bounded-transport-canary/
+          if-no-files-found: error
+          retention-days: 30
